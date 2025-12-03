@@ -13,7 +13,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCity = 'All Cities';
 
-  // متغيرات الفلترة الجديدة
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
   bool _showAllApartments = false;
