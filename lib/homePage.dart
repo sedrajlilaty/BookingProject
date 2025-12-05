@@ -1,5 +1,8 @@
+// apartment_booking_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/customButtomNavigation.dart';
 
 class ApartmentBookingScreen extends StatefulWidget {
   const ApartmentBookingScreen({super.key});
@@ -9,17 +12,48 @@ class ApartmentBookingScreen extends StatefulWidget {
 }
 
 class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
-  int _currentIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _selectedCity = 'All Cities';
-
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
   bool _showAllApartments = false;
-
+  int _currentIndex = 0;
   // متغيرات جديدة للغة والوضع
   bool _isEnglish = true;
   bool _isDarkMode = false;
+
+  void _navigateToPage(int index) {
+    if (_currentIndex == index) return;
+
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // هنا يمكنك إضافة التنقل بين الصفحات
+    switch (index) {
+      case 0:
+        // نحن بالفعل في الصفحة الرئيسية
+        break;
+      case 1:
+        print('Navigating to Favorites');
+        // Navigator.push(context, MaterialPageRoute(
+        //   builder: (context) => FavoritesScreen(),
+        // ));
+        break;
+      case 2:
+        print('Navigating to My Bookings');
+        // Navigator.push(context, MaterialPageRoute(
+        //   builder: (context) => BookingsScreen(),
+        // ));
+        break;
+      case 3:
+        print('Navigating to Profile');
+        // Navigator.push(context, MaterialPageRoute(
+        //   builder: (context) => ProfileScreen(),
+        // ));
+        break;
+    }
+  }
 
   final List<String> _cities = [
     'All Cities',
@@ -268,7 +302,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ],
       ),
-      endDrawer: _buildEndDrawer(),
+      endDrawer: EndDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -301,111 +335,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildCustomBottomNavigationBar(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print('Add button pressed');
-        },
-        backgroundColor: accentColor,
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
-        elevation: 2,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-
-  Widget _buildCustomBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _isDarkMode ? Colors.grey[800] : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomAppBar(
-        color: _isDarkMode ? Colors.grey[800] : Colors.white,
-        height: 70,
-        notchMargin: 10,
-        shape: const CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildBottomBarItem(
-              Icons.home_outlined,
-              Icons.home,
-              _isEnglish ? 'Home' : 'الرئيسية',
-              0,
-            ),
-            _buildBottomBarItem(
-              Icons.favorite_outlined,
-              Icons.favorite,
-              _isEnglish ? 'Favorite' : 'المفضلة',
-              1,
-            ),
-            const SizedBox(width: 40),
-            _buildBottomBarItem(
-              Icons.book_online_outlined,
-              Icons.book_online,
-              _isEnglish ? 'My Booking' : 'حجوزاتي',
-              2,
-            ),
-            _buildBottomBarItem(
-              Icons.person_outlined,
-              Icons.person,
-              _isEnglish ? 'Profile' : 'الملف',
-              3,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBarItem(
-    IconData icon,
-    IconData activeIcon,
-    String label,
-    int index,
-  ) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _currentIndex == index ? activeIcon : icon,
-              color:
-                  _currentIndex == index
-                      ? accentColor
-                      : (_isDarkMode ? Colors.grey[400] : Colors.grey),
-              size: 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color:
-                    _currentIndex == index
-                        ? accentColor
-                        : (_isDarkMode ? Colors.grey[400] : Colors.grey),
-                fontWeight:
-                    _currentIndex == index
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: CustomBottomNavBar(
+        // بدلاً من _buildCustomBottomNavigationBar()
+        currentIndex: _currentIndex,
+        onTabChanged: _navigateToPage,
+        activeColor: accentColor,
       ),
     );
   }
@@ -760,195 +694,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           GestureDetector(
             onTap: onRemove,
             child: Icon(Icons.close, color: accentColor, size: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEndDrawer() {
-    return Drawer(
-      backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: _isDarkMode ? Colors.grey[800] : cardBackgroundColor,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: accentColor,
-                  child: Icon(Icons.person, size: 40, color: Colors.white),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'John Doe',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _isDarkMode ? Colors.white : Colors.grey[800],
-                  ),
-                ),
-                Text(
-                  'john.doe@example.com',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Language Toggle
-          ListTile(
-            leading: Icon(
-              Icons.language,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Language / اللغة' : 'Language / اللغة',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            trailing: Switch(
-              value: _isEnglish,
-              onChanged: (value) {
-                _toggleLanguage();
-                Navigator.pop(context);
-              },
-              activeColor: accentColor,
-            ),
-            subtitle: Text(
-              _isEnglish ? 'English / عربي' : 'English / عربي',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-          ),
-
-          // Theme Toggle
-          ListTile(
-            leading: Icon(
-              _isDarkMode ? Icons.dark_mode : Icons.light_mode,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Dark Mode' : 'الوضع الليلي',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            trailing: Switch(
-              value: _isDarkMode,
-              onChanged: (value) {
-                _toggleTheme();
-                Navigator.pop(context);
-              },
-              activeColor: accentColor,
-            ),
-            subtitle: Text(
-              _isEnglish
-                  ? 'Toggle dark/light mode'
-                  : 'تبديل الوضع الليلي/النهاري',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
-              ),
-            ),
-          ),
-
-          const Divider(),
-
-          ListTile(
-            leading: Icon(
-              Icons.person_outline,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Profile' : 'الملف الشخصي',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.settings_outlined,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Settings' : 'الإعدادات',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.help_outline,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Help & Support' : 'المساعدة والدعم',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(
-              Icons.privacy_tip_outlined,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'Privacy Policy' : 'سياسة الخصوصية',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.logout_outlined, color: Colors.red),
-            title: Text(
-              _isEnglish ? 'Logout' : 'تسجيل الخروج',
-              style: const TextStyle(color: Colors.red),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(
-              Icons.info_outline,
-              color: _isDarkMode ? Colors.white : Colors.black,
-            ),
-            title: Text(
-              _isEnglish ? 'About' : 'حول التطبيق',
-              style: TextStyle(
-                color: _isDarkMode ? Colors.white : Colors.black,
-              ),
-            ),
-            onTap: () {
-              Navigator.pop(context);
-            },
           ),
         ],
       ),
