@@ -1013,7 +1013,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green[700],
+                            color: accentColor,
                           ),
                         ),
                       ],

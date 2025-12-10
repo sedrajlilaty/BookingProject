@@ -67,7 +67,7 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
             Padding(
               padding: const EdgeInsets.only(top: 40.0),
               child: Icon(
-                Icons.house_rounded, // أو Icons.home
+                Icons.home_work, // أو Icons.home
                 size: 120,
                 color: accentColor, // لون ذهبي #DDA15E
               ),

@@ -468,7 +468,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Icon(
-                              Icons.house_rounded,
+                              Icons.home_work,
                               size: 150,
                               color:
                                   _isLoading
@@ -535,13 +535,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: 20),
 
                         // حقل البريد الإلكتروني
-                        _buildInputField(
-                          hintText: 'البريد الإلكتروني',
-                          icon: Icons.email,
-                          keyboardType: TextInputType.emailAddress,
-                          controller: _emailController,
-                        ),
-                        const SizedBox(height: 20),
 
                         // حقل كلمة المرور
                         _buildInputField(

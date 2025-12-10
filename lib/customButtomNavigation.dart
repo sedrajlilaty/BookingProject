@@ -1,8 +1,7 @@
-// custom_bottom_nav_bar.dart
+// custom_bottom_nav_bar.dart - الإصدار مع BottomAppBar
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/constants.dart';
 
-////////
-///ملاحظة وقت بدكن حدطوه بالصفحات بس عينو ال currentindex  وبعدا استدوعوه بمكان ال buttomNavigationButtom
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTabChanged;
@@ -12,76 +11,84 @@ class CustomBottomNavBar extends StatelessWidget {
     Key? key,
     required this.currentIndex,
     required this.onTabChanged,
-    this.activeColor = Colors.blue,
+    this.activeColor = accentColor,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[900] : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+    return BottomAppBar(
+      color: isDarkMode ? Colors.grey[900] : Colors.white,
+      height: 70,
+      notchMargin: 10,
+      shape: const CircularNotchedRectangle(),
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween, // تغيير إلى spaceBetween
+        children: [
+          // العناصر اليسرى
+          _buildNavSection(
+            context: context,
+            startIndex: 0,
+            endIndex: 1, // العنصرين الأولين
+          ),
+          // العناصر اليمنى
+          _buildNavSection(
+            context: context,
+            startIndex: 2,
+            endIndex: 3, // العنصرين الأخيرين
           ),
         ],
-      ),
-      child: BottomAppBar(
-        color: isDarkMode ? Colors.grey[900] : Colors.white,
-        height: 70,
-        notchMargin: 10,
-        shape: const CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              context: context,
-              icon: Icons.home_outlined,
-              activeIcon: Icons.home,
-              label: 'Home',
-              index: 0,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.favorite_outlined,
-              activeIcon: Icons.favorite,
-              label: 'Favorite',
-              index: 1,
-            ),
-            const SizedBox(width: 40),
-            _buildNavItem(
-              context: context,
-              icon: Icons.book_online_outlined,
-              activeIcon: Icons.book_online,
-              label: 'My Booking',
-              index: 2,
-            ),
-            _buildNavItem(
-              context: context,
-              icon: Icons.person_outlined,
-              activeIcon: Icons.person,
-              label: 'Profile',
-              index: 3,
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildNavItem({
+  Widget _buildNavSection({
     required BuildContext context,
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required int index,
+    required int startIndex,
+    required int endIndex,
   }) {
+    return Flexible(
+      fit: FlexFit.tight,
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceEvenly, // مسافات متساوية داخل كل قسم
+        children: [
+          for (int i = startIndex; i <= endIndex; i++)
+            _buildNavItem(context: context, index: i),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({required BuildContext context, required int index}) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final bool isActive = currentIndex == index;
+
+    // تحديد الأيقونة والنص لكل مؤشر
+    final Map<int, Map<String, dynamic>> navItems = {
+      0: {
+        'icon': Icons.home_outlined,
+        'activeIcon': Icons.home,
+        'label': 'Home',
+      },
+      1: {
+        'icon': Icons.favorite_outlined,
+        'activeIcon': Icons.favorite,
+        'label': 'Favorite',
+      },
+      2: {
+        'icon': Icons.book_online_outlined,
+        'activeIcon': Icons.book_online,
+        'label': 'Booking',
+      },
+      3: {
+        'icon': Icons.person_outlined,
+        'activeIcon': Icons.person,
+        'label': 'Profile',
+      },
+    };
 
     return Expanded(
       child: InkWell(
@@ -90,7 +97,9 @@ class CustomBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isActive ? activeIcon : icon,
+              isActive
+                  ? navItems[index]!['activeIcon']
+                  : navItems[index]!['icon'],
               color:
                   isActive
                       ? activeColor
@@ -99,7 +108,7 @@ class CustomBottomNavBar extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              label,
+              navItems[index]!['label'] as String,
               style: TextStyle(
                 fontSize: 12,
                 color:

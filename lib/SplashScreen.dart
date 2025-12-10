@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/welcomeScreen2.dart';
 import 'dart:async';
 import 'constants.dart';
-import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,40 +17,156 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+        MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: primaryBackgroundColor, // اللون الجديد #283618
-      body: Stack(
-        children: <Widget>[
-          // أيقونة المنزل الذهبية في المركز
-          Center(
-            child: Icon(
-              Icons.house_rounded, // أو Icons.home
-              size: 120,
-              color: accentColor, // لون ذهبي #DDA15E
-            ),
-          ),
-
-          // طبقة فوقية للمؤشر
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                const CircularProgressIndicator(
-                  color: accentColor, // لون متناسق مع الخلفية
-                  strokeWidth: 3.0,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: primaryBackgroundColor,
+        body: Stack(
+          children: <Widget>[
+            // طبقة خلفية مع التدرج اللوني
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    primaryBackgroundColor,
+                    primaryBackgroundColor.withOpacity(0.8),
+                    Colors.white.withOpacity(0.1),
+                  ],
                 ),
-                const SizedBox(height: 50),
-              ],
+              ),
             ),
-          ),
-        ],
+
+            // المحتوى الرئيسي
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  // أيقونة المنزل الذهبية مع ظل
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardBackgroundColor,
+                      borderRadius: BorderRadius.circular(100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: cardBackgroundColor,
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Icon(
+                        Icons.home_work,
+                        size: 120,
+                        color: accentColor,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // اسم التطبيق مع التصميم المميز
+                  ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return LinearGradient(
+                        colors: [accentColor, accentColor.withOpacity(0.8)],
+                      ).createShader(bounds);
+                    },
+                    child: const Text(
+                      'Royal Rent',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // شعار التطبيق
+                  const SizedBox(height: 50),
+
+                  // مؤشر التحميل بمظهر أكثر تطوراً
+                  SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                accentColor.withOpacity(0.3),
+                              ),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                accentColor,
+                              ),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // نص تحميل
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Text(
+                      'جاري التحميل...',
+                      style: TextStyle(
+                        color: darkTextColor.withOpacity(0.6),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // عنصر زخرفي في الزاوية السفلية
+            Positioned(
+              bottom: 30,
+              left: 30,
+              child: Opacity(
+                opacity: 0.1,
+                child: Icon(Icons.home_work, size: 80, color: accentColor),
+              ),
+            ),
+
+            Positioned(
+              bottom: 30,
+              right: 30,
+              child: Opacity(
+                opacity: 0.1,
+                child: Icon(Icons.home_work, size: 80, color: accentColor),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
