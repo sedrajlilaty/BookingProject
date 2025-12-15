@@ -6,21 +6,21 @@ import 'package:flutter_application_8/favorateScreen.dart';
 import 'package:flutter_application_8/myBookingScreen.dart';
 import 'package:flutter_application_8/profile.dart';
 
-class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({super.key});
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: _currentIndex);
+    _pageController = PageController();
   }
 
   @override

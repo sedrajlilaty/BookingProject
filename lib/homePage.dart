@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_application_8/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
-import 'package:flutter_application_8/customButtomNavigation.dart';
 
 import 'AppartementDetails.dart';
 
@@ -20,43 +19,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
   bool _showAllApartments = false;
-  int _currentIndex = 0;
-  // متغيرات جديدة للغة والوضع
   bool _isEnglish = true;
   bool _isDarkMode = false;
 
-  void _navigateToPage(int index) {
-    if (_currentIndex == index) return;
-
-    setState(() {
-      _currentIndex = index;
-    });
-
-    // هنا يمكنك إضافة التنقل بين الصفحات
-    switch (index) {
-      case 0:
-        // نحن بالفعل في الصفحة الرئيسية
-        break;
-      case 1:
-        print('Navigating to Favorites');
-        // Navigator.push(context, MaterialPageRoute(
-        //   builder: (context) => FavoritesScreen(),
-        // ));
-        break;
-      case 2:
-        print('Navigating to My Bookings');
-        // Navigator.push(context, MaterialPageRoute(
-        //   builder: (context) => BookingsScreen(),
-        // ));
-        break;
-      case 3:
-        print('Navigating to Profile');
-        // Navigator.push(context, MaterialPageRoute(
-        //   builder: (context) => ProfileScreen(),
-        // ));
-        break;
-    }
-  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<String> _cities = [
     'All Cities',
@@ -97,6 +63,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'image':
           'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
       'description': 'شقة فاخرة مع إطلالة رائعة على سنترال بارك',
+      'fallbackColor': Colors.blue[100],
     },
     {
       'id': 2,
@@ -107,6 +74,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'image':
           'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&fit=crop',
       'description': 'شقة حديثة في وسط المدينة مع وسائل راحة متطورة',
+      'fallbackColor': Colors.orange[100],
     },
     {
       'id': 3,
@@ -117,6 +85,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'image':
           'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
       'description': 'استوديو عصري في قلب شيكاغو',
+      'fallbackColor': Colors.grey[200],
     },
     {
       'id': 4,
@@ -127,6 +96,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'image':
           'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
       'description': 'كوندو مع إطلالة مباشرة على الشاطئ',
+      'fallbackColor': Colors.lightBlue[100],
     },
     {
       'id': 5,
@@ -135,8 +105,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'price': 3000,
       'area': 2000,
       'image':
-          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
+          'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&fit=crop',
       'description': 'بنتهاوس فاخر مع إطلالة بانورامية على المدينة',
+      'fallbackColor': Colors.amber[100],
     },
     {
       'id': 6,
@@ -147,6 +118,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'image':
           'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&fit=crop',
       'description': 'شقة تاريخية في حي لندني تقليدي',
+      'fallbackColor': Colors.brown[100],
     },
     {
       'id': 7,
@@ -155,8 +127,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'price': 1400,
       'area': 750,
       'image':
-          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
+          'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&fit=crop',
       'description': 'شقة أنيقة في قلب باريس',
+      'fallbackColor': Colors.pink[100],
     },
     {
       'id': 8,
@@ -165,19 +138,18 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'price': 2500,
       'area': 1800,
       'image':
-          'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
+          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&fit=crop',
       'description': 'لوفت واسع بتصميم صناعي عصري',
+      'fallbackColor': Colors.indigo[100],
     },
   ];
-
-  // مفتاح للوصول إلى Scaffold
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
+
+
 
   // دالة الفلترة
   List<Map<String, dynamic>> get _filteredApartments {
@@ -294,7 +266,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       key: _scaffoldKey,
       backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.white,
 
-      // في دالة build، استبدل AppBar الحالي بهذا:
+      // AppBar
       appBar: AppBar(
         backgroundColor: _isDarkMode ? Colors.grey[900] : accentColor,
         elevation: 4,
@@ -424,12 +396,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: CustomBottomNavBar(
-        // بدلاً من _buildCustomBottomNavigationBar()
-        currentIndex: _currentIndex,
-        onTabChanged: _navigateToPage,
-        activeColor: accentColor,
-      ),
+
     );
   }
 
@@ -1026,17 +993,21 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // صورة الشقة
                     Container(
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: Colors.blueGrey[100],
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(8),
                           topRight: Radius.circular(8),
                         ),
-                        image: DecorationImage(
-                          image: NetworkImage(apartment['image']),
-                          fit: BoxFit.cover,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.home,
+                          color: Colors.blueGrey[400],
+                          size: 40,
                         ),
                       ),
                     ),

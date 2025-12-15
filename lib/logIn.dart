@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/AddApartement.dart';
-import 'package:flutter_application_8/homePage.dart';
+import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/signUp.dart';
 import 'constants.dart';
 
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (_userType == 'مستأجر') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ApartmentBookingScreen()),
+          MaterialPageRoute(builder: (context) => MainNavigationScreen()),
         );
       }
     } catch (e) {

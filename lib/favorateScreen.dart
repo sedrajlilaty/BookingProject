@@ -1,70 +1,89 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 
-class FavoritesScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> apartments;
+class FavoritesScreen extends StatefulWidget {
+  const FavoritesScreen({super.key});
 
-  const FavoritesScreen({super.key, required this.apartments});
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final favoriteApartments =
-        apartments.where((apt) => apt['isFavorite']).toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Favorites'),
+        title: const Text('المفضلة'),
         backgroundColor: accentColor,
+        automaticallyImplyLeading: false,
       ),
-      body:
-          favoriteApartments.isEmpty
-              ? Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.favorite, color: accentColor, size: 30),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'شقتك المفضلة',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text('احفظ شققك المفضلة هنا'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Expanded(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.favorite_border,
-                      size: 60,
+                      size: 80,
                       color: Colors.grey[400],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
-                      'No favorites yet',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      'لا توجد شقق مفضلة بعد',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
-                      'Add apartments to your favorites',
-                      style: TextStyle(color: Colors.grey[500]),
+                      'ابدأ بإضافة شقق إلى قائمة المفضلة',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-              )
-              : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: favoriteApartments.length,
-                itemBuilder: (context, index) {
-                  final apartment = favoriteApartments[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      leading: Image.network(
-                        apartment['image'],
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      ),
-                      title: Text(apartment['title']),
-                      subtitle: Text(
-                        '${apartment['city']} • \$${apartment['price']}/month',
-                      ),
-                      trailing: Icon(Icons.favorite, color: Colors.red),
-                    ),
-                  );
-                },
               ),
+            ),
+          ],
+        ),
+      ),
+
     );
   }
 }
-
-// صفحة الحجوزات

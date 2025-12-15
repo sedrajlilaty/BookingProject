@@ -566,12 +566,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (_userType == 'مؤجر') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => AddApartmentScreen()),
+          MaterialPageRoute(builder: (context) => const AddApartmentScreen()),
         );
       } else if (_userType == 'مستأجر') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ApartmentBookingScreen()),
+          MaterialPageRoute(builder: (context) => const ApartmentBookingScreen()),
         );
       }
     } catch (e) {
