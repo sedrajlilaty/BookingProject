@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/AddApartement.dart';
 import 'package:flutter_application_8/homePage.dart';
 import 'package:flutter_application_8/signUp.dart';
 import 'constants.dart';
@@ -72,12 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (_userType == 'مؤجر') {
-        /* Navigator.pushReplacement(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => AddApartmentScreen(userType: _userType!),
-          ),
-        );*/
+          MaterialPageRoute(builder: (context) => AddApartmentScreen()),
+        );
       } else if (_userType == 'مستأجر') {
         Navigator.pushReplacement(
           context,

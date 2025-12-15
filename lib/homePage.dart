@@ -1,8 +1,11 @@
 // apartment_booking_screen.dart
 import 'package:flutter/material.dart';
+
 import 'package:flutter_application_8/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/customButtomNavigation.dart';
+
+import 'AppartementDetails.dart';
 
 class ApartmentBookingScreen extends StatefulWidget {
   const ApartmentBookingScreen({super.key});
@@ -83,14 +86,17 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   ];
 
   // بيانات الشقق (في التطبيق الحقيقي قد تأتي من API)
+  // بيانات الشقق المحسنة
   final List<Map<String, dynamic>> _allApartments = [
     {
       'id': 1,
-      'title': 'Team Central Park View Apartment',
+      'title': 'Central Park View Apartment',
       'city': 'New York',
       'price': 1200,
       'area': 800,
-      'image': 'assets/apartment1.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
+      'description': 'شقة فاخرة مع إطلالة رائعة على سنترال بارك',
     },
     {
       'id': 2,
@@ -98,7 +104,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'Los Angeles',
       'price': 1800,
       'area': 1200,
-      'image': 'assets/apartment2.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&fit=crop',
+      'description': 'شقة حديثة في وسط المدينة مع وسائل راحة متطورة',
     },
     {
       'id': 3,
@@ -106,7 +114,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'Chicago',
       'price': 900,
       'area': 600,
-      'image': 'assets/apartment3.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
+      'description': 'استوديو عصري في قلب شيكاغو',
     },
     {
       'id': 4,
@@ -114,7 +124,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'Miami',
       'price': 2200,
       'area': 1500,
-      'image': 'assets/apartment4.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
+      'description': 'كوندو مع إطلالة مباشرة على الشاطئ',
     },
     {
       'id': 5,
@@ -122,7 +134,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'Dubai',
       'price': 3000,
       'area': 2000,
-      'image': 'assets/apartment5.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
+      'description': 'بنتهاوس فاخر مع إطلالة بانورامية على المدينة',
     },
     {
       'id': 6,
@@ -130,7 +144,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'London',
       'price': 1600,
       'area': 900,
-      'image': 'assets/apartment6.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&fit=crop',
+      'description': 'شقة تاريخية في حي لندني تقليدي',
     },
     {
       'id': 7,
@@ -138,7 +154,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'Paris',
       'price': 1400,
       'area': 750,
-      'image': 'assets/apartment7.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
+      'description': 'شقة أنيقة في قلب باريس',
     },
     {
       'id': 8,
@@ -146,7 +164,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       'city': 'New York',
       'price': 2500,
       'area': 1800,
-      'image': 'assets/apartment8.jpg',
+      'image':
+          'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
+      'description': 'لوفت واسع بتصميم صناعي عصري',
     },
   ];
 
@@ -273,34 +293,103 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.white,
+
+      // في دالة build، استبدل AppBar الحالي بهذا:
       appBar: AppBar(
-        backgroundColor: _isDarkMode ? Colors.grey[900] : Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.home_max_rounded,
-            color: _isDarkMode ? Colors.white : Colors.black,
+        backgroundColor: _isDarkMode ? Colors.grey[900] : accentColor,
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.2),
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _isDarkMode ? Colors.grey[800] : Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4),
+            ],
           ),
-          onPressed: () {},
+          child: IconButton(
+            icon: Icon(
+              Icons.home_rounded,
+              color: _isDarkMode ? Colors.white : accentColor,
+              size: 24,
+            ),
+            onPressed: () {},
+          ),
         ),
-        title: Text(
-          _isEnglish ? 'Welcome  ' : 'أهلاً بك  ',
-          style: TextStyle(
-            color: _isDarkMode ? Colors.white : Colors.grey[800],
-            fontWeight: FontWeight.bold,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isEnglish ? 'Welcome' : 'أهلاً بك',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              _isEnglish
+                  ? 'Find your dream apartment'
+                  : 'ابحث عن شقتك المثالية',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.9),
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.menu,
-              color: _isDarkMode ? Colors.white : Colors.black,
+          // زر تبديل المظهر
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
             ),
-            onPressed: () {
-              _scaffoldKey.currentState?.openEndDrawer();
-            },
+            child: IconButton(
+              icon: Icon(
+                _isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: _toggleTheme,
+              tooltip: _isEnglish ? 'Toggle theme' : 'تبديل المظهر',
+            ),
+          ),
+          // زر تبديل اللغة
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(
+                _isEnglish ? Icons.language : Icons.translate,
+                color: Colors.white,
+                size: 22,
+              ),
+              onPressed: _toggleLanguage,
+              tooltip: _isEnglish ? 'Change language' : 'تغيير اللغة',
+            ),
+          ),
+          // زر القائمة
+          Container(
+            margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(Icons.menu, color: Colors.white, size: 22),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            ),
           ),
         ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
       endDrawer: EndDrawer(),
       body: SafeArea(
@@ -915,111 +1004,123 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           itemCount: apartments.length,
           itemBuilder: (context, index) {
             final apartment = apartments[index];
-            return Container(
-              decoration: BoxDecoration(
-                color: _isDarkMode ? Colors.grey[800] : Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ApartmentDetailsPage(apartment: apartment),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _isDarkMode ? Colors.grey[800] : Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: _isDarkMode ? Colors.grey[700] : Colors.grey[300],
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                        image: DecorationImage(
+                          image: NetworkImage(apartment['image']),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.home_work_outlined,
-                        size: 40,
-                        color: _isDarkMode ? Colors.grey[400] : Colors.grey,
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            apartment['title'],
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          // الموقع مع أيقونة
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 12,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                apartment['city'],
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // المساحة مع أيقونة
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.aspect_ratio_outlined,
+                                size: 12,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${apartment['area']} sq ft',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+
+                          // السعر مع أيقونة
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money_outlined,
+                                size: 14,
+                                color: accentColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${apartment['price']} / month',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: accentColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          apartment['title'],
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color:
-                                _isDarkMode ? Colors.white : Colors.grey[800],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              color:
-                                  _isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[600],
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              apartment['city'],
-                              style: TextStyle(
-                                fontSize: 10,
-                                color:
-                                    _isDarkMode
-                                        ? Colors.grey[400]
-                                        : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.space_dashboard_outlined,
-                              color:
-                                  _isDarkMode
-                                      ? Colors.grey[400]
-                                      : Colors.grey[600],
-                              size: 12,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${apartment['area']} sq ft',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color:
-                                    _isDarkMode
-                                        ? Colors.grey[400]
-                                        : Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '\$${apartment['price']}/month',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: accentColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             );
           },

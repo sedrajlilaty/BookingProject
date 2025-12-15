@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/AddApartement.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_application_8/homePage.dart';
-
 import 'constants.dart';
 
 // ----------------------------------------------------
@@ -30,8 +32,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  // ملفات الصور
+  File? _idImageFile;
+  File? _profileImageFile;
+
   // متغير لتتبع حالة التحميل
   bool _isLoading = false;
+
+  // ImagePicker instance
+  final ImagePicker _picker = ImagePicker();
 
   // تعبيرات منتظمة للتحقق من صحة البيانات
   static final RegExp _emailRegExp = RegExp(
@@ -184,6 +193,117 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  // دالة لاختيار صورة من المعرض
+  Future<void> _pickImage(bool isIdImage) async {
+    if (_isLoading) return;
+
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+
+      if (image != null) {
+        setState(() {
+          if (isIdImage) {
+            _idImageFile = File(image.path);
+          } else {
+            _profileImageFile = File(image.path);
+          }
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء اختيار الصورة');
+    }
+  }
+
+  // دالة لالتقاط صورة من الكاميرا
+  Future<void> _takePhoto(bool isIdImage) async {
+    if (_isLoading) return;
+
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+
+      if (photo != null) {
+        setState(() {
+          if (isIdImage) {
+            _idImageFile = File(photo.path);
+          } else {
+            _profileImageFile = File(photo.path);
+          }
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء التقاط الصورة');
+    }
+  }
+
+  // دالة لعرض رسالة خطأ
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // دالة لعرض خيارات تحميل الصورة
+  Future<void> _showImagePickerOptions(bool isIdImage) async {
+    if (_isLoading) return;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.photo_library,
+                    color: darkTextColor,
+                  ),
+                  title: const Text('اختيار من المعرض'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(isIdImage);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt, color: darkTextColor),
+                  title: const Text('التقاط صورة'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _takePhoto(isIdImage);
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.close, color: Colors.red),
+                  title: const Text('إلغاء'),
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // دالة التحقق من صحة البيانات
   String? _validateForm() {
     // التحقق من الاسم الأول
@@ -206,7 +326,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return 'الرجاء إدخال رقم الهاتف';
     }
     if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) {
-      return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 05 ويتكون من 10 أرقام)';
+      return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
     }
 
     // التحقق من البريد الإلكتروني
@@ -238,11 +358,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return 'الرجاء اختيار تاريخ الميلاد';
     }
 
+    // التحقق من صورة الهوية (مطلوبة للجميع)
+    if (_idImageFile == null) {
+      return 'الرجاء تحميل صورة الهوية الوطنية';
+    }
+
+    // التحقق من الصورة الشخصية
+    if (_profileImageFile == null) {
+      return 'الرجاء تحميل صورة شخصية';
+    }
+
     return null; // جميع البيانات صحيحة
   }
 
   // دالة مساعدة لإنشاء منطقة تحميل الصور
-  Widget _buildImageUploadArea(String title, IconData icon) {
+  Widget _buildImageUploadArea(String title, IconData icon, bool isIdImage) {
+    final imageFile = isIdImage ? _idImageFile : _profileImageFile;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
       decoration: BoxDecoration(
@@ -266,35 +398,138 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed:
-                _isLoading
-                    ? null
-                    : () {
-                      // TODO: إضافة منطق تحميل الصورة
-                    },
-            icon: Icon(
-              Icons.upload_file,
-              color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor,
+
+          if (imageFile != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    image: DecorationImage(
+                      image: FileImage(imageFile),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () {
+                                setState(() {
+                                  if (isIdImage) {
+                                    _idImageFile = null;
+                                  } else {
+                                    _profileImageFile = null;
+                                  }
+                                });
+                              },
+                      icon: Icon(
+                        Icons.delete,
+                        color:
+                            _isLoading
+                                ? Colors.red.withOpacity(0.5)
+                                : Colors.red,
+                      ),
+                      label: Text(
+                        'حذف',
+                        style: TextStyle(
+                          color:
+                              _isLoading
+                                  ? Colors.red.withOpacity(0.5)
+                                  : Colors.red,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    TextButton.icon(
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () => _showImagePickerOptions(isIdImage),
+                      icon: Icon(
+                        Icons.edit,
+                        color:
+                            _isLoading
+                                ? buttonColor.withOpacity(0.5)
+                                : buttonColor,
+                      ),
+                      label: Text(
+                        'تغيير',
+                        style: TextStyle(
+                          color:
+                              _isLoading
+                                  ? buttonColor.withOpacity(0.5)
+                                  : buttonColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            Column(
+              children: [
+                OutlinedButton.icon(
+                  onPressed:
+                      _isLoading
+                          ? null
+                          : () => _showImagePickerOptions(isIdImage),
+                  icon: Icon(
+                    Icons.upload_file,
+                    color:
+                        _isLoading ? buttonColor.withOpacity(0.5) : buttonColor,
+                  ),
+                  label: Text(
+                    'اختر صورة',
+                    style: TextStyle(
+                      color:
+                          _isLoading
+                              ? buttonColor.withOpacity(0.5)
+                              : buttonColor,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    side: BorderSide(
+                      color:
+                          _isLoading
+                              ? buttonColor.withOpacity(0.3)
+                              : buttonColor.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: darkTextColor.withOpacity(0.6),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'يُفضل صورة واضحة وبجودة عالية',
+                      style: TextStyle(
+                        color: darkTextColor.withOpacity(0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            label: Text(
-              'اختر ملف',
-              style: TextStyle(
-                color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              side: BorderSide(
-                color:
-                    _isLoading
-                        ? buttonColor.withOpacity(0.3)
-                        : buttonColor.withOpacity(0.5),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -317,6 +552,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       return;
     }
+    try {
+      await Future.delayed(const Duration(seconds: 2));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم تسجيل الدخول بنجاح كـ $_userType'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      if (_userType == 'مؤجر') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AddApartmentScreen()),
+        );
+      } else if (_userType == 'مستأجر') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ApartmentBookingScreen()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('حدث خطأ أثناء تسجيل الدخول'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
 
     // بدء التحميل
     setState(() {
@@ -324,6 +596,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     try {
+      // هنا يمكنك إضافة منطق رفع الصور إلى الخادم
+      // مثال:
+      // await _uploadImageToServer(_idImageFile!, 'id_image');
+      // await _uploadImageToServer(_profileImageFile!, 'profile_image');
+
+      // محاكاة عملية تسجيل
+      await Future.delayed(const Duration(seconds: 2));
+
       // عرض رسالة النجاح
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -333,30 +613,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       );
 
-      // محاكاة عملية تسجيل (يمكن استبدالها بالاتصال بالخادم)
-      await Future.delayed(const Duration(seconds: 2));
-
       // الانتقال إلى الشاشة المناسبة
-      if (_userType == 'مؤجر') {
-        // الانتقال إلى صفحة إضافة الشقة للمؤجر
-        /* Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AddApartmentScreen(userType: _userType!),
-          ),
-        );*/
-      } else if (_userType == 'مستأجر') {
+      if (_userType == 'مستأجر') {
         // الانتقال إلى الصفحة الرئيسية للمستأجر
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => ApartmentBookingScreen()),
+          MaterialPageRoute(
+            builder: (context) => const ApartmentBookingScreen(),
+          ),
         );
+      } else {
+        // TODO: إضافة شاشة المؤجر إذا كانت موجودة
+        // Navigator.pushReplacement(...);
       }
     } catch (e) {
       // في حالة حدوث خطأ
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('حدث خطأ أثناء التسجيل'),
+          content: Text('حدث خطأ أثناء التسجيل: ${e.toString()}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
@@ -395,9 +669,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Text(
+                  const Text(
                     'جاري التسجيل...',
-                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ],
               )
@@ -527,7 +801,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                         // حقل رقم الهاتف
                         _buildInputField(
-                          hintText: 'رقم الهاتف (05XXXXXXXX)',
+                          hintText: 'رقم الهاتف (09XXXXXXXX)',
                           icon: Icons.phone,
                           keyboardType: TextInputType.phone,
                           controller: _phoneController,
@@ -535,6 +809,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: 20),
 
                         // حقل البريد الإلكتروني
+                        _buildInputField(
+                          hintText: 'البريد الإلكتروني',
+                          icon: Icons.email,
+                          keyboardType: TextInputType.emailAddress,
+                          controller: _emailController,
+                        ),
+                        const SizedBox(height: 20),
 
                         // حقل كلمة المرور
                         _buildInputField(
@@ -568,6 +849,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _buildImageUploadArea(
                           'صورة الهوية الوطنية (أمامية)',
                           Icons.credit_card,
+                          true,
                         ),
                         const SizedBox(height: 20),
 
@@ -575,6 +857,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _buildImageUploadArea(
                           'صورة شخصية (للملف الشخصي)',
                           Icons.camera_alt,
+                          false,
                         ),
                         const SizedBox(height: 30),
 
