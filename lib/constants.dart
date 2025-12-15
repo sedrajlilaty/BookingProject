@@ -6,11 +6,11 @@ const Color primaryBackgroundColor = Colors.white;
 const Color accentColor = Color(
   0xFF005F73,
 ); // اللون الذهبي (استُخدم كـ goldColor سابقاً)
-const Color cardBackgroundColor = Color.fromRGBO(
-  228,
-  228,
-  225,
-  1,
+const Color cardBackgroundColor = Color.fromARGB(
+  255,
+  231,
+  230,
+  230,
 ); // لون فاتح للبطاقات (لشاشات Login/SignUp)
 const Color darkTextColor = Color(0xFF333333); // لون نص داكن للحقول
 const Color buttonColor = Colors.black; // لون زر أغمق (للتناسق)
