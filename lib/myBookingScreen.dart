@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 
@@ -10,14 +9,22 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<MyBookingsScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryBackgroundColor,
       appBar: AppBar(
-        title: const Text('حجوزاتي'),
+        title: const Text(
+          'حجوزاتي',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: accentColor,
+        centerTitle: true,
+        elevation: 4,
         automaticallyImplyLeading: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -55,25 +62,16 @@ class _BookingScreenState extends State<MyBookingsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.event_busy,
-                      size: 80,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.event_busy, size: 80, color: Colors.grey[400]),
                     SizedBox(height: 16),
                     Text(
                       'لا توجد حجوزات بعد',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                     ),
                     SizedBox(height: 8),
                     Text(
                       'ابدأ بحجز شقتك الأولى',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(color: Colors.grey[500]),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -83,7 +81,6 @@ class _BookingScreenState extends State<MyBookingsScreen> {
           ],
         ),
       ),
-
     );
   }
 }

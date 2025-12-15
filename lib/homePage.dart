@@ -149,8 +149,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     super.dispose();
   }
 
-
-
   // دالة الفلترة
   List<Map<String, dynamic>> get _filteredApartments {
     if (_showAllApartments) {
@@ -396,7 +394,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ),
       ),
-
     );
   }
 
@@ -809,10 +806,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
 
   Widget _buildCategoryChip(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
       decoration: BoxDecoration(
         color: accentColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: _isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
         ),
