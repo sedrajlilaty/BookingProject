@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'constants.dart';
+import '../constants.dart';
 
 //endDrawer بتستدعو هاد الكلاس بالمكان الي بدكن تحطو فيه ال endDrawer
 class EndDrawer extends StatefulWidget {

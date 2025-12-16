@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
+import '../constants.dart';
 import 'fullbookingPage.dart';
 
 class ApartmentDetailsPage extends StatefulWidget {

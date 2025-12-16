@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/AddApartement.dart';
+import 'package:flutter_application_8/screens/AddApartement.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
-import 'package:flutter_application_8/signUp.dart';
-import 'constants.dart';
+import 'package:flutter_application_8/screens/signUp.dart';
+import 'package:flutter_application_8/services/logIn_serves.dart';
+import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,9 +16,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _userType;
-  final List<String> _userTypes = ['مستأجر', 'مؤجر'];
+  final List<String> _userTypes = ['tenant', 'owner'];
   bool _isLoading = false;
-  static final RegExp _phoneRegExp = RegExp(r'^05[0-9]{8}$');
+  static final RegExp _phoneRegExp = RegExp(r'^09[0-9]{8}$');
 
   // دالة للتحقق من صحة البيانات
   String? _validateForm() {
@@ -31,8 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_passwordController.text.isEmpty) {
       return 'الرجاء إدخال كلمة المرور';
     }
-    if (_passwordController.text.length < 6) {
-      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    if (_passwordController.text.length < 8) {
+      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
     }
 
     if (_userType == null) {
@@ -61,9 +62,16 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    try {
-      await Future.delayed(const Duration(seconds: 2));
+    // استدعاء خدمة تسجيل الدخول بدلاً من Future.delayed
+    final response = await LoginServes.logIn(
+      context,
+      _phoneController.text, // تأكد من وجود هذا المتحكم
+      _passwordController.text, // تأكد من وجود هذا المتحكم
+      _userType!, // تحويل نوع المستخدم إذا لزم الأمر
+    );
 
+    if (response != null && response.statusCode == 201) {
+      // تسجيل الدخول ناجح
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('تم تسجيل الدخول بنجاح كـ $_userType'),
@@ -72,26 +80,23 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      if (_userType == 'مؤجر') {
+      // حفظ بيانات المستخدم إذا كنت تستخدم state management
+      // على سبيل المثال:
+      // await _saveUserData(response.data);
+
+      if (_userType == 'owner') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => AddApartmentScreen()),
         );
-      } else if (_userType == 'مستأجر') {
+      } else if (_userType == 'tenant') {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MainNavigationScreen()),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('حدث خطأ أثناء تسجيل الدخول'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
+    }
+    {
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -324,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // حقل رقم الهاتف
                           _buildInputField(
-                            hintText: 'رقم الهاتف (05XXXXXXXX)',
+                            hintText: 'رقم الهاتف (09XXXXXXXX)',
                             icon: Icons.phone,
                             controller: _phoneController,
                           ),
@@ -332,7 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           // حقل كلمة المرور
                           _buildInputField(
-                            hintText: 'كلمة المرور (6 أحرف على الأقل)',
+                            hintText: 'كلمة المرور (8 أحرف على الأقل)',
                             icon: Icons.lock,
                             isPassword: true,
                             controller: _passwordController,

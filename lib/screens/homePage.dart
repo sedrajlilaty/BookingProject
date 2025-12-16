@@ -1,7 +1,7 @@
 // apartment_booking_screen.dart
 import 'package:flutter/material.dart';
 
-import 'package:flutter_application_8/buildEndDrower.dart';
+import 'package:flutter_application_8/screens/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
 
 import 'AppartementDetails.dart';

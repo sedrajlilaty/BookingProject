@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/AddApartement.dart';
+import 'package:flutter_application_8/screens/AddApartement.dart';
+import 'package:flutter_application_8/screens/welcomeScreen2.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_application_8/homePage.dart';
-import 'constants.dart';
+import 'package:flutter_application_8/screens/homePage.dart';
+import '../constants.dart';
 
 // ----------------------------------------------------
 // 2. شاشة إنشاء حساب (Sign Up Screen)
@@ -557,8 +558,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم تسجيل الدخول بنجاح كـ $_userType'),
-          backgroundColor: Colors.green,
+          content: Text('  بانتظار تاكيد تسجيل الدخول $_userType'),
+          backgroundColor: accentColor,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -566,12 +567,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (_userType == 'مؤجر') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AddApartmentScreen()),
+          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
         );
       } else if (_userType == 'مستأجر') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const ApartmentBookingScreen()),
+          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
         );
       }
     } catch (e) {
@@ -618,9 +619,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // الانتقال إلى الصفحة الرئيسية للمستأجر
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => const ApartmentBookingScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
         );
       } else {
         // TODO: إضافة شاشة المؤجر إذا كانت موجودة
