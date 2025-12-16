@@ -1,4 +1,3 @@
-// apartment_booking_screen.dart
 import 'package:flutter/material.dart';
 
 import 'package:flutter_application_8/buildEndDrower.dart';
@@ -148,8 +147,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     _searchController.dispose();
     super.dispose();
   }
-
-
 
   // دالة الفلترة
   List<Map<String, dynamic>> get _filteredApartments {
@@ -396,7 +393,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ),
       ),
-
     );
   }
 

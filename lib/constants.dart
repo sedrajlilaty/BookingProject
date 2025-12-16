@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 //const Color primaryBackgroundColor = const Color(0xFF22223B);
 const Color primaryBackgroundColor = Colors.white;
+const tcolor=[ 0xFF005F73,0xFF9A8C98];
 // الخلفية الرئيسية: أخضر داكن (استُخدمت كـ backgroundColor سابقاً)
 const Color accentColor = Color(
   0xFF005F73,
