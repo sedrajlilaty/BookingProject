@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
+import 'package:flutter_application_8/constants.dart';
 import 'package:intl/intl.dart';
 
 class FullBookingPage extends StatefulWidget {
@@ -20,19 +20,9 @@ class _FullBookingPageState extends State<FullBookingPage> {
   double totalPrice = 0;
   int numberOfMonths = 1;
 
-  final durationOptions = [
-    "أسبوع",
-    "شهر",
-    "عدة أشهر",
-    "15 يوم",
-    "سنة",
-  ];
+  final durationOptions = ["أسبوع", "شهر", "عدة أشهر", "15 يوم", "سنة"];
 
-  final paymentMethods = [
-    "نقدًا",
-    "بطاقة ائتمان",
-    "محفظة إلكترونية",
-  ];
+  final paymentMethods = ["نقدًا", "بطاقة ائتمان", "محفظة إلكترونية"];
 
   @override
   void initState() {
@@ -52,7 +42,11 @@ class _FullBookingPageState extends State<FullBookingPage> {
         totalPrice = pricePerDay * 30;
         break;
       case "عدة أشهر":
-        endDate = DateTime(startDate.year, startDate.month + numberOfMonths, startDate.day);
+        endDate = DateTime(
+          startDate.year,
+          startDate.month + numberOfMonths,
+          startDate.day,
+        );
         totalPrice = pricePerDay * 30 * numberOfMonths;
         break;
       case "15 يوم":
@@ -75,11 +69,9 @@ class _FullBookingPageState extends State<FullBookingPage> {
       lastDate: DateTime(2100),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: accentColor,
-            ),
-          ),
+          data: Theme.of(
+            context,
+          ).copyWith(colorScheme: ColorScheme.light(primary: accentColor)),
           child: child!,
         );
       },
@@ -132,26 +124,29 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
                 ),
                 style: const TextStyle(color: Colors.black),
-                items: durationOptions
-                    .map((d) => DropdownMenuItem(value: d, child: Text(d)))
-                    .toList(),
+                items:
+                    durationOptions
+                        .map((d) => DropdownMenuItem(value: d, child: Text(d)))
+                        .toList(),
                 onChanged: (value) async {
                   if (value != null) {
                     if (value == "عدة أشهر") {
                       int? months = await showDialog<int>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("اختر عدد الأشهر"),
-                          content: TextFormField(
-                            autofocus: true,
-                            keyboardType: TextInputType.number,
-                            decoration:
-                            const InputDecoration(hintText: "عدد الأشهر"),
-                            onFieldSubmitted: (val) {
-                              Navigator.of(context).pop(int.tryParse(val));
-                            },
-                          ),
-                        ),
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text("اختر عدد الأشهر"),
+                              content: TextFormField(
+                                autofocus: true,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  hintText: "عدد الأشهر",
+                                ),
+                                onFieldSubmitted: (val) {
+                                  Navigator.of(context).pop(int.tryParse(val));
+                                },
+                              ),
+                            ),
                       );
 
                       numberOfMonths = (months ?? 1);
@@ -168,14 +163,18 @@ class _FullBookingPageState extends State<FullBookingPage> {
               const SizedBox(height: 20),
 
               // تاريخ الحجز
-              const Text("تاريخ الحجز",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                "تاريخ الحجز",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
               InkWell(
                 onTap: () => selectStartDate(context),
                 child: Container(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                    horizontal: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: cardBackgroundColor.withOpacity(0.15),
                     border: Border.all(color: accentColor, width: 1.5),
@@ -188,12 +187,16 @@ class _FullBookingPageState extends State<FullBookingPage> {
               const SizedBox(height: 20),
 
               // مدة الانتهاء
-              const Text("مدة الانتهاء",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                "مدة الانتهاء",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
               Container(
-                padding:
-                const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 12,
+                ),
                 decoration: BoxDecoration(
                   color: cardBackgroundColor.withOpacity(0.15),
                   border: Border.all(color: accentColor, width: 1.5),
@@ -205,8 +208,10 @@ class _FullBookingPageState extends State<FullBookingPage> {
               const SizedBox(height: 20),
 
               // طريقة الدفع
-              const Text("طريقة الدفع",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                "طريقة الدفع",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: selectedPayment,
@@ -224,9 +229,10 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
                 ),
                 style: const TextStyle(color: Colors.black),
-                items: paymentMethods
-                    .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                    .toList(),
+                items:
+                    paymentMethods
+                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                        .toList(),
                 onChanged: (value) {
                   if (value != null) {
                     setState(() => selectedPayment = value);
@@ -237,12 +243,16 @@ class _FullBookingPageState extends State<FullBookingPage> {
               const SizedBox(height: 20),
 
               // السعر الإجمالي
-              const Text("السعر الإجمالي",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                "السعر الإجمالي",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
               Container(
-                padding:
-                const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 12,
+                ),
                 decoration: BoxDecoration(
                   color: cardBackgroundColor.withOpacity(0.15),
                   border: Border.all(color: accentColor, width: 1.5),
@@ -275,8 +285,10 @@ class _FullBookingPageState extends State<FullBookingPage> {
                       const SnackBar(content: Text("تم تأكيد الحجز!")),
                     );
                   },
-                  child: const Text("تأكيد الحجز",
-                      style: TextStyle(fontSize: 18, color: Colors.white)),
+                  child: const Text(
+                    "تأكيد الحجز",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
                 ),
               ),
             ],

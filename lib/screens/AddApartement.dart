@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
+import 'package:flutter_application_8/screens/confirmScreen.dart';
+import '../constants.dart';
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -37,7 +38,6 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
           backgroundColor: Colors.red,
         ),
       );
-      return;
     }
 
     setState(() => _isLoading = true);
@@ -45,12 +45,17 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isLoading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BookingDone()),
+      );
+
+      /* ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تمت إضافة الشقة بنجاح'),
           backgroundColor: Colors.black,
         ),
-      );
+      );*/
 
       Navigator.pop(context);
     });

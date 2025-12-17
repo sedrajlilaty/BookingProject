@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/logIn.dart';
-import 'package:flutter_application_8/signUp.dart';
-import 'constants.dart';
+import 'package:flutter_application_8/screens/logIn.dart';
+import 'package:flutter_application_8/screens/signUp.dart';
+import '../constants.dart';
 
 class WelcomeScreen2 extends StatefulWidget {
   const WelcomeScreen2({super.key});
@@ -64,12 +64,21 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
         child: Column(
           children: [
             // اللوجو في الأعلى
-            Padding(
-              padding: const EdgeInsets.only(top: 40.0),
-              child: Icon(
-                Icons.home_work, // أو Icons.home
-                size: 120,
-                color: accentColor, // لون ذهبي #DDA15E
+            Container(
+              decoration: BoxDecoration(
+                color: cardBackgroundColor,
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: cardBackgroundColor,
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Icon(Icons.home_work, size: 120, color: accentColor),
               ),
             ),
 

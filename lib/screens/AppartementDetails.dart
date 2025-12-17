@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
+import '../constants.dart';
 import 'favorateScreen.dart';
 import 'fullbookingPage.dart';
 
@@ -21,8 +21,9 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   void initState() {
     super.initState();
     // التحقق إذا كانت الشقة موجودة بالفعل في المفضلة
-    isFavorite = FavoritesScreen.favoriteApartments
-        .any((apt) => apt['title'] == widget.apartment['title']);
+    isFavorite = FavoritesScreen.favoriteApartments.any(
+      (apt) => apt['title'] == widget.apartment['title'],
+    );
   }
 
   @override
@@ -80,16 +81,22 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
 
                         if (isFavorite) {
                           // إضافة الشقة للمفضلة إذا لم تكن موجودة مسبقًا
-                          if (!FavoritesScreen.favoriteApartments
-                              .any((apt) => apt['title'] == apartment['title'])) {
-                            final aptWithImages = Map<String, dynamic>.from(apartment);
+                          if (!FavoritesScreen.favoriteApartments.any(
+                            (apt) => apt['title'] == apartment['title'],
+                          )) {
+                            final aptWithImages = Map<String, dynamic>.from(
+                              apartment,
+                            );
                             aptWithImages['images'] = images;
-                            FavoritesScreen.favoriteApartments.add(aptWithImages);
+                            FavoritesScreen.favoriteApartments.add(
+                              aptWithImages,
+                            );
                           }
                         } else {
                           // إزالة الشقة من المفضلة
                           FavoritesScreen.favoriteApartments.removeWhere(
-                                  (apt) => apt['title'] == apartment['title']);
+                            (apt) => apt['title'] == apartment['title'],
+                          );
                         }
                       });
                     },
@@ -111,14 +118,15 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       images.length,
-                          (index) => Container(
+                      (index) => Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: _currentPage == index ? 10 : 8,
                         height: _currentPage == index ? 10 : 8,
                         decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? Colors.white
-                              : Colors.white54,
+                          color:
+                              _currentPage == index
+                                  ? Colors.white
+                                  : Colors.white54,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -178,9 +186,11 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => FullBookingPage(
-                                    pricePerDay: apartment['price'].toDouble(),
-                                  ),
+                                  builder:
+                                      (_) => FullBookingPage(
+                                        pricePerDay:
+                                            apartment['price'].toDouble(),
+                                      ),
                                 ),
                               );
                             },

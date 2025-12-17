@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter_application_8/buildEndDrower.dart';
+import 'package:flutter_application_8/screens/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
 
 import 'AppartementDetails.dart';
@@ -805,10 +805,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
 
   Widget _buildCategoryChip(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
       decoration: BoxDecoration(
         color: accentColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: _isDarkMode ? Colors.grey[700]! : Colors.grey[300]!,
         ),

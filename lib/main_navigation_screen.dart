@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/customButtomNavigation.dart';
-import 'package:flutter_application_8/homePage.dart';
-import 'package:flutter_application_8/favorateScreen.dart';
-import 'package:flutter_application_8/myBookingScreen.dart';
-import 'package:flutter_application_8/profile.dart';
+import 'package:flutter_application_8/screens/homePage.dart';
+import 'package:flutter_application_8/screens/favorateScreen.dart';
+import 'package:flutter_application_8/screens/myBookingScreen.dart';
+import 'package:flutter_application_8/screens/profile.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
