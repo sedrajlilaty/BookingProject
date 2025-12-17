@@ -271,26 +271,37 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     // الجزء العلوي مع التاج
+                    // الجزء العلوي مع التاج
                     Container(
-                      height: screenHeight * 0.35, // تقليل الارتفاع قليلاً
+                      height: screenHeight * 0.35,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 30,
                         vertical: 40,
                       ),
                       alignment: Alignment.bottomRight,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            // بداية التدرج
+                            Color(0xFFF1F3F5),
+                            Color(0xFF005F73),
+                            Color(0xFF005F73), // نهاية التدرج
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
+                        children: const [
                           Icon(
                             Icons.home_work,
-                            size: 150, // تقليل حجم الأيقونة
+                            size: 150,
                             color:
-                                _isLoading
-                                    ? accentColor.withOpacity(0.7)
-                                    : accentColor,
+                                Colors.white, // تغيير لون الأيقونة إلى الأبيض
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                         ],
                       ),
                     ),

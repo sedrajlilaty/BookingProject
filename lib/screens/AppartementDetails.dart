@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants.dart';
+import 'favorateScreen.dart';
 import 'fullbookingPage.dart';
 
 class ApartmentDetailsPage extends StatefulWidget {
@@ -17,30 +18,46 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   bool isFavorite = false;
 
   @override
+  void initState() {
+    super.initState();
+    // التحقق إذا كانت الشقة موجودة بالفعل في المفضلة
+    isFavorite = FavoritesScreen.favoriteApartments.any(
+      (apt) => apt['title'] == widget.apartment['title'],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final apartment = widget.apartment;
+
+    // قائمة الصور المحلية
+    final List<String> images = [
+      'assets/images/apartment1_1.jpg',
+      'assets/images/apartment1_2.jpg',
+      'assets/images/apartment1_3.jpg',
+    ];
 
     return Scaffold(
       backgroundColor: Colors.brown.shade50,
       body: Column(
         children: [
-          // ----------- IMAGES -----------
+          // ----------- IMAGES (PageView) -----------
           SizedBox(
             height: 350,
             child: Stack(
               children: [
-                PageView(
+                PageView.builder(
                   controller: _pageController,
+                  itemCount: images.length,
                   onPageChanged: (i) => setState(() => _currentPage = i),
-                  children: [
-                    Image.network(
-                      apartment['image'],
+                  itemBuilder: (context, index) {
+                    return Image.asset(
+                      images[index],
                       fit: BoxFit.cover,
                       width: double.infinity,
-                    ),
-                  ],
+                    );
+                  },
                 ),
-
                 // BACK BUTTON
                 Positioned(
                   top: 40,
@@ -53,18 +70,65 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                     ),
                   ),
                 ),
-
                 // FAVORITE
                 Positioned(
                   top: 40,
                   right: 20,
                   child: InkWell(
-                    onTap: () => setState(() => isFavorite = !isFavorite),
+                    onTap: () {
+                      setState(() {
+                        isFavorite = !isFavorite;
+
+                        if (isFavorite) {
+                          // إضافة الشقة للمفضلة إذا لم تكن موجودة مسبقًا
+                          if (!FavoritesScreen.favoriteApartments.any(
+                            (apt) => apt['title'] == apartment['title'],
+                          )) {
+                            final aptWithImages = Map<String, dynamic>.from(
+                              apartment,
+                            );
+                            aptWithImages['images'] = images;
+                            FavoritesScreen.favoriteApartments.add(
+                              aptWithImages,
+                            );
+                          }
+                        } else {
+                          // إزالة الشقة من المفضلة
+                          FavoritesScreen.favoriteApartments.removeWhere(
+                            (apt) => apt['title'] == apartment['title'],
+                          );
+                        }
+                      });
+                    },
                     child: CircleAvatar(
                       backgroundColor: Colors.white,
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: accentColor,
+                      ),
+                    ),
+                  ),
+                ),
+                // INDICATORS
+                Positioned(
+                  bottom: 16,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      images.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 10 : 8,
+                        height: _currentPage == index ? 10 : 8,
+                        decoration: BoxDecoration(
+                          color:
+                              _currentPage == index
+                                  ? Colors.white
+                                  : Colors.white54,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                   ),
@@ -93,22 +157,16 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         color: accentColor,
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
                     Text(
                       "شقة رائعة تقع في ${apartment['city']} بمواصفات ممتازة.",
                       style: const TextStyle(color: Colors.black54),
                     ),
-
                     const SizedBox(height: 20),
-
                     _info(Icons.location_on, apartment['city']),
                     _info(Icons.crop_square, "${apartment['area']} متر مربع"),
                     _info(Icons.attach_money, "${apartment['price']} \$ / شهر"),
-
                     const SizedBox(height: 30),
-
                     Card(
                       color: accentColor,
                       shape: RoundedRectangleBorder(
@@ -128,7 +186,11 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const FullBookingPage(),
+                                  builder:
+                                      (_) => FullBookingPage(
+                                        pricePerDay:
+                                            apartment['price'].toDouble(),
+                                      ),
                                 ),
                               );
                             },

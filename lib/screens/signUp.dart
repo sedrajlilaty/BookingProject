@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/screens/AddApartement.dart';
 import 'package:flutter_application_8/screens/welcomeScreen2.dart';
+import 'package:flutter_application_8/services/signUp-serves.dart'
+    show Signupserves;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_application_8/screens/homePage.dart';
 import '../constants.dart';
@@ -21,7 +23,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _userType;
 
   // قائمة الخيارات
-  final List<String> _userTypes = ['مستأجر', 'مؤجر'];
+  final List<String> _userTypes = ['tanent', 'owner'];
 
   // متحكمات حقول الإدخال
   final TextEditingController _dateController = TextEditingController();
@@ -330,20 +332,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
     }
 
-    // التحقق من البريد الإلكتروني
-    if (_emailController.text.trim().isEmpty) {
-      return 'الرجاء إدخال البريد الإلكتروني';
-    }
-    if (!_emailRegExp.hasMatch(_emailController.text.trim())) {
-      return 'البريد الإلكتروني غير صحيح';
-    }
-
-    // التحقق من كلمة المرور
     if (_passwordController.text.isEmpty) {
       return 'الرجاء إدخال كلمة المرور';
     }
-    if (_passwordController.text.length < 6) {
-      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    if (_passwordController.text.length < 8) {
+      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
     }
 
     // التحقق من تأكيد كلمة المرور
@@ -536,110 +529,58 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // دالة معالجة إنشاء الحساب
   Future<void> _handleSignUp(BuildContext context) async {
-    // إغلاق لوحة المفاتيح
     FocusScope.of(context).unfocus();
 
-    // التحقق من صحة البيانات
     final validationError = _validateForm();
     if (validationError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(validationError),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
+        SnackBar(content: Text(validationError), backgroundColor: Colors.red),
       );
       return;
     }
-    try {
-      await Future.delayed(const Duration(seconds: 2));
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('  بانتظار تاكيد تسجيل الدخول $_userType'),
-          backgroundColor: accentColor,
-          duration: const Duration(seconds: 2),
-        ),
+    setState(() => _isLoading = true);
+
+    try {
+      final accountType = _userType == 'مؤجر' ? 'owner' : 'tenant';
+
+      final response = await Signupserves.Signup(
+        context,
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
+        _phoneController.text.trim(),
+        _passwordController.text,
+        _confirmPasswordController.text,
+        _dateController.text,
+        accountType,
+        _idImageFile!,
+        _profileImageFile!,
       );
 
-      if (_userType == 'مؤجر') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
+      if (response != null && response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم إنشاء الحساب بنجاح كـ $_userType'),
+            backgroundColor: Colors.green,
+          ),
         );
-      } else if (_userType == 'مستأجر') {
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
+          MaterialPageRoute(builder: (_) => const WelcomeScreen2()),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('حدث خطأ أثناء تسجيل الدخول'),
+        const SnackBar(
+          content: Text('حدث خطأ أثناء إنشاء الحساب'),
           backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
         ),
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-
-    // بدء التحميل
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // هنا يمكنك إضافة منطق رفع الصور إلى الخادم
-      // مثال:
-      // await _uploadImageToServer(_idImageFile!, 'id_image');
-      // await _uploadImageToServer(_profileImageFile!, 'profile_image');
-
-      // محاكاة عملية تسجيل
-      await Future.delayed(const Duration(seconds: 2));
-
-      // عرض رسالة النجاح
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم التسجيل بنجاح كـ $_userType'),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
-      // الانتقال إلى الشاشة المناسبة
-      if (_userType == 'مستأجر') {
-        // الانتقال إلى الصفحة الرئيسية للمستأجر
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
-        );
-      } else {
-        // TODO: إضافة شاشة المؤجر إذا كانت موجودة
-        // Navigator.pushReplacement(...);
-      }
-    } catch (e) {
-      // في حالة حدوث خطأ
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('حدث خطأ أثناء التسجيل: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      // إيقاف التحميل
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
