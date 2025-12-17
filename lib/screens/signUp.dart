@@ -736,7 +736,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                         const Spacer(),
-                        // أيقونة المنزل - محاذاة لليمين
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -754,7 +754,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
                     ),
                   ),
-                  // البطاقة السفلية (Sign Up Form)
+
                   Container(
                     decoration: const BoxDecoration(
                       color: cardBackgroundColor,
@@ -807,18 +807,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // حقل البريد الإلكتروني
-                        _buildInputField(
-                          hintText: 'البريد الإلكتروني',
-                          icon: Icons.email,
-                          keyboardType: TextInputType.emailAddress,
-                          controller: _emailController,
-                        ),
-                        const SizedBox(height: 20),
-
                         // حقل كلمة المرور
                         _buildInputField(
-                          hintText: 'كلمة المرور (6 أحرف على الأقل)',
+                          hintText: 'كلمة المرور (8 أحرف على الأقل)',
                           icon: Icons.lock,
                           isPassword: true,
                           controller: _passwordController,
