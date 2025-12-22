@@ -11,7 +11,7 @@ class LoginServes {
     String account_type,
   ) async {
     final Dio dio = Dio();
-    final String baseUrl = 'http://192.168.137.189:8000/api';
+    final String baseUrl = 'http://192.168.137.101:8000/api';
     final String login = '/login';
     dio.options.baseUrl = baseUrl;
 
@@ -37,11 +37,7 @@ class LoginServes {
       log('Dio error: ${e.response?.data ?? e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            // context.read<LocaleCubit>().state.localizedStrings['login']
-            // ['invalidCredentials'] ??
-            e.response!.statusMessage ?? 'Invalid credentials',
-          ),
+          content: Text(e.response!.data['message'] ?? 'Invalid credentials'),
           backgroundColor: Colors.red,
         ),
       );

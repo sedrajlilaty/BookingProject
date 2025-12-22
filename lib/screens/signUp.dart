@@ -1,16 +1,16 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/screens/AddApartement.dart';
+import 'package:flutter_application_8/providers/authoProvider.dart';
+import 'package:provider/provider.dart';
+
+import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/screens/welcomeScreen2.dart';
 import 'package:flutter_application_8/services/signUp-serves.dart'
     show Signupserves;
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_application_8/screens/homePage.dart';
+import 'package:flutter_application_8/screens/owner/homePage.dart';
 import '../constants.dart';
 
-// ----------------------------------------------------
-// 2. شاشة إنشاء حساب (Sign Up Screen)
-// ----------------------------------------------------
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -19,42 +19,21 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // قيمة اختيار نوع الشخص
   String? _userType;
-
-  // قائمة الخيارات
-  final List<String> _userTypes = ['tanent', 'owner'];
-
-  // متحكمات حقول الإدخال
+  final List<String> _userTypes = ['tenant', 'owner'];
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-
-  // ملفات الصور
   File? _idImageFile;
   File? _profileImageFile;
-
-  // متغير لتتبع حالة التحميل
   bool _isLoading = false;
-
-  // ImagePicker instance
   final ImagePicker _picker = ImagePicker();
+  static final RegExp _phoneRegExp = RegExp(r'^09[0-9]{8}$');
 
-  // تعبيرات منتظمة للتحقق من صحة البيانات
-  static final RegExp _emailRegExp = RegExp(
-    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-  );
-
-  static final RegExp _phoneRegExp = RegExp(
-    r'^09[0-9]{8}$', // تنسيق رقم سعودي (09XXXXXXXX)
-  );
-
-  // دالة مساعدة لإنشاء حقول الإدخال
   Widget _buildInputField({
     required String hintText,
     required IconData icon,
@@ -101,7 +80,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // دالة لإنشاء حقل اختيار نوع المستخدم
   Widget _buildUserTypeDropdown() {
     return Container(
       decoration: BoxDecoration(
@@ -137,7 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  value,
+                  value == 'owner' ? 'owner' : 'tenant',
                   style: const TextStyle(color: darkTextColor),
                   textAlign: TextAlign.right,
                 ),
@@ -157,17 +135,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           color: darkTextColor.withOpacity(0.7),
         ),
         isExpanded: true,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'الرجاء اختيار نوع الحساب';
-          }
-          return null;
-        },
       ),
     );
   }
 
-  // دالة لاختيار التاريخ
   Future<void> _selectDate(BuildContext context) async {
     if (_isLoading) return;
 
@@ -196,7 +167,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // دالة لاختيار صورة من المعرض
   Future<void> _pickImage(bool isIdImage) async {
     if (_isLoading) return;
 
@@ -221,7 +191,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // دالة لالتقاط صورة من الكاميرا
   Future<void> _takePhoto(bool isIdImage) async {
     if (_isLoading) return;
 
@@ -246,7 +215,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  // دالة لعرض رسالة خطأ
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -257,7 +225,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // دالة لعرض خيارات تحميل الصورة
   Future<void> _showImagePickerOptions(bool isIdImage) async {
     if (_isLoading) return;
 
@@ -307,65 +274,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // دالة التحقق من صحة البيانات
   String? _validateForm() {
-    // التحقق من الاسم الأول
     if (_firstNameController.text.trim().isEmpty) {
       return 'الرجاء إدخال الاسم الأول';
     }
-
-    // التحقق من اسم العائلة
     if (_lastNameController.text.trim().isEmpty) {
       return 'الرجاء إدخال اسم العائلة';
     }
-
-    // التحقق من نوع المستخدم
     if (_userType == null) {
       return 'الرجاء اختيار نوع الحساب';
     }
-
-    // التحقق من رقم الهاتف
     if (_phoneController.text.trim().isEmpty) {
       return 'الرجاء إدخال رقم الهاتف';
     }
     if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) {
       return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
     }
-
     if (_passwordController.text.isEmpty) {
       return 'الرجاء إدخال كلمة المرور';
     }
     if (_passwordController.text.length < 8) {
       return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
     }
-
-    // التحقق من تأكيد كلمة المرور
     if (_confirmPasswordController.text.isEmpty) {
       return 'الرجاء تأكيد كلمة المرور';
     }
     if (_passwordController.text != _confirmPasswordController.text) {
       return 'كلمات المرور غير متطابقة';
     }
-
-    // التحقق من تاريخ الميلاد
     if (_dateController.text.isEmpty) {
       return 'الرجاء اختيار تاريخ الميلاد';
     }
-
-    // التحقق من صورة الهوية (مطلوبة للجميع)
     if (_idImageFile == null) {
       return 'الرجاء تحميل صورة الهوية الوطنية';
     }
-
-    // التحقق من الصورة الشخصية
     if (_profileImageFile == null) {
       return 'الرجاء تحميل صورة شخصية';
     }
-
-    return null; // جميع البيانات صحيحة
+    return null;
   }
 
-  // دالة مساعدة لإنشاء منطقة تحميل الصور
   Widget _buildImageUploadArea(String title, IconData icon, bool isIdImage) {
     final imageFile = isIdImage ? _idImageFile : _profileImageFile;
 
@@ -392,7 +340,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ],
           ),
           const SizedBox(height: 10),
-
           if (imageFile != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -452,16 +399,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Icons.edit,
                         color:
                             _isLoading
-                                ? buttonColor.withOpacity(0.5)
-                                : buttonColor,
+                                ? accentColor.withOpacity(0.5)
+                                : accentColor,
                       ),
                       label: Text(
                         'تغيير',
                         style: TextStyle(
                           color:
                               _isLoading
-                                  ? buttonColor.withOpacity(0.5)
-                                  : buttonColor,
+                                  ? accentColor.withOpacity(0.5)
+                                  : accentColor,
                         ),
                       ),
                     ),
@@ -480,15 +427,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   icon: Icon(
                     Icons.upload_file,
                     color:
-                        _isLoading ? buttonColor.withOpacity(0.5) : buttonColor,
+                        _isLoading ? accentColor.withOpacity(0.5) : accentColor,
                   ),
                   label: Text(
                     'اختر صورة',
                     style: TextStyle(
                       color:
                           _isLoading
-                              ? buttonColor.withOpacity(0.5)
-                              : buttonColor,
+                              ? accentColor.withOpacity(0.5)
+                              : accentColor,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -498,8 +445,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     side: BorderSide(
                       color:
                           _isLoading
-                              ? buttonColor.withOpacity(0.3)
-                              : buttonColor.withOpacity(0.5),
+                              ? accentColor.withOpacity(0.3)
+                              : accentColor.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -540,10 +487,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.setLoading(true);
 
     try {
-      final accountType = _userType == 'مؤجر' ? 'owner' : 'tenant';
+      print('🎯 بدء عملية التسجيل...');
+
+      // ⚠️ **الجزء المهم: تحويل تنسيق التاريخ**
+      print('📅 التاريخ المدخل: ${_dateController.text}');
+
+      // تحويل من YYYY/MM/DD إلى YYYY-MM-DD
+      String laravelBirthdate = _dateController.text.replaceAll('/', '-');
+
+      // 🔍 التحقق من التنسيق
+      final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+      if (!dateRegex.hasMatch(laravelBirthdate)) {
+        // محاولة تصحيح التنسيق إذا كان مفرداً
+        List<String> parts = _dateController.text.split('/');
+        if (parts.length == 3) {
+          String year = parts[0];
+          String month = parts[1].padLeft(2, '0');
+          String day = parts[2].padLeft(2, '0');
+          laravelBirthdate = '$year-$month-$day';
+        }
+      }
+
+      print('📅 التاريخ للخادم: $laravelBirthdate');
 
       final response = await Signupserves.Signup(
         context,
@@ -552,40 +521,130 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _phoneController.text.trim(),
         _passwordController.text,
         _confirmPasswordController.text,
-        _dateController.text,
-        accountType,
+        laravelBirthdate, // ⬅️ استخدم المتغير المحول
+        _userType!,
         _idImageFile!,
         _profileImageFile!,
       );
 
-      if (response != null && response.statusCode == 201) {
+      if (response != null) {
+        print('📥 استجابة الخادم: ${response.statusCode}');
+
+        if (_userType != 'tenant' && _userType != 'owner') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'نوع الحساب غير صحيح. الرجاء اختيار مالك أو مستأجر',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+        if (response.statusCode == 201) {
+          final responseData = response.data;
+          print('📦 بيانات الاستجابة: $responseData');
+
+          // 🔍 استخراج البيانات من الاستجابة
+          // ⚠️ Laravel قد يرجع 'User' بدل 'user'
+          final userData = responseData['User'] ?? responseData['user'];
+          final token = responseData['Token'] ?? responseData['token'];
+
+          if (userData == null) {
+            throw Exception('لا توجد بيانات مستخدم في الاستجابة');
+          }
+
+          print('👤 بيانات المستخدم: $userData');
+          print('🔐 التوكن: $token');
+
+          // ⚠️ Laravel قد يستخدم أسماء حقول مختلفة
+          // التحقق من أسماء الحقول التي يرجعها Laravel
+          print('🔍 تحليل هيكل الاستجابة:');
+          responseData.forEach((key, value) {
+            print('$key: $value');
+          });
+
+          // 💾 حفظ بيانات المستخدم مباشرة بعد التسجيل
+          await authProvider.login(
+            userId: userData['id']?.toString() ?? '',
+            firstName: userData['name'] ?? _firstNameController.text.trim(),
+            lastName: userData['last_name'] ?? _lastNameController.text.trim(),
+            phone: userData['phone'] ?? _phoneController.text.trim(),
+            email: userData['email'] ?? '', // Laravel قد لا يرجع email
+            userType: userData['account_type'] ?? _userType!,
+            birthDate: userData['birthdate'] ?? laravelBirthdate,
+            profileImageUrl:
+                userData['personal_image'], // ⚠️ قد يكون مسار وليس URL
+            idImageUrl:
+                userData['national_id_image'], // ⚠️ قد يكون مسار وليس URL
+            token: token ?? '',
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تم إنشاء الحساب بنجاح كـ $_userType'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeScreen2()),
+          );
+        } else if (response.statusCode == 422) {
+          // ⚠️ خطأ تحقق من Laravel
+          final errors = response.data?['errors'];
+          if (errors != null) {
+            String errorMessage = 'خطأ في البيانات:\n';
+            errors.forEach((field, messages) {
+              errorMessage += '• $field: ${messages.join(', ')}\n';
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMessage),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('خطأ في البيانات المرسلة'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('خطأ في الخادم: ${response.statusCode}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم إنشاء الحساب بنجاح كـ $_userType'),
-            backgroundColor: Colors.green,
+            content: Text('فشل الاتصال بالخادم'),
+            backgroundColor: Colors.red,
           ),
-        );
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const WelcomeScreen2()),
         );
       }
     } catch (e) {
+      print('❌ خطأ كامل: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حدث خطأ أثناء إنشاء الحساب'),
+        SnackBar(
+          content: Text('حدث خطأ أثناء إنشاء الحساب: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      authProvider.setLoading(false);
     }
   }
 
-  // دالة لإنشاء زر مع دائرة تحميل
   Widget _buildSubmitButton(BuildContext context) {
     return ElevatedButton(
       onPressed: _isLoading ? null : () => _handleSignUp(context),
@@ -624,6 +683,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    _isLoading = authProvider.isLoading;
+
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Directionality(
@@ -635,7 +697,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             SingleChildScrollView(
               child: Column(
                 children: [
-                  // الجزء العلوي مع التاج وعبارة "إنشاء حساب"
                   Container(
                     height: screenHeight * 0.35,
                     padding: const EdgeInsets.symmetric(
@@ -644,7 +705,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     child: Column(
                       children: [
-                        // زر العودة للخلف - محاذاة لليمين
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -668,8 +728,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 style: TextStyle(
                                   color:
                                       _isLoading
-                                          ? buttonColor.withOpacity(0.5)
-                                          : buttonColor,
+                                          ? accentColor.withOpacity(0.5)
+                                          : accentColor,
                                   fontSize: 16,
                                 ),
                               ),
@@ -677,7 +737,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ],
                         ),
                         const Spacer(),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -695,7 +754,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ],
                     ),
                   ),
-
                   Container(
                     decoration: const BoxDecoration(
                       color: cardBackgroundColor,
@@ -718,28 +776,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textAlign: TextAlign.right,
                         ),
                         const SizedBox(height: 30),
-
-                        // الاسم الأول
                         _buildInputField(
                           hintText: 'الاسم الأول',
                           icon: Icons.person,
                           controller: _firstNameController,
                         ),
                         const SizedBox(height: 20),
-
-                        // الاسم الأخير
                         _buildInputField(
                           hintText: 'اسم العائلة',
                           icon: Icons.person_outline,
                           controller: _lastNameController,
                         ),
                         const SizedBox(height: 20),
-
-                        // حقل اختيار نوع المستخدم
                         _buildUserTypeDropdown(),
                         const SizedBox(height: 20),
-
-                        // حقل رقم الهاتف
                         _buildInputField(
                           hintText: 'رقم الهاتف (09XXXXXXXX)',
                           icon: Icons.phone,
@@ -747,8 +797,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           controller: _phoneController,
                         ),
                         const SizedBox(height: 20),
-
-                        // حقل كلمة المرور
                         _buildInputField(
                           hintText: 'كلمة المرور (8 أحرف على الأقل)',
                           icon: Icons.lock,
@@ -756,8 +804,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           controller: _passwordController,
                         ),
                         const SizedBox(height: 20),
-
-                        // حقل تأكيد كلمة المرور
                         _buildInputField(
                           hintText: 'تأكيد كلمة المرور',
                           icon: Icons.lock,
@@ -765,8 +811,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           controller: _confirmPasswordController,
                         ),
                         const SizedBox(height: 20),
-
-                        // تاريخ الميلاد
                         _buildInputField(
                           controller: _dateController,
                           hintText: 'تاريخ الميلاد (YYYY/MM/DD)',
@@ -775,24 +819,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           onTap: _isLoading ? null : () => _selectDate(context),
                         ),
                         const SizedBox(height: 20),
-
-                        // صورة الهوية
                         _buildImageUploadArea(
                           'صورة الهوية الوطنية (أمامية)',
                           Icons.credit_card,
                           true,
                         ),
                         const SizedBox(height: 20),
-
-                        // صورة شخصية
                         _buildImageUploadArea(
                           'صورة شخصية (للملف الشخصي)',
                           Icons.camera_alt,
                           false,
                         ),
                         const SizedBox(height: 30),
-
-                        // زر إنشاء حساب مع دائرة تحميل
                         _buildSubmitButton(context),
                       ],
                     ),
@@ -800,8 +838,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ],
               ),
             ),
-
-            // طبقة تحميل شبه شفافة
             if (_isLoading)
               Container(
                 color: Colors.black.withOpacity(0.3),

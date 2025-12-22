@@ -14,12 +14,12 @@ class Signupserves {
     String password,
     String password_confirmation,
     String birthdate,
-    String account_type,
+    String _userType,
     File national_id_image,
     File personal_image,
   ) async {
     final Dio dio = Dio();
-    final String baseUrl = 'http://192.168.137.189:8000/api';
+    final String baseUrl = 'http://192.168.137.101:8000/api';
     final String register = '/register';
     dio.options.baseUrl = baseUrl;
     var formData = FormData.fromMap({
@@ -29,7 +29,7 @@ class Signupserves {
       "password": password,
       "password_confirmation": password_confirmation,
       "birthdate": birthdate,
-      "account_type": account_type,
+      "account_type": _userType,
       "national_id_image": await MultipartFile.fromFile(national_id_image.path),
       "personal_image": await MultipartFile.fromFile(personal_image.path),
     });

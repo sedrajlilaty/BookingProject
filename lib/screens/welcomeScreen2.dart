@@ -63,7 +63,6 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
       body: SafeArea(
         child: Column(
           children: [
-            // اللوجو في الأعلى
             Container(
               decoration: BoxDecoration(
                 color: cardBackgroundColor,

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 
-class BookingDone extends StatelessWidget {
+class DoneAdd extends StatelessWidget {
   static const String routeName = '/my_bookings';
-  const BookingDone({super.key});
+  const DoneAdd({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class BookingDone extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'My Bookings',
+          'Adding Appartement',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -30,7 +30,7 @@ class BookingDone extends StatelessWidget {
               Icon(Icons.check_circle_outline, size: 100, color: accentColor),
               const SizedBox(height: 50),
               Text(
-                'Booking Confirmed!',
+                'Adding Confirmed!',
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
@@ -39,7 +39,7 @@ class BookingDone extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                'Your reservation details have been added to your bookings list.',
+                'Your Appartement is added succesfully.',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -51,14 +51,14 @@ class BookingDone extends StatelessWidget {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MainNavigationScreen(),
+                      builder: (context) => MainNavigationScreen(isOwner: true),
                     ),
                   );
                 },
                 child: Text(
-                  'Go to Home',
+                  'Go to My Appartements',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: cardBackgroundColor,
+                    color: accentColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

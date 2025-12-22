@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_application_8/screens/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
-
-import 'AppartementDetails.dart';
+import 'package:flutter_application_8/screens/tanent/AppartementDetails.dart';
 
 class ApartmentBookingScreen extends StatefulWidget {
-  const ApartmentBookingScreen({super.key});
+  final bool isOwner; // إضافة هذه المعلمة
+
+  const ApartmentBookingScreen({
+    super.key,
+    required this.isOwner, // إضافة required
+  });
 
   @override
   State<ApartmentBookingScreen> createState() => _ApartmentBookingScreenState();
@@ -50,8 +53,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     '2,000+ sq ft',
   ];
 
-  // بيانات الشقق (في التطبيق الحقيقي قد تأتي من API)
-  // بيانات الشقق المحسنة
+  // بيانات الشقق - مع إضافة حقل ownerId لتحديد المالك
   final List<Map<String, dynamic>> _allApartments = [
     {
       'id': 1,
@@ -63,6 +65,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
       'description': 'شقة فاخرة مع إطلالة رائعة على سنترال بارك',
       'fallbackColor': Colors.blue[100],
+      'ownerId': 1, // مؤجر معين (ID)
+      'isAvailable': true,
+      'rating': 4.8,
+      'bedrooms': 2,
+      'bathrooms': 2,
     },
     {
       'id': 2,
@@ -74,6 +81,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&fit=crop',
       'description': 'شقة حديثة في وسط المدينة مع وسائل راحة متطورة',
       'fallbackColor': Colors.orange[100],
+      'ownerId': 2, // مؤجر آخر
+      'isAvailable': true,
+      'rating': 4.5,
+      'bedrooms': 3,
+      'bathrooms': 2,
     },
     {
       'id': 3,
@@ -85,6 +97,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
       'description': 'استوديو عصري في قلب شيكاغو',
       'fallbackColor': Colors.grey[200],
+      'ownerId': 1, // نفس المؤجر الأول
+      'isAvailable': true,
+      'rating': 4.2,
+      'bedrooms': 1,
+      'bathrooms': 1,
     },
     {
       'id': 4,
@@ -96,6 +113,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
       'description': 'كوندو مع إطلالة مباشرة على الشاطئ',
       'fallbackColor': Colors.lightBlue[100],
+      'ownerId': 3, // مؤجر ثالث
+      'isAvailable': true,
+      'rating': 4.9,
+      'bedrooms': 4,
+      'bathrooms': 3,
     },
     {
       'id': 5,
@@ -107,6 +129,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&fit=crop',
       'description': 'بنتهاوس فاخر مع إطلالة بانورامية على المدينة',
       'fallbackColor': Colors.amber[100],
+      'ownerId': 1, // نفس المؤجر الأول
+      'isAvailable': true,
+      'rating': 4.7,
+      'bedrooms': 5,
+      'bathrooms': 4,
     },
     {
       'id': 6,
@@ -118,6 +145,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&fit=crop',
       'description': 'شقة تاريخية في حي لندني تقليدي',
       'fallbackColor': Colors.brown[100],
+      'ownerId': 2, // نفس المؤجر الثاني
+      'isAvailable': true,
+      'rating': 4.3,
+      'bedrooms': 2,
+      'bathrooms': 1,
     },
     {
       'id': 7,
@@ -129,6 +161,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&fit=crop',
       'description': 'شقة أنيقة في قلب باريس',
       'fallbackColor': Colors.pink[100],
+      'ownerId': 3, // نفس المؤجر الثالث
+      'isAvailable': true,
+      'rating': 4.6,
+      'bedrooms': 3,
+      'bathrooms': 2,
     },
     {
       'id': 8,
@@ -140,21 +177,52 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&fit=crop',
       'description': 'لوفت واسع بتصميم صناعي عصري',
       'fallbackColor': Colors.indigo[100],
+      'ownerId': 1, // نفس المؤجر الأول
+      'isAvailable': true,
+      'rating': 4.4,
+      'bedrooms': 3,
+      'bathrooms': 2,
     },
   ];
+
+  // دالة للحصول على ID المؤجر الحالي (في التطبيق الحقيقي يأتي من API)
+  int get _currentOwnerId {
+    // هنا يمكنك استدعاء API أو استخدام بيانات مسجلة
+    // للتبسيط، نفرض أن المؤجر الحالي له ID = 1
+    return 1;
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  // دالة الفلترة
+  // دالة الفلترة المعدلة حسب نوع المستخدم
   List<Map<String, dynamic>> get _filteredApartments {
-    if (_showAllApartments) {
-      return _allApartments;
+    // فلترة أولية حسب نوع المستخدم
+    List<Map<String, dynamic>> baseApartments;
+
+    if (widget.isOwner) {
+      // إذا كان مؤجراً، يعرض فقط شققه
+      baseApartments =
+          _allApartments.where((apartment) {
+            return apartment['ownerId'] == _currentOwnerId;
+          }).toList();
+    } else {
+      // إذا كان مستأجراً، يعرض جميع الشقق المتاحة
+      baseApartments =
+          _allApartments.where((apartment) {
+            return apartment['isAvailable'] == true;
+          }).toList();
     }
 
-    return _allApartments.where((apartment) {
+    if (_showAllApartments) {
+      return baseApartments;
+    }
+
+    // تطبيق الفلاتر الأخرى
+    return baseApartments.where((apartment) {
       // فلترة المدينة
       bool cityMatch =
           _selectedCity == 'All Cities' || apartment['city'] == _selectedCity;
@@ -197,7 +265,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           areaMatch = true;
       }
 
-      // فلترة البحث - التعديل هنا
+      // فلترة البحث
       bool searchMatch =
           _searchController.text.isEmpty ||
           _doesApartmentMatchSearch(
@@ -257,6 +325,34 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     });
   }
 
+  // دالة لإضافة شقة جديدة (للمؤجر فقط)
+  void _addNewApartment() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              _isEnglish ? 'Add New Apartment' : 'إضافة شقة جديدة',
+              style: TextStyle(
+                color: _isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
+            content: Text(
+              _isEnglish ? 'Feature under development' : 'الميزة قيد التطوير',
+              style: TextStyle(
+                color: _isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(_isEnglish ? 'OK' : 'حسناً'),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -290,7 +386,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _isEnglish ? 'Welcome' : 'أهلاً بك',
+              widget.isOwner
+                  ? (_isEnglish ? 'Owner Dashboard' : 'لوحة تحكم المالك')
+                  : (_isEnglish ? 'Welcome' : 'أهلاً بك'),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -298,9 +396,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               ),
             ),
             Text(
-              _isEnglish
-                  ? 'Find your dream apartment'
-                  : 'ابحث عن شقتك المثالية',
+              widget.isOwner
+                  ? (_isEnglish ? 'Manage your apartments' : 'إدارة شققك')
+                  : (_isEnglish
+                      ? 'Find your dream apartment'
+                      : 'ابحث عن شقتك المثالية'),
               style: TextStyle(
                 color: Colors.white.withOpacity(0.9),
                 fontSize: 12,
@@ -309,6 +409,21 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ],
         ),
         actions: [
+          // زر إضافة شقة (للمؤجر فقط)
+          if (widget.isOwner)
+            Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Icon(Icons.add_home, color: Colors.white, size: 22),
+                onPressed: _addNewApartment,
+                tooltip: _isEnglish ? 'Add apartment' : 'إضافة شقة',
+              ),
+            ),
+
           // زر تبديل المظهر
           Container(
             margin: const EdgeInsets.all(8),
@@ -326,6 +441,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               tooltip: _isEnglish ? 'Toggle theme' : 'تبديل المظهر',
             ),
           ),
+
           // زر تبديل اللغة
           Container(
             margin: const EdgeInsets.all(8),
@@ -343,6 +459,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               tooltip: _isEnglish ? 'Change language' : 'تغيير اللغة',
             ),
           ),
+          //
           // زر القائمة
           Container(
             margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
@@ -361,13 +478,23 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
         ),
       ),
       endDrawer: EndDrawer(),
+      floatingActionButton:
+          widget.isOwner
+              ? FloatingActionButton(
+                backgroundColor: accentColor,
+                foregroundColor: Colors.white,
+                onPressed: _addNewApartment,
+                child: const Icon(Icons.add),
+                tooltip: _isEnglish ? 'Add apartment' : 'إضافة شقة',
+              )
+              : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Header مختلف حسب نوع المستخدم
               _buildHeader(),
               const SizedBox(height: 24),
 
@@ -379,20 +506,61 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               _buildFilterIndicators(),
               const SizedBox(height: 8),
 
-              _buildCategoriesSection(),
-              const SizedBox(height: 24),
+              // Categories Section (للمستأجر فقط)
+              if (!widget.isOwner) ...[
+                _buildCategoriesSection(),
+                const SizedBox(height: 24),
+              ],
 
-              // Upgrade Plan
-              _buildUpgradePlan(),
-              const SizedBox(height: 24),
+              // Upgrade Plan (للمستأجر فقط)
+              if (!widget.isOwner) ...[
+                _buildUpgradePlan(),
+                const SizedBox(height: 24),
+              ],
 
-              // Apartments Grid
+              // Apartments Grid مع عرض مختلف حسب نوع المستخدم
               _buildApartmentsGrid(),
               const SizedBox(height: 24),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Text(
+          widget.isOwner
+              ? (_isEnglish ? 'Your Apartments' : 'شققك')
+              : (_isEnglish
+                  ? 'What apartment are we booking today?'
+                  : 'ما الشقة التي سنحجزها اليوم؟'),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: _isDarkMode ? Colors.white : Colors.grey[700],
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          widget.isOwner
+              ? (_isEnglish
+                  ? '${_filteredApartments.length} apartments listed'
+                  : '${_filteredApartments.length} شقة مدرجة')
+              : (_isEnglish
+                  ? '${_filteredApartments.length} apartments available'
+                  : '${_filteredApartments.length} شقة متاحة'),
+          style: TextStyle(
+            fontSize: 14,
+            color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+          ),
+        ),
+      ],
     );
   }
 
@@ -424,9 +592,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                     controller: _searchController,
                     decoration: InputDecoration(
                       hintText:
-                          _isEnglish
-                              ? 'Search by title or city...'
-                              : 'ابحث بالعنوان أو المدينة...',
+                          widget.isOwner
+                              ? (_isEnglish
+                                  ? 'Search your apartments...'
+                                  : 'ابحث في شققك...')
+                              : (_isEnglish
+                                  ? 'Search by title or city...'
+                                  : 'ابحث بالعنوان أو المدينة...'),
                       hintStyle: TextStyle(
                         color:
                             _isDarkMode ? Colors.grey[400] : Colors.grey[500],
@@ -499,6 +671,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
+  // ... باقي الدوال تبقى كما هي مع تعديل بسيط في الرسائل
+
   void _showFilterDialog() {
     showDialog(
       context: context,
@@ -512,7 +686,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             return AlertDialog(
               backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.white,
               title: Text(
-                _isEnglish ? 'Filter Apartments' : 'تصفية الشقق',
+                widget.isOwner
+                    ? (_isEnglish ? 'Filter Your Apartments' : 'تصفية شققك')
+                    : (_isEnglish ? 'Filter Apartments' : 'تصفية الشقق'),
                 style: TextStyle(
                   color: _isDarkMode ? Colors.white : Colors.black,
                 ),
@@ -573,12 +749,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                   },
                   child: Text(
                     _isEnglish ? 'Reset All' : 'إعادة التعيين',
-                    style: TextStyle(
-                      color: Colors.black,
-                    ), // إضافة اللون الأسود للنص
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black, // اللون عند الضغط
+                    style: const TextStyle(color: Colors.black),
                   ),
                 ),
                 TextButton(
@@ -587,18 +758,12 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                   },
                   child: Text(
                     _isEnglish ? 'Cancel' : 'إلغاء',
-                    style: TextStyle(
-                      color: Colors.black,
-                    ), // إضافة اللون الأسود للنص
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.black, // اللون عند الضغط
+                    style: const TextStyle(color: Colors.black),
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    // تطبيق الفلترة مباشرة
                     setState(() {
                       _selectedCity = tempSelectedCity;
                       _selectedPriceRange = tempSelectedPriceRange;
@@ -608,12 +773,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                   },
                   child: Text(
                     _isEnglish ? 'Apply Filters' : 'تطبيق التصفية',
-                    style: TextStyle(color: Colors.white), // النص أبيض للتباين
+                    style: const TextStyle(color: Colors.white),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accentColor, // الخلفية سوداء
-                    foregroundColor: Colors.white, // اللون عند الضغط
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: accentColor),
                 ),
               ],
             );
@@ -752,26 +914,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Text(
-          _isEnglish
-              ? 'What apartment are we booking today?'
-              : 'ما الشقة التي سنحجزها اليوم؟',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _isDarkMode ? Colors.white : Colors.grey[700],
-            letterSpacing: 0.3,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCategoriesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -875,7 +1017,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              _isEnglish ? 'No apartments found' : 'لم يتم العثور على شقق',
+              widget.isOwner
+                  ? (_isEnglish
+                      ? 'No apartments listed yet'
+                      : 'لا توجد شقق مدرجة بعد')
+                  : (_isEnglish
+                      ? 'No apartments found'
+                      : 'لم يتم العثور على شقق'),
               style: TextStyle(
                 fontSize: 16,
                 color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
@@ -883,25 +1031,37 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _isEnglish
-                  ? 'Try adjusting your search or filters'
-                  : 'حاول تعديل البحث أو التصفيات',
+              widget.isOwner
+                  ? (_isEnglish
+                      ? 'Add your first apartment to get started'
+                      : 'أضف شقتك الأولى للبدء')
+                  : (_isEnglish
+                      ? 'Try adjusting your search or filters'
+                      : 'حاول تعديل البحث أو التصفيات'),
               style: TextStyle(
                 fontSize: 14,
                 color: _isDarkMode ? Colors.grey[500] : Colors.grey[500],
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _showAllApartments = true;
-                });
-              },
-              child: Text(
-                _isEnglish ? 'View All Apartments' : 'عرض جميع الشقق',
+            if (widget.isOwner)
+              ElevatedButton(
+                onPressed: _addNewApartment,
+                child: Text(
+                  _isEnglish ? 'Add First Apartment' : 'إضافة أول شقة',
+                ),
+              )
+            else
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _showAllApartments = true;
+                  });
+                },
+                child: Text(
+                  _isEnglish ? 'View All Apartments' : 'عرض جميع الشقق',
+                ),
               ),
-            ),
           ],
         ),
       );
@@ -918,7 +1078,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                 Icon(Icons.info_outline, color: accentColor, size: 16),
                 const SizedBox(width: 8),
                 Text(
-                  _isEnglish ? 'Showing all apartments' : 'عرض جميع الشقق',
+                  widget.isOwner
+                      ? (_isEnglish
+                          ? 'Showing all your apartments'
+                          : 'عرض جميع شققك')
+                      : (_isEnglish
+                          ? 'Showing all apartments'
+                          : 'عرض جميع الشقق'),
                   style: TextStyle(
                     color: accentColor,
                     fontWeight: FontWeight.w500,
@@ -967,16 +1133,25 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           itemCount: apartments.length,
           itemBuilder: (context, index) {
             final apartment = apartments[index];
+            final isOwner = widget.isOwner;
+            final isMyApartment = apartment['ownerId'] == _currentOwnerId;
 
             return InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ApartmentDetailsPage(apartment: apartment),
-                  ),
-                );
+                if (isOwner) {
+                  // للمؤجر: عرض تفاصيل مع إمكانية التعديل
+                  _showOwnerApartmentDetails(apartment);
+                } else {
+                  // للمستأجر: الانتقال لصفحة تفاصيل الحجز
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => ApartmentDetailsPage(apartment: apartment),
+                    ),
+                  );
+                }
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -985,107 +1160,193 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                   border: Border.all(
                     color: _isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
                   ),
+                  boxShadow:
+                      isMyApartment
+                          ? [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.3),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                          : null,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    // صورة الشقة
-                    Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          topRight: Radius.circular(8),
-                        ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.home,
-                          color: Colors.blueGrey[400],
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            apartment['title'],
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // صورة الشقة
+                        Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color:
+                                apartment['fallbackColor'] ??
+                                Colors.blueGrey[100],
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              topRight: Radius.circular(8),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          // الموقع مع أيقونة
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                size: 12,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                apartment['city'],
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                          child: Center(
+                            child: Icon(
+                              Icons.home,
+                              color: Colors.blueGrey[400],
+                              size: 40,
+                            ),
                           ),
-                          const SizedBox(height: 4),
-
-                          // المساحة مع أيقونة
-                          Row(
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.aspect_ratio_outlined,
-                                size: 12,
-                                color: Colors.grey[600],
-                              ),
-                              const SizedBox(width: 4),
                               Text(
-                                '${apartment['area']} sq ft',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-
-                          // السعر مع أيقونة
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.attach_money_outlined,
-                                size: 14,
-                                color: accentColor,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${apartment['price']} / month',
+                                apartment['title'],
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: accentColor,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      _isDarkMode ? Colors.white : Colors.black,
                                 ),
                               ),
+                              const SizedBox(height: 6),
+                              // الموقع مع أيقونة
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on_outlined,
+                                    size: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    apartment['city'],
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              // المساحة مع أيقونة
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.aspect_ratio_outlined,
+                                    size: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${apartment['area']} sq ft',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              // السعر مع أيقونة
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.attach_money_outlined,
+                                    size: 14,
+                                    color: accentColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '\$${apartment['price']} / month',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: accentColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // التقييم (للمستأجر فقط)
+                              if (!isOwner)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.star,
+                                        size: 12,
+                                        color: Colors.amber,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${apartment['rating']}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    // شارة "My Apartment" للمؤجر
+                    if (isOwner && isMyApartment)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accentColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _isEnglish ? 'MY' : 'خاصتي',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    // شارة التوافر
+                    if (!apartment['isAvailable'])
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _isEnglish ? 'BOOKED' : 'محجوزة',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -1093,6 +1354,159 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           },
         ),
       ],
+    );
+  }
+
+  // دالة لعرض تفاصيل الشقة للمؤجر
+  void _showOwnerApartmentDetails(Map<String, dynamic> apartment) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _isDarkMode ? Colors.grey[800] : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    apartment['title'],
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit, color: accentColor),
+                    onPressed: () {
+                      // TODO: إضافة منطق التعديل
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: accentColor, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    apartment['city'],
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.attach_money, color: accentColor, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '\$${apartment['price']} / month',
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.aspect_ratio, color: accentColor, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${apartment['area']} sq ft',
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.hotel, color: accentColor, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${apartment['bedrooms']} bedrooms, ${apartment['bathrooms']} bathrooms',
+                    style: TextStyle(
+                      color: _isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                apartment['description'],
+                style: TextStyle(
+                  color: _isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // TODO: تغيير حالة التوافر
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            apartment['isAvailable']
+                                ? Colors.red
+                                : Colors.green,
+                      ),
+                      child: Text(
+                        apartment['isAvailable']
+                            ? (_isEnglish ? 'Mark as Booked' : 'تعيين كمحجوزة')
+                            : (_isEnglish
+                                ? 'Mark as Available'
+                                : 'تعيين كمتاحة'),
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: accentColor),
+                      ),
+                      child: Text(
+                        _isEnglish ? 'Close' : 'إغلاق',
+                        style: TextStyle(color: accentColor),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

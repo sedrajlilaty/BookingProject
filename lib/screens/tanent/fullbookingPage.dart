@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/screens/tanent/bookingDone.dart';
 import 'package:intl/intl.dart';
 
 class FullBookingPage extends StatefulWidget {
@@ -281,8 +282,9 @@ class _FullBookingPageState extends State<FullBookingPage> {
                     ),
                   ),
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("تم تأكيد الحجز!")),
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => BookingDone()),
                     );
                   },
                   child: const Text(

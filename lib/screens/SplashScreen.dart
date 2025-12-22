@@ -30,7 +30,6 @@ class _SplashScreenState extends State<SplashScreen> {
         backgroundColor: primaryBackgroundColor,
         body: Stack(
           children: <Widget>[
-            // طبقة خلفية مع التدرج اللوني
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -45,12 +44,10 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
 
-            // المحتوى الرئيسي
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // أيقونة المنزل الذهبية مع ظل
                   Container(
                     decoration: BoxDecoration(
                       color: cardBackgroundColor,
@@ -75,7 +72,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   const SizedBox(height: 30),
 
-                  // اسم التطبيق مع التصميم المميز
                   ShaderMask(
                     shaderCallback: (Rect bounds) {
                       return LinearGradient(
@@ -95,10 +91,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   const SizedBox(height: 10),
 
-                  // شعار التطبيق
                   const SizedBox(height: 50),
 
-                  // مؤشر التحميل بمظهر أكثر تطوراً
                   SizedBox(
                     width: 60,
                     height: 60,
@@ -132,7 +126,6 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
 
-                  // نص تحميل
                   Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: Text(
@@ -147,7 +140,6 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
 
-            // عنصر زخرفي في الزاوية السفلية
             Positioned(
               bottom: 30,
               left: 30,
