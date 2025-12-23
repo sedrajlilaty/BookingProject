@@ -1273,7 +1273,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                                 ],
                               ),
                               // التقييم (للمستأجر فقط)
-                              if (!isOwner)
+                              /*if (!isOwner)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Row(
@@ -1293,7 +1293,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                ),*/
                             ],
                           ),
                         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/customButtomNavigation.dart';
+import 'package:flutter_application_8/providers/authoProvider.dart';
 
 import 'package:flutter_application_8/screens/owner/homePage.dart';
 import 'package:flutter_application_8/screens/owner/AddApartement.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_application_8/screens/owner/bookingRequest.dart';
 import 'package:flutter_application_8/screens/profile.dart';
 import 'package:flutter_application_8/screens/tanent/favorateScreen.dart';
 import 'package:flutter_application_8/screens/tanent/myBookingScreen.dart';
+import 'package:provider/provider.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final bool isOwner; // true = مالك, false = مستأجر

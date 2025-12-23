@@ -31,11 +31,11 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
     final apartment = widget.apartment;
 
     // قائمة الصور المحلية
-    final List<String> images = [
+    /* final List<String> images = [
       'assets/images/apartment1_1.jpg',
       'assets/images/apartment1_2.jpg',
       'assets/images/apartment1_3.jpg',
-    ];
+    ];*/
 
     return Scaffold(
       backgroundColor: Colors.brown.shade50,
@@ -46,7 +46,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
             height: 350,
             child: Stack(
               children: [
-                PageView.builder(
+                /*PageView.builder(
                   controller: _pageController,
                   itemCount: images.length,
                   onPageChanged: (i) => setState(() => _currentPage = i),
@@ -57,7 +57,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                       width: double.infinity,
                     );
                   },
-                ),
+                ),*/
                 // BACK BUTTON
                 Positioned(
                   top: 40,
@@ -84,13 +84,13 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                           if (!FavoritesScreen.favoriteApartments.any(
                             (apt) => apt['title'] == apartment['title'],
                           )) {
-                            final aptWithImages = Map<String, dynamic>.from(
+                            /* final aptWithImages = Map<String, dynamic>.from(
                               apartment,
                             );
                             aptWithImages['images'] = images;
                             FavoritesScreen.favoriteApartments.add(
                               aptWithImages,
-                            );
+                            );*/
                           }
                         } else {
                           // إزالة الشقة من المفضلة
@@ -110,14 +110,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                   ),
                 ),
                 // INDICATORS
-                Positioned(
+                /*Positioned(
                   bottom: 16,
                   left: 0,
                   right: 0,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      images.length,
+                       images.length,
                       (index) => Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         width: _currentPage == index ? 10 : 8,
@@ -132,7 +132,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                       ),
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
           ),
@@ -187,9 +187,23 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (_) => FullBookingPage(
+                                      (context) => FullBookingPage(
+                                        // ✅ إضافة جميع المعلمات المطلوبة
                                         pricePerDay:
                                             apartment['price'].toDouble(),
+                                        apartmentId:
+                                            apartment['id']
+                                                .toString(), // ✅ مطلوب
+                                        apartmentName:
+                                            apartment['name']?.toString() ??
+                                            'شقة', // ✅ مطلوب
+                                        apartmentImage:
+                                            apartment['image']?.toString() ??
+                                            'assets/default.jpg',
+                                        // ✅ مطلوب
+                                        apartmentLocation:
+                                            apartment['location']?.toString() ??
+                                            'موقع غير محدد', // ✅ مطلوب
                                       ),
                                 ),
                               );

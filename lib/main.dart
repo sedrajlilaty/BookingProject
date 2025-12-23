@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
+import 'package:flutter_application_8/providers/booking_provider.dart';
 import 'package:flutter_application_8/screens/SplashScreen.dart';
 
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ void main() async {
       providers: [
         // 🎮 إضافة AuthProvider مع حقن SharedPreferences
         ChangeNotifierProvider(create: (context) => AuthProvider(prefs)),
+        ChangeNotifierProvider(create: (context) => BookingProvider()),
       ],
       child: const MyApp(),
     ),
