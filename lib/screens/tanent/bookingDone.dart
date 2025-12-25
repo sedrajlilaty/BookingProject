@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../owner/homePage.dart' show ApartmentBookingScreen;
+import 'myBookingScreen.dart' show MyBookingsScreen;
+import '../../Theme/theme_cubit.dart';
+import '../../Theme/theme_state.dart';
 
 class BookingDone extends StatelessWidget {
   final String bookingId;
@@ -28,220 +33,186 @@ class BookingDone extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy-MM-dd');
 
-    return Scaffold(
-      backgroundColor: primaryBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          'تاكيد الحجز  ',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        bool isDark = state is DarkState;
+
+        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
+        Color textColor = isDark ? Colors.white : Colors.black;
+        Color accent = accentColor;
+
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            title: const Text(
+              'تاكيد الحجز',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: accent,
+            centerTitle: true,
+            elevation: 4,
+            automaticallyImplyLeading: false,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            ),
           ),
-        ),
-        backgroundColor: accentColor,
-        centerTitle: true,
-        elevation: 4,
-        automaticallyImplyLeading: false,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // أيقونة النجاح
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: accentColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_circle,
-                size: 80,
-                color: cardBackgroundColor,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // نص النجاح
-            const Text(
-              'تم تأكيد الحجز بنجاح!',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: accentColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              'رقم الحجز: $bookingId',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 32),
-
-            // بطاقة معلومات الحجز
-
-            // نصائح وإرشادات
-            Card(
-              color: cardBackgroundColor,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'ماذا بعد؟',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: accentColor,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildTipItem(
-                      Icons.notifications,
-                      'ستتلقى تأكيداً عبر البريد الإلكتروني',
-                    ),
-                    _buildTipItem(
-                      Icons.phone,
-                      'سيتم التواصل معك من قبل المالك',
-                    ),
-                    _buildTipItem(
-                      Icons.calendar_today,
-                      'يمكنك مراجعة حجوزاتك في أي وقت',
-                    ),
-                    _buildTipItem(Icons.edit, 'يمكنك تعديل الحجز خلال 24 ساعة'),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // الأزرار
-            Column(
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // الذهاب لصفحة الحجوزات
-                      Navigator.pushReplacementNamed(context, '/my-bookings');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accentColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'عرض حجوزاتي',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 80,
+                    color: cardColor,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'تم تأكيد الحجز بنجاح!',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: accent,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'رقم الحجز: $bookingId',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor.withOpacity(0.7),
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Card(
+                  color: cardColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ماذا بعد؟',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: accent,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildTipItem(Icons.notifications, 'ستتلقى تأكيداً عبر البريد الإلكتروني', accent, textColor),
+                        _buildTipItem(Icons.phone, 'سيتم التواصل معك من قبل المالك', accent, textColor),
+                        _buildTipItem(Icons.calendar_today, 'يمكنك مراجعة حجوزاتك في أي وقت', accent, textColor),
+                        _buildTipItem(Icons.edit, 'يمكنك تعديل الحجز خلال 24 ساعة', accent, textColor),
+                      ],
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () {
-                      // العودة للرئيسية
-                      Navigator.popUntil(context, (route) => route.isFirst);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: accentColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 32),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => MyBookingsScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'عرض حجوزاتي',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
                       ),
                     ),
-                    child: Text(
-                      'العودة للرئيسية',
-                      style: TextStyle(fontSize: 16, color: accentColor),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextButton(
-                  onPressed: () {
-                    // طباعة أو مشاركة التفاصيل
-                    _shareBookingDetails(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.share, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'مشاركة تفاصيل الحجز',
-                        style: TextStyle(color: accentColor),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => ApartmentBookingScreen(isOwner: false)),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: accent),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'العودة للرئيسية',
+                          style: TextStyle(fontSize: 16, color: accent),
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        _shareBookingDetails(context);
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.share, size: 20, color: accent),
+                          const SizedBox(width: 8),
+                          Text(
+                            'مشاركة تفاصيل الحجز',
+                            style: TextStyle(color: accent),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: isTotal ? 16 : 14,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isTotal ? 18 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? accentColor : Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTipItem(IconData icon, String text) {
+  Widget _buildTipItem(IconData icon, String text, Color accent, Color textColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: accentColor),
+          Icon(icon, size: 18, color: accent),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: textColor),
+            ),
+          ),
         ],
       ),
     );
@@ -262,27 +233,25 @@ class BookingDone extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('تفاصيل الحجز'),
-            content: SingleChildScrollView(child: Text(details)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('حسناً'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // هنا يمكن إضافة منطق المشاركة
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
-                  );
-                },
-                child: const Text('نسخ التفاصيل'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: const Text('تفاصيل الحجز'),
+        content: SingleChildScrollView(child: Text(details)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('حسناً'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
+              );
+            },
+            child: const Text('نسخ التفاصيل'),
+          ),
+        ],
+      ),
     );
   }
 }

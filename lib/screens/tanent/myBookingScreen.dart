@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
 
 import 'package:flutter_application_8/providers/booking_provider.dart';
@@ -9,6 +9,8 @@ import 'package:flutter_application_8/screens/tanent/booking_details_screen.dart
 import 'package:flutter_application_8/screens/tanent/edit_booking_screen.dart';
 import 'package:flutter_application_8/screens/tanent/rate_apartment_screen.dart';
 import 'package:intl/intl.dart';
+
+
 
 // أنواع الفلترة
 enum BookingFilter { all, current, completed, cancelled, pending }
@@ -61,8 +63,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('حجوزاتي'),
+        title: const Text(
+          'حجوزاتي',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: accentColor,
+        centerTitle: true,
+        elevation: 4,
         actions: [
           PopupMenuButton<BookingFilter>(
             icon: const Icon(Icons.filter_list),
@@ -73,30 +84,35 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             },
             itemBuilder:
                 (context) => [
-                  const PopupMenuItem(
-                    value: BookingFilter.all,
-                    child: Text('عرض الكل'),
-                  ),
-                  const PopupMenuItem(
-                    value: BookingFilter.current,
-                    child: Text('الحجوزات الحالية'),
-                  ),
-                  const PopupMenuItem(
-                    value: BookingFilter.completed,
-                    child: Text('الحجوزات المكتملة'),
-                  ),
-                  const PopupMenuItem(
-                    value: BookingFilter.pending,
-                    child: Text('الحجوزات قيد المراجعة'),
-                  ),
-                  const PopupMenuItem(
-                    value: BookingFilter.cancelled,
-                    child: Text('الحجوزات الملغية'),
-                  ),
-                ],
+              const PopupMenuItem(
+                value: BookingFilter.all,
+                child: Text('عرض الكل'),
+              ),
+              const PopupMenuItem(
+                value: BookingFilter.current,
+                child: Text('الحجوزات الحالية'),
+              ),
+              const PopupMenuItem(
+                value: BookingFilter.completed,
+                child: Text('الحجوزات المكتملة'),
+              ),
+              const PopupMenuItem(
+                value: BookingFilter.pending,
+                child: Text('الحجوزات قيد المراجعة'),
+              ),
+              const PopupMenuItem(
+                value: BookingFilter.cancelled,
+                child: Text('الحجوزات الملغية'),
+              ),
+            ],
           ),
         ],
+        automaticallyImplyLeading: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
+
       body: Column(
         children: [
           // شريط الفلترة السريع
@@ -225,6 +241,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+
                 child: const Text('نعم، إلغاء'),
               ),
             ],
@@ -378,14 +395,15 @@ class BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy-MM-dd');
     final isPastBooking = booking.endDate.isBefore(DateTime.now());
-    final canEdit = booking.status == BookingStatus.confirmed && !isPastBooking;
-    final canRate = booking.isCompleted && !booking.hasRated;
+    final canEdit = booking.status == BookingStatus.confirmed ||!isPastBooking;
+    final canRate = booking.isCompleted || !booking.hasRated;
     final canCancel =
         (booking.status == BookingStatus.confirmed ||
             booking.status == BookingStatus.pending) &&
         !isPastBooking;
 
     return Card(
+      color: cardBackgroundColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Column(
         children: [
@@ -532,7 +550,9 @@ class BookingCard extends StatelessWidget {
                       label: const Text('تعديل'),
                       onPressed: onEdit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
@@ -549,6 +569,7 @@ class BookingCard extends StatelessWidget {
                       onPressed: onCancel,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
@@ -562,9 +583,11 @@ class BookingCard extends StatelessWidget {
                     ElevatedButton.icon(
                       icon: const Icon(Icons.star, size: 16),
                       label: const Text('تقييم'),
+
                       onPressed: onRate,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber[700],
+                        backgroundColor: Color.fromARGB(255, 227, 184, 24),
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
@@ -589,7 +612,7 @@ class BookingCard extends StatelessWidget {
       case BookingStatus.cancelled:
         return Colors.red;
       case BookingStatus.completed:
-        return Colors.blue;
+        return accentColor;
     }
   }
 

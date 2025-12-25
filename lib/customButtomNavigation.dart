@@ -15,7 +15,6 @@ class CustomBottomNavBar extends StatelessWidget {
     this.activeColor = accentColor,
   }) : super(key: key);
 
-  // تعريف تخطيطات الـ NavBar لكل نوع مستخدم
   List<NavItem> get _ownerNavItems => [
     NavItem(
       index: 0,
@@ -102,7 +101,7 @@ class CustomBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(
             navItems.length,
-            (index) => _buildNavItem(
+                (index) => _buildNavItem(
               context: context,
               item: navItems[index],
               isActive: currentIndex == navItems[index].index,
@@ -136,10 +135,9 @@ class CustomBottomNavBar extends StatelessWidget {
               children: [
                 Icon(
                   isActive ? item.activeIcon : item.icon,
-                  color:
-                      isActive
-                          ? activeColor
-                          : (isDarkMode ? Colors.grey[500] : Colors.grey[600]),
+                  color: isActive
+                      ? activeColor
+                      : (isDarkMode ? Colors.grey[500] : Colors.grey[600]),
                   size: 24,
                 ),
                 const SizedBox(height: 4),
@@ -147,12 +145,9 @@ class CustomBottomNavBar extends StatelessWidget {
                   item.label,
                   style: TextStyle(
                     fontSize: 11,
-                    color:
-                        isActive
-                            ? activeColor
-                            : (isDarkMode
-                                ? Colors.grey[500]
-                                : Colors.grey[600]),
+                    color: isActive
+                        ? activeColor
+                        : (isDarkMode ? Colors.grey[500] : Colors.grey[600]),
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                   ),
                   maxLines: 1,

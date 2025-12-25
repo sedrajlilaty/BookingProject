@@ -22,7 +22,7 @@ class _BookingRequestState extends State<BookingRequest> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: accentColor,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         centerTitle: true,
         elevation: 4,
         automaticallyImplyLeading: false,
