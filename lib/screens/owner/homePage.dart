@@ -605,62 +605,54 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             return BlocBuilder<ThemeCubit, ThemeState>(
               builder: (context, state) {
                 final isDark = state is DarkState;
+
                 return AlertDialog(
                   backgroundColor: isDark ? Colors.grey[800] : Colors.white,
-                  title: Text(_isEnglish ? 'Filters' : 'التصفية'),
+                  title: Text(
+                    _isEnglish ? 'Filter Apartments' : 'تصفية الشقق',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
                   content: SingleChildScrollView(
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_isEnglish ? 'City' : 'المدينة'),
-                        DropdownButton<String>(
-                          value: tempSelectedCity,
-                          isExpanded: true,
-                          items:
-                          _cities.map((city) {
-                            return DropdownMenuItem<String>(
-                              value: city,
-                              child: Text(city),
-                            );
-                          }).toList(),
-                          onChanged:
-                              (value) => setStateDialog(
-                                () => tempSelectedCity = value!,
-                          ),
+                        _buildFilterSection(
+                          _isEnglish ? 'City' : 'المدينة',
+                          tempSelectedCity,
+                          _cities,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedCity = value;
+                            });
+                          },
                         ),
-                        const SizedBox(height: 12),
-                        Text(_isEnglish ? 'Price' : 'السعر'),
-                        DropdownButton<String>(
-                          value: tempSelectedPriceRange,
-                          isExpanded: true,
-                          items:
-                          _priceRanges.map((price) {
-                            return DropdownMenuItem<String>(
-                              value: price,
-                              child: Text(price),
-                            );
-                          }).toList(),
-                          onChanged:
-                              (value) => setStateDialog(
-                                () => tempSelectedPriceRange = value!,
-                          ),
+                        const SizedBox(height: 16),
+                        _buildFilterSection(
+                          _isEnglish ? 'Price Range' : 'نطاق السعر',
+                          tempSelectedPriceRange,
+                          _priceRanges,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedPriceRange = value;
+                            });
+                          },
                         ),
-                        const SizedBox(height: 12),
-                        Text(_isEnglish ? 'Area' : 'المساحة'),
-                        DropdownButton<String>(
-                          value: tempSelectedAreaRange,
-                          isExpanded: true,
-                          items:
-                          _areaRanges.map((area) {
-                            return DropdownMenuItem<String>(
-                              value: area,
-                              child: Text(area),
-                            );
-                          }).toList(),
-                          onChanged:
-                              (value) => setStateDialog(
-                                () => tempSelectedAreaRange = value!,
-                          ),
+                        const SizedBox(height: 16),
+                        _buildFilterSection(
+                          _isEnglish ? 'Area' : 'المساحة',
+                          tempSelectedAreaRange,
+                          _areaRanges,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedAreaRange = value;
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -668,11 +660,28 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                   actions: [
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        setStateDialog(() {
+                          tempSelectedCity = 'All Cities';
+                          tempSelectedPriceRange = 'Any Price';
+                          tempSelectedAreaRange = 'Any Area';
+                        });
                       },
-                      child: Text(_isEnglish ? 'Cancel' : 'إلغاء'),
+                      child: Text(
+                        _isEnglish ? 'Reset All' : 'إعادة التعيين',
+                        style: const TextStyle(color: Colors.black),
+                      ),
                     ),
                     TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        _isEnglish ? 'Cancel' : 'إلغاء',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                      ),
                       onPressed: () {
                         setState(() {
                           _selectedCity = tempSelectedCity;
@@ -680,9 +689,12 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           _selectedAreaRange = tempSelectedAreaRange;
                           _showAllApartments = false;
                         });
-                        Navigator.of(context).pop();
+                        Navigator.pop(context);
                       },
-                      child: Text(_isEnglish ? 'Apply' : 'تطبيق'),
+                      child: Text(
+                        _isEnglish ? 'Apply Filters' : 'تطبيق التصفية',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 );
@@ -693,6 +705,51 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       },
     );
   }
+  Widget _buildFilterSection(
+      String title,
+      String selectedValue,
+      List<String> options,
+      bool isDark,
+      Function(String) onChanged,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: options.map((option) {
+            final isSelected = selectedValue == option;
+            return ChoiceChip(
+              label: Text(
+                option,
+                style: TextStyle(
+                  color: isSelected
+                      ? (isDark ? Colors.black : Colors.white)
+                      : (isDark ? Colors.white : Colors.black),
+                ),
+              ),
+              selected: isSelected,
+              onSelected: (_) => onChanged(option),
+              selectedColor: accentColor,
+              backgroundColor:
+              isDark ? Colors.grey[700] : Colors.grey[200],
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildApartmentsGrid(bool isDark) {
     final apartments = _filteredApartments;
