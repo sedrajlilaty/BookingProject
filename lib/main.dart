@@ -11,6 +11,7 @@ import 'Theme/theme_cubit.dart';
 import 'Theme/theme_state.dart';
 import 'l10n/Cubit.dart';
 
+import 'network/network_service.dart';
 import 'providers/authoProvider.dart';
 import 'providers/booking_provider.dart';
 
@@ -19,7 +20,7 @@ import 'main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Network.init();
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   runApp(
