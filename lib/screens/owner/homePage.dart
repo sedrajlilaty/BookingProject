@@ -7,9 +7,8 @@ import 'package:flutter_application_8/constants.dart';
 import '../../Notifaction.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
+import '../../l10n/Cubit.dart';
 import '../tanent/AppartementDetails.dart';
-
-
 
 class ApartmentBookingScreen extends StatefulWidget {
   final bool isOwner; // يجب تمريره من الخارج
@@ -26,7 +25,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
   bool _showAllApartments = false;
-  bool _isEnglish = true;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -239,13 +237,16 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   }
 
   void _toggleLanguage() {
-    setState(() {
-      _isEnglish = !_isEnglish;
-    });
+    final languageCubit = context.read<LanguageCubit>();
+    final newLocale =
+    languageCubit.state.locale.languageCode == 'en' ? const Locale('ar') : const Locale('en');
+    languageCubit.updateLanguage(newLocale);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEnglish = context.watch<LanguageCubit>().state.locale.languageCode == 'en';
+
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         final bool isDark = state is DarkState;
@@ -254,9 +255,9 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           key: _scaffoldKey,
           backgroundColor: isDark ? Colors.grey[900] : Colors.white,
           appBar: AppBar(
-            title: const Text(
-              'الرئيسية',
-              style: TextStyle(
+            title: Text(
+              isEnglish ? 'Home' : 'الرئيسية',
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -271,46 +272,29 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                 bottom: Radius.circular(20),
               ),
             ),
-
-            // ⬅️ اليسار
             leadingWidth: 110,
             leading: Row(
               children: [
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: Icon(
-                    isDark ? Icons.dark_mode : Icons.light_mode,
-                    color: Colors.white,
-                  ),
+                  icon: Icon(isDark ? Icons.dark_mode : Icons.light_mode, color: Colors.white),
                   onPressed: () => context.read<ThemeCubit>().changeTheme(),
                 ),
                 const SizedBox(width: 6),
                 IconButton(
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
-                  icon: Icon(
-                    _isEnglish ? Icons.language : Icons.translate,
-                    color: Colors.white,
-                  ),
+                  icon: Icon(isEnglish ? Icons.language : Icons.translate, color: Colors.white),
                   onPressed: _toggleLanguage,
                 ),
               ],
             ),
-
-            // ➡️ اليمين
             actions: [
-              const SizedBox(width: 48), // 🔑 حجز مساحة مساوية لليسار
+              const SizedBox(width: 48),
               IconButton(
                 icon: const Icon(Icons.notifications_none, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsPage(),
-                    ),
-                  );
-                },
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
               ),
               IconButton(
                 icon: const Icon(Icons.menu, color: Colors.white),
@@ -318,8 +302,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               ),
             ],
           ),
-
-
           endDrawer: EndDrawer(),
           body: SafeArea(
             child: SingleChildScrollView(
@@ -327,17 +309,17 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(isDark),
+                  _buildHeader(isDark, isEnglish),
                   const SizedBox(height: 24),
-                  _buildSearchFilterSection(isDark),
+                  _buildSearchFilterSection(isDark, isEnglish),
                   const SizedBox(height: 16),
-                  _buildFilterIndicators(isDark),
+                  _buildFilterIndicators(isDark, isEnglish),
                   const SizedBox(height: 8),
-                  _buildCategoriesSection(isDark),
+                  _buildCategoriesSection(isDark, isEnglish),
                   const SizedBox(height: 24),
-                  _buildUpgradePlan(isDark),
+                  _buildUpgradePlan(isDark, isEnglish),
                   const SizedBox(height: 24),
-                  _buildApartmentsGrid(isDark),
+                  _buildApartmentsGrid(isDark, isEnglish),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -348,25 +330,19 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
-  Widget _buildHeader(bool isDark) {
+  Widget _buildHeader(bool isDark, bool isEnglish) {
     return Text(
-      _isEnglish
-          ? 'What apartment are we booking today?'
-          : 'ما الشقة التي سنحجزها اليوم؟',
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w600,
-        color: isDark ? Colors.white : Colors.grey[700],
-      ),
+      isEnglish ? 'What apartment are we booking today?' : 'ما الشقة التي سنحجزها اليوم؟',
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.grey[700]),
     );
   }
 
-  Widget _buildCategoriesSection(bool isDark) {
+  Widget _buildCategoriesSection(bool isDark, bool isEnglish) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          _isEnglish ? 'Categories' : 'الفئات',
+          isEnglish ? 'Categories' : 'الفئات',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -378,13 +354,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildCategoryChip(_isEnglish ? 'Studios' : 'استوديوهات'),
+              _buildCategoryChip(isEnglish ? 'Studios' : 'استوديوهات'),
               const SizedBox(width: 8),
-              _buildCategoryChip(_isEnglish ? 'Utility' : 'خدمية'),
+              _buildCategoryChip(isEnglish ? 'Utility' : 'خدمية'),
               const SizedBox(width: 8),
-              _buildCategoryChip(_isEnglish ? 'Family' : 'عائلية'),
+              _buildCategoryChip(isEnglish ? 'Family' : 'عائلية'),
               const SizedBox(width: 8),
-              _buildCategoryChip(_isEnglish ? 'Condos' : 'شقق'),
+              _buildCategoryChip(isEnglish ? 'Condos' : 'شقق'),
             ],
           ),
         ),
@@ -410,12 +386,12 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
-  Widget _buildUpgradePlan(bool isDark) {
+  Widget _buildUpgradePlan(bool isDark, bool isEnglish) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          _isEnglish ? 'UPGRADE PLAN' : 'ترقية الخطة',
+          isEnglish ? 'UPGRADE PLAN' : 'ترقية الخطة',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -425,7 +401,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
         GestureDetector(
           onTap: () => setState(() => _showAllApartments = true),
           child: Text(
-            _isEnglish ? 'View all' : 'عرض الكل',
+            isEnglish ? 'View all' : 'عرض الكل',
             style: TextStyle(
               fontSize: 14,
               color: accentColor,
@@ -434,275 +410,6 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFilterIndicators(bool isDark) {
-    final List<Widget> indicators = [];
-
-    if (_selectedCity != 'All Cities') {
-      indicators.add(
-        _buildFilterChip(
-          '${_isEnglish ? 'City' : 'المدينة'}: $_selectedCity',
-          isDark,
-              () {
-            setState(() => _selectedCity = 'All Cities');
-          },
-        ),
-      );
-    }
-
-    if (_selectedPriceRange != 'Any Price') {
-      indicators.add(
-        _buildFilterChip(
-          '${_isEnglish ? 'Price' : 'السعر'}: $_selectedPriceRange',
-          isDark,
-              () {
-            setState(() => _selectedPriceRange = 'Any Price');
-          },
-        ),
-      );
-    }
-
-    if (_selectedAreaRange != 'Any Area') {
-      indicators.add(
-        _buildFilterChip(
-          '${_isEnglish ? 'Area' : 'المساحة'}: $_selectedAreaRange',
-          isDark,
-              () {
-            setState(() => _selectedAreaRange = 'Any Area');
-          },
-        ),
-      );
-    }
-
-    return indicators.isNotEmpty
-        ? Wrap(spacing: 8, children: indicators)
-        : const SizedBox();
-  }
-
-  Widget _buildFilterChip(String label, bool isDark, VoidCallback onRemove) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey[700] : Colors.blue[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accentColor),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: accentColor,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(width: 4),
-          GestureDetector(
-            onTap: onRemove,
-            child: Icon(Icons.close, color: accentColor, size: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchFilterSection(bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey[800] : Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.search,
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText:
-                      _isEnglish
-                          ? 'Search by title or city...'
-                          : 'ابحث بالعنوان أو المدينة...',
-                      border: InputBorder.none,
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                    onChanged:
-                        (value) => setState(() => _showAllApartments = false),
-                  ),
-                ),
-                if (_searchController.text.isNotEmpty)
-                  IconButton(
-                    icon: Icon(
-                      Icons.clear,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                    onPressed:
-                        () => setState(() {
-                      _searchController.clear();
-                      _showAllApartments = false;
-                    }),
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 1,
-          child: InkWell(
-            onTap: _showFilterDialog,
-            child: Container(
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: accentColor),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.filter_alt_outlined, color: accentColor, size: 20),
-                  const SizedBox(width: 4),
-                  Text(
-                    _isEnglish ? 'Filter' : 'تصفية',
-                    style: TextStyle(color: accentColor),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        String tempSelectedCity = _selectedCity;
-        String tempSelectedPriceRange = _selectedPriceRange;
-        String tempSelectedAreaRange = _selectedAreaRange;
-
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return BlocBuilder<ThemeCubit, ThemeState>(
-              builder: (context, state) {
-                final isDark = state is DarkState;
-
-                return AlertDialog(
-                  backgroundColor: isDark ? Colors.grey[800] : Colors.white,
-                  title: Text(
-                    _isEnglish ? 'Filter Apartments' : 'تصفية الشقق',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFilterSection(
-                          _isEnglish ? 'City' : 'المدينة',
-                          tempSelectedCity,
-                          _cities,
-                          isDark,
-                              (value) {
-                            setStateDialog(() {
-                              tempSelectedCity = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _buildFilterSection(
-                          _isEnglish ? 'Price Range' : 'نطاق السعر',
-                          tempSelectedPriceRange,
-                          _priceRanges,
-                          isDark,
-                              (value) {
-                            setStateDialog(() {
-                              tempSelectedPriceRange = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _buildFilterSection(
-                          _isEnglish ? 'Area' : 'المساحة',
-                          tempSelectedAreaRange,
-                          _areaRanges,
-                          isDark,
-                              (value) {
-                            setStateDialog(() {
-                              tempSelectedAreaRange = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        setStateDialog(() {
-                          tempSelectedCity = 'All Cities';
-                          tempSelectedPriceRange = 'Any Price';
-                          tempSelectedAreaRange = 'Any Area';
-                        });
-                      },
-                      child: Text(
-                        _isEnglish ? 'Reset All' : 'إعادة التعيين',
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        _isEnglish ? 'Cancel' : 'إلغاء',
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _selectedCity = tempSelectedCity;
-                          _selectedPriceRange = tempSelectedPriceRange;
-                          _selectedAreaRange = tempSelectedAreaRange;
-                          _showAllApartments = false;
-                        });
-                        Navigator.pop(context);
-                      },
-                      child: Text(
-                        _isEnglish ? 'Apply Filters' : 'تطبيق التصفية',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        );
-      },
     );
   }
   Widget _buildFilterSection(
@@ -741,8 +448,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               selected: isSelected,
               onSelected: (_) => onChanged(option),
               selectedColor: accentColor,
-              backgroundColor:
-              isDark ? Colors.grey[700] : Colors.grey[200],
+              backgroundColor: isDark ? Colors.grey[700] : Colors.grey[200],
             );
           }).toList(),
         ),
@@ -750,8 +456,240 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
+  Widget _buildFilterIndicators(bool isDark, bool isEnglish) {
+    final List<Widget> indicators = [];
 
-  Widget _buildApartmentsGrid(bool isDark) {
+    if (_selectedCity != 'All Cities') {
+      indicators.add(_buildFilterChip('${isEnglish ? 'City' : 'المدينة'}: $_selectedCity', isDark, () {
+        setState(() => _selectedCity = 'All Cities');
+      }));
+    }
+
+    if (_selectedPriceRange != 'Any Price') {
+      indicators.add(_buildFilterChip('${isEnglish ? 'Price' : 'السعر'}: $_selectedPriceRange', isDark, () {
+        setState(() => _selectedPriceRange = 'Any Price');
+      }));
+    }
+
+    if (_selectedAreaRange != 'Any Area') {
+      indicators.add(_buildFilterChip('${isEnglish ? 'Area' : 'المساحة'}: $_selectedAreaRange', isDark, () {
+        setState(() => _selectedAreaRange = 'Any Area');
+      }));
+    }
+
+    return indicators.isNotEmpty ? Wrap(spacing: 8, children: indicators) : const SizedBox();
+  }
+
+  Widget _buildFilterChip(String label, bool isDark, VoidCallback onRemove) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[700] : Colors.blue[50],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accentColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: accentColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(width: 4),
+          GestureDetector(
+            onTap: onRemove,
+            child: Icon(Icons.close, color: accentColor, size: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchFilterSection(bool isDark, bool isEnglish) {
+    return Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[800] : Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  Icon(Icons.search, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: isEnglish ? 'Search by title or city...' : 'ابحث بالعنوان أو المدينة...',
+                        border: InputBorder.none,
+                      ),
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                      onChanged: (_) => setState(() => _showAllApartments = false),
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: Icon(Icons.clear, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                      onPressed: () => setState(() {
+                        _searchController.clear();
+                        _showAllApartments = false;
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 1,
+            child: InkWell(
+              onTap: _showFilterDialog,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: accentColor),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.filter_alt_outlined, color: accentColor, size: 20),
+                    const SizedBox(width: 4),
+                    Text(isEnglish ? 'Filter' : 'تصفية', style: TextStyle(color: accentColor)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+    );}
+  void _showFilterDialog() {
+    final isEnglish = context.read<LanguageCubit>().state.locale.languageCode == 'en';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String tempSelectedCity = _selectedCity;
+        String tempSelectedPriceRange = _selectedPriceRange;
+        String tempSelectedAreaRange = _selectedAreaRange;
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return BlocBuilder<ThemeCubit, ThemeState>(
+              builder: (context, state) {
+                final isDark = state is DarkState;
+
+                return AlertDialog(
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.white,
+                  title: Text(
+                    isEnglish ? 'Filter Apartments' : 'تصفية الشقق',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildFilterSection(
+                          isEnglish ? 'City' : 'المدينة',
+                          tempSelectedCity,
+                          _cities,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedCity = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildFilterSection(
+                          isEnglish ? 'Price Range' : 'نطاق السعر',
+                          tempSelectedPriceRange,
+                          _priceRanges,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedPriceRange = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildFilterSection(
+                          isEnglish ? 'Area' : 'المساحة',
+                          tempSelectedAreaRange,
+                          _areaRanges,
+                          isDark,
+                              (value) {
+                            setStateDialog(() {
+                              tempSelectedAreaRange = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setStateDialog(() {
+                          tempSelectedCity = 'All Cities';
+                          tempSelectedPriceRange = 'Any Price';
+                          tempSelectedAreaRange = 'Any Area';
+                        });
+                      },
+                      child: Text(
+                        isEnglish ? 'Reset All' : 'إعادة التعيين',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        isEnglish ? 'Cancel' : 'إلغاء',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _selectedCity = tempSelectedCity;
+                          _selectedPriceRange = tempSelectedPriceRange;
+                          _selectedAreaRange = tempSelectedAreaRange;
+                          _showAllApartments = false;
+                        });
+                        Navigator.pop(context);
+                      },
+                      child: Text(
+                        isEnglish ? 'Apply Filters' : 'تطبيق التصفية',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildApartmentsGrid(bool isDark, bool isEnglish) {
     final apartments = _filteredApartments;
 
     if (apartments.isEmpty) {
@@ -765,7 +703,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              _isEnglish ? 'No apartments found' : 'لم يتم العثور على شقق',
+              isEnglish ? 'No apartments found' : 'لم يتم العثور على شقق',
               style: TextStyle(
                 fontSize: 16,
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -773,7 +711,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              _isEnglish
+              isEnglish
                   ? 'Try adjusting your search or filters'
                   : 'حاول تعديل البحث أو التصفيات',
               style: TextStyle(
@@ -787,7 +725,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                 setState(() => _showAllApartments = true);
               },
               child: Text(
-                _isEnglish ? 'View All Apartments' : 'عرض جميع الشقق',
+                isEnglish ? 'View All Apartments' : 'عرض جميع الشقق',
               ),
             ),
           ],
@@ -813,10 +751,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ApartmentDetailsPage(apartment: apartment),
+                builder: (_) => ApartmentDetailsPage(
+                  apartment: apartment,
+                ),
               ),
             );
           },
+
           child: Container(
             decoration: BoxDecoration(
               color: isDark ? Colors.grey[800] : Colors.grey[50],
@@ -926,4 +867,5 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       },
     );
   }
+
 }

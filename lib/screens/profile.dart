@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../constants.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -13,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
 
     if (user == null) {
       return Scaffold(
@@ -22,9 +24,14 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Icon(Icons.person_off, size: 80, color: Colors.grey),
               const SizedBox(height: 20),
-              const Text(
-                'يرجى تسجيل الدخول',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
+              Text(
+                loc.notLoggedInTitle,
+                style: const TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                loc.notLoggedInSubtitle,
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
           ),
@@ -44,16 +51,15 @@ class ProfileScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              title: const Row(
+              title: Row(
                 children: [
-                  Icon(Icons.logout, color: Colors.red),
-                  SizedBox(width: 10),
-                  Text('تسجيل الخروج'),
+                  const Icon(Icons.logout, color: Colors.red),
+                  const SizedBox(width: 10),
+                  Text(loc.logout),
                 ],
               ),
-              content: const Text(
-                'هل أنت متأكد من رغبتك في تسجيل الخروج؟\n\n'
-                    'سيتم مسح جميع بياناتك من هذا الجهاز.',
+              content: Text(
+                loc.confirmCancelMessage,
                 textAlign: TextAlign.right,
               ),
               actions: [
@@ -65,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     side: BorderSide(color: accentColor),
                   ),
-                  child: const Text('إلغاء', style: TextStyle(color: accentColor)),
+                  child: Text(loc.cancel, style: TextStyle(color: accentColor)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -87,17 +93,17 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.pop(context);
                       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم تسجيل الخروج بنجاح'),
+                        SnackBar(
+                          content: Text(loc.logout + ' ${loc.confirm}'),
                           backgroundColor: Colors.green,
-                          duration: Duration(seconds: 2),
+                          duration: const Duration(seconds: 2),
                         ),
                       );
                     } catch (e) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('حدث خطأ أثناء تسجيل الخروج: $e'),
+                          content: Text('${loc.loginFailedError} $e'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -107,7 +113,7 @@ class ProfileScreen extends StatelessWidget {
                     backgroundColor: Colors.red,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  child: const Text('تسجيل الخروج', style: TextStyle(color: Colors.white)),
+                  child: Text(loc.logout, style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -120,7 +126,6 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, state) {
         bool isDark = state is DarkState;
 
-        // ألوان حسب الثيم
         Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : darkTextColor;
@@ -130,8 +135,8 @@ class ProfileScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
-            title: const Text(
-              'الملف الشخصي',
+            title: Text(
+              loc.profile,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             backgroundColor: accentColor,
@@ -194,7 +199,7 @@ class ProfileScreen extends StatelessWidget {
                       Text(user.email, style: TextStyle(fontSize: 16, color: secondaryTextColor)),
                       const SizedBox(height: 8),
                       Chip(
-                        label: Text(user.userType == 'owner' ? 'مالك' : 'مستأجر', style: const TextStyle(color: Colors.white)),
+                        label: Text(user.userType == 'owner' ? loc.owner : loc.tenant, style: const TextStyle(color: Colors.white)),
                         backgroundColor: accentColor,
                       ),
                       const SizedBox(height: 8),
@@ -217,7 +222,7 @@ class ProfileScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const SizedBox(width: 4),
-                            Text('تعديل الملف الشخصي', style: TextStyle(color: textColor)),
+                            Text(loc.settings, style: TextStyle(color: textColor)),
                           ],
                         ),
                       ),
@@ -238,8 +243,10 @@ class ProfileScreen extends StatelessWidget {
                             Icon(Icons.settings, color: accentColor),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Text('الإعدادات',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                              child: Text(
+                                loc.settings,
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                              ),
                             ),
                           ],
                         ),
@@ -247,8 +254,8 @@ class ProfileScreen extends StatelessWidget {
                       Divider(height: 1, color: secondaryTextColor),
                       ListTile(
                         leading: Icon(Icons.notifications, color: accentColor),
-                        title: Text('الإشعارات', style: TextStyle(color: textColor)),
-                        subtitle: Text('تفعيل/تعطيل الإشعارات', style: TextStyle(color: secondaryTextColor)),
+                        title: Text(loc.notifications, style: TextStyle(color: textColor)),
+                        subtitle: Text(loc.notificationsHint, style: TextStyle(color: secondaryTextColor)),
                         trailing: Switch(
                           value: _notificationsEnabled,
                           onChanged: (value) {},
@@ -269,9 +276,9 @@ class ProfileScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('المساعدة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                                    Text(loc.helpSupport, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
                                     const SizedBox(height: 4),
-                                    Text('أسئلة شائعة ودعم فني', style: TextStyle(fontSize: 14, color: secondaryTextColor)),
+                                    Text(loc.privacyPolicy, style: TextStyle(fontSize: 14, color: secondaryTextColor)),
                                   ],
                                 ),
                               ),
@@ -298,7 +305,7 @@ class ProfileScreen extends StatelessWidget {
                           Icon(Icons.logout, color: Colors.red),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text('تسجيل الخروج',
+                            child: Text(loc.logout,
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
                           ),
                           Container(

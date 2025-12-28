@@ -1,0 +1,223 @@
+{
+  "@@locale": "en",
+
+  "appName": "Royal Rent",
+  "loadingText": "Loading...",
+
+  "loginTitle": "Login",
+  "loginButton": "Login",
+  "signupButton": "Create New Account",
+  "forgotPassword": "Forgot Password?",
+  "loggingInText": "Logging in...",
+  "noAccountText": "Don't have an account?",
+  "backToLogin": "Back to Login",
+
+  "selectAccountTypeHint": "Select Account Type",
+  "accountTypeError": "Please select account type",
+
+  "phoneHint": "Phone Number (09XXXXXXXX)",
+  "phoneEmptyError": "Please enter your phone number",
+  "phoneInvalidError": "Invalid phone number (must start with 09 and contain 10 digits)",
+
+  "passwordHint": "Password (at least 8 characters)",
+  "passwordEmptyError": "Please enter your password",
+  "passwordLengthError": "Password must be at least 8 characters",
+  "confirmPasswordHint": "Confirm Password",
+
+  "loginFailedError": "Login failed: {error}",
+
+  "owner": "Owner",
+  "tenant": "Tenant",
+
+  "enterYourData": "Enter your details",
+  "firstNameHint": "First Name",
+  "lastNameHint": "Last Name",
+  "birthDateHint": "Birth Date (YYYY/MM/DD)",
+
+  "idImageTitle": "National ID (Front)",
+  "profileImageTitle": "Profile Picture",
+  "chooseImage": "Choose Image",
+  "changeButton": "Change",
+  "deleteButton": "Delete",
+  "createAccountButton": "Create Account",
+
+  "imagePickerGallery": "Pick from gallery",
+  "imagePickerCamera": "Take Photo",
+  "imagePickerCancel": "Cancel",
+  "imagePickError": "Error selecting image",
+  "imageCaptureError": "Error capturing image",
+
+  "welcomeTitle1": "Welcome to Real Estate App",
+  "welcomeSubtitle1": "A complete platform for renting and leasing apartments",
+
+  "welcomeTitle2": "Find Your Perfect Apartment",
+  "welcomeSubtitle2": "Thousands of available apartments in different areas",
+
+  "welcomeTitle3": "Safe and Easy Booking",
+  "welcomeSubtitle3": "Reliable booking process with secure online payment",
+
+  "welcomeTitle4": "Manage Your Properties",
+  "welcomeSubtitle4": "For owners: list your apartment and manage bookings",
+
+  "homeTitle": "Home",
+  "searchHint": "Search by title or city...",
+  "filterButton": "Filter",
+  "whatApartmentTitle": "What apartment are we booking today?",
+  "categoriesTitle": "Categories",
+
+  "studios": "Studios",
+  "utility": "Utility",
+  "family": "Family",
+  "condos": "Condos",
+
+  "upgradePlan": "Upgrade Plan",
+  "viewAll": "View All",
+  "viewAllApartments": "View All Apartments",
+
+  "filterApartmentsDialog": "Filter Apartments",
+  "city": "City",
+  "priceRange": "Price Range",
+  "area": "Area",
+  "resetAll": "Reset All",
+  "cancel": "Cancel",
+  "applyFilters": "Apply Filters",
+
+  "noApartmentsFound": "No apartments found",
+  "tryAdjustingSearch": "Try adjusting your search or filters",
+
+  "apartmentDescription": "A beautiful apartment located in {city} with excellent features.",
+  "bookNow": "Book Now",
+
+  "bookingTitle": "Booking",
+  "durationLabel": "Booking Duration",
+  "startDateLabel": "Start Date",
+  "endDateLabel": "End Date",
+  "paymentLabel": "Payment Method",
+
+  "priceSummary": "Price Summary",
+  "dailyPrice": "Daily Price",
+  "numberOfDays": "Number of Days",
+  "total": "Total",
+
+  "loginToBook": "Login to Book",
+  "confirmBooking": "Confirm Booking",
+
+  "importantNotes": "Important Notes:",
+  "note1": "• You can cancel the booking within 24 hours of confirmation",
+  "note2": "• Price includes taxes and services",
+  "note3": "• Check booking dates before confirmation",
+  "note4": "• The owner will contact you to confirm details",
+
+  "confirm": "Confirm",
+
+  "selectMonths": "Select Number of Months",
+  "mustLogin": "You must login to complete the booking",
+  "mustLoginFirst": "You must login first",
+
+  "week": "Week",
+  "month": "Month",
+  "multipleMonths": "Multiple Months",
+  "fifteenDays": "15 Days",
+  "year": "Year",
+
+  "cash": "Cash",
+  "creditCard": "Credit Card",
+  "digitalWallet": "Digital Wallet",
+
+  "bookingDetailsTitle": "Booking Details",
+  "bookingInfoTitle": "Booking Information",
+  "bookingIdLabel": "Booking ID",
+  "bookingDateLabel": "Booking Date",
+  "bookingTimeLabel": "Booking Time",
+
+  "stayDatesTitle": "Stay Dates",
+  "stayDurationLabel": "Duration of Stay",
+
+  "financialInfoTitle": "Financial Information",
+  "dailyPriceLabel": "Daily Price",
+  "totalPriceLabel": "Total Price",
+  "paymentMethodLabel": "Payment Method",
+
+  "yourRatingTitle": "Your Rating",
+
+  "editBookingButton": "Edit Booking",
+  "cancelBookingButton": "Cancel Booking",
+
+  "statusConfirmed": "Confirmed",
+  "statusPending": "Pending",
+  "statusCancelled": "Cancelled",
+  "statusCompleted": "Completed",
+
+  "bookingConfirmationTitle": "Booking Confirmation",
+  "bookingConfirmedMessage": "Your booking has been successfully confirmed!",
+  "whatNextTitle": "What's Next?",
+
+  "tipEmail": "You will receive a confirmation via email",
+  "tipOwnerContact": "The owner will contact you",
+  "tipReviewBookings": "You can review your bookings anytime",
+  "tipEditBooking": "You can edit the booking within 24 hours",
+
+  "viewMyBookingsButton": "View My Bookings",
+  "backToHomeButton": "Back to Home",
+  "shareBookingButton": "Share Booking Details",
+
+  "bookingDetailsDialogTitle": "Booking Details",
+  "okButton": "OK",
+  "copyDetailsButton": "Copy Details",
+
+  "editBookingTitle": "Edit Booking",
+  "apartmentPriceLabel": "Daily Price: \$ {price}",
+  "priceSummaryTitle": "Price Summary",
+  "totalDaysLabel": "Number of Days",
+  "updateBookingButton": "Update Booking",
+  "bookingUpdatedMessage": "Booking updated successfully",
+
+  "favoritesTitle": "Favorites",
+  "noFavoritesTitle": "No favorite apartments yet",
+  "noFavoritesSubtitle": "Start adding apartments to your favorites list",
+
+  "locationLabel": "Location",
+  "areaLabel": "Area",
+  "pricePerMonthLabel": "Price / month",
+
+  "myBookingsTitle": "My Bookings",
+  "notLoggedInTitle": "Not logged in",
+  "notLoggedInSubtitle": "Please login to view your bookings",
+
+  "bookingCountLabel": "Bookings count: {count}",
+  "totalBookingsLabel": "Total: {count}",
+
+  "confirmCancelTitle": "Confirm cancellation",
+  "confirmCancelMessage": "Are you sure you want to cancel this booking?",
+  "cancelButton": "Cancel",
+  "yesCancelButton": "Yes, cancel",
+
+  "editButton": "Edit",
+  "rateButton": "Rate",
+
+  "noBookingsCurrent": "No current bookings",
+  "noBookingsCompleted": "No completed bookings",
+  "noBookingsCancelled": "No cancelled bookings",
+  "noBookingsPending": "No pending bookings",
+  "noBookingsAll": "No bookings",
+
+  "rateApartmentTitle": "Rate Apartment",
+  "ratePrompt": "How would you rate your experience in this apartment?",
+  "poorVery": "Very Poor",
+  "poor": "Poor",
+  "average": "Average",
+  "good": "Good",
+  "excellent": "Excellent",
+
+  "submitRatingButton": "Rate Apartment",
+  "selectRatingError": "Please select a rating",
+  "thankYouRating": "Thank you for your rating! Your feedback has been saved.",
+  "ratingHelpText": "Your rating helps other tenants make better decisions",
+
+  "profile": "Profile",
+  "settings": "Settings",
+  "helpSupport": "Help & Support",
+  "privacyPolicy": "Privacy Policy",
+  "logout": "Logout",
+  "aboutApp": "About App"
+}
