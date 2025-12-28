@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
+import '../providers/authoProvider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +46,6 @@ class ProfileScreen extends StatelessWidget {
         ),
       );
     }
-
-    bool _notificationsEnabled = true;
 
     void _handleLogout(BuildContext context) {
       showDialog(
@@ -177,20 +183,20 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         child: user.profileImageUrl != null
                             ? ClipOval(
-                          child: Image.network(
-                            user.profileImageUrl!,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(child: CircularProgressIndicator());
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Icon(Icons.person, size: 60, color: accentColor),
-                              );
-                            },
-                          ),
-                        )
+                                child: Image.network(
+                                  user.profileImageUrl!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(child: CircularProgressIndicator());
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Center(
+                                      child: Icon(Icons.person, size: 60, color: accentColor),
+                                    );
+                                  },
+                                ),
+                              )
                             : Center(child: Icon(Icons.person, size: 60, color: accentColor)),
                       ),
                       const SizedBox(height: 16),
@@ -258,7 +264,11 @@ class ProfileScreen extends StatelessWidget {
                         subtitle: Text(loc.notificationsHint, style: TextStyle(color: secondaryTextColor)),
                         trailing: Switch(
                           value: _notificationsEnabled,
-                          onChanged: (value) {},
+                          onChanged: (value) {
+                            setState(() {
+                              _notificationsEnabled = value;
+                            });
+                          },
                           activeColor: accentColor,
                         ),
                       ),

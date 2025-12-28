@@ -99,8 +99,22 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Welcome back'**
-  String get welcome_back;
-}
+ String get welcome_back;
+  String get profile;
+  String get notLoggedInTitle;
+  String get notLoggedInSubtitle;
+  String get logout;
+  String get confirmCancelMessage;
+  String get cancel;
+  String get confirm;
+  String get loginFailedError;
+  String get owner;
+  String get tenant;
+  String get settings;
+  String get notifications;
+  String get notificationsHint;
+  String get helpSupport;
+  String get privacyPolicy;}
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
