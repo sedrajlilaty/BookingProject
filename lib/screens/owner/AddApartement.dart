@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/models/apartment_model.dart';
+import 'package:flutter_application_8/screens/cubit/appartment_cubit_cubit.dart';
 import 'package:flutter_application_8/screens/owner/doneAdd.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -8,6 +9,9 @@ import '../../constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
+import '../../models/booking_model.dart' hide Apartment;
+import '../widgets/dotted_container_add_images_widget.dart';
+import '../widgets/list_of_image.dart';
 
 class AddApartmentScreen extends StatefulWidget {
   const AddApartmentScreen({super.key});
@@ -27,17 +31,33 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
   final _governorateController = TextEditingController();
   final _cityController = TextEditingController();
-
+  AppartmentCubit appartmentCubit = AppartmentCubit();
   final List<String> _governorates = [
-    'الرياض','مكة المكرمة','المدينة المنورة','الشرقية','القصيم','عسير','تبوك','حائل','الحدود الشمالية','جازان','نجران','الباحة','الجوف',
+    'الرياض',
+    'مكة المكرمة',
+    'المدينة المنورة',
+    'الشرقية',
+    'القصيم',
+    'عسير',
+    'تبوك',
+    'حائل',
+    'الحدود الشمالية',
+    'جازان',
+    'نجران',
+    'الباحة',
+    'الجوف',
   ];
 
   List<String> _cities = [];
   String? _selectedGovernorate;
   String? _selectedCity;
-
   String? _apartmentType;
-  final List<String> _apartmentTypes = ['شقة', 'استوديو', 'فيلا', 'دوبلكس'];
+  final List<String> _apartmentTypes = [
+    'apartment',
+    'استوديو',
+    'فيلا',
+    'دوبلكس',
+  ];
 
   final List<XFile> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
@@ -107,7 +127,10 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         type: _apartmentType!,
         governorate: _selectedGovernorate!,
         city: _selectedCity!,
-        detailedLocation: _titleController.text.trim().isEmpty ? null : _titleController.text.trim(),
+        detailedLocation:
+            _titleController.text.trim().isEmpty
+                ? null
+                : _titleController.text.trim(),
         rooms: int.tryParse(_roomsController.text) ?? 0,
         bathrooms: int.tryParse(_bathroomsController.text) ?? 0,
         area: double.tryParse(_areaController.text) ?? 0.0,
@@ -144,7 +167,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     return uploadedUrls;
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon, Color fillColor, Color borderColor, Color focusBorderColor) {
+  InputDecoration _inputDecoration(
+    String hint,
+    IconData icon,
+    Color fillColor,
+    Color borderColor,
+    Color focusBorderColor,
+  ) {
     return InputDecoration(
       hintText: hint,
       prefixIcon: Icon(icon, color: Colors.grey[600]),
@@ -162,13 +191,20 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     );
   }
 
-  Widget _buildApartmentTypeChip(String text, Color textColor, Color chipColor) {
+  Widget _buildApartmentTypeChip(
+    String text,
+    Color textColor,
+    Color chipColor, {
+    required ValueChanged<String> onTap,
+  }) {
     final bool isSelected = _apartmentType == text;
+
     return GestureDetector(
       onTap: () {
         setState(() {
           _apartmentType = text;
         });
+        onTap(text); // هون بترجع القيمة
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
@@ -179,17 +215,19 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
           color: isSelected ? accentColor : chipColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: accentColor, width: 2),
-          boxShadow: isSelected
-              ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ]
-              : [],
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                  : [],
         ),
-        transform: isSelected ? (Matrix4.identity()..scale(1.1)) : Matrix4.identity(),
+        transform:
+            isSelected ? (Matrix4.identity()..scale(1.1)) : Matrix4.identity(),
         child: Text(
           text,
           style: TextStyle(
@@ -294,7 +332,12 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
   void _loadCities() {
     setState(() {
-      _cities = ['المدينة الرئيسية','المدينة الفرعية 1','المدينة الفرعية 2','المدينة الفرعية 3'];
+      _cities = [
+        'المدينة الرئيسية',
+        'المدينة الفرعية 1',
+        'المدينة الفرعية 2',
+        'المدينة الفرعية 3',
+      ];
     });
   }
 
@@ -328,223 +371,373 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
               elevation: 4,
               automaticallyImplyLeading: false,
               shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
               ),
             ),
-            body: Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: borderColor),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.category, color: accentColor),
-                            const SizedBox(width: 8),
-                            Text(
-                              'نوع الشقة',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            ),
-                          ],
+            body: BlocProvider(
+              create: (context) => AppartmentCubit(),
+              child: BlocConsumer<AppartmentCubit, AppartmentState>(
+                listener: (context, state) {
+                  if (state is AppartmentSuccess) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => DoneAdd()),
+                    );
+                  } else if (state is AppartmentCubitError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+                builder: (context, state) {
+                  var cubit = AppartmentCubit.get(context);
+                  return Stack(
+                    children: [
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 16,
                         ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: double.infinity,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: _apartmentTypes
-                                  .map((type) => _buildApartmentTypeChip(type, textColor, chipColor))
-                                  .toList(),
-                            ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderColor),
                           ),
-                        ),
-                        const SizedBox(height: 25),
-                        Row(
-                          children: [
-                            Icon(Icons.photo_library, color: accentColor),
-                            const SizedBox(width: 8),
-                            Text(
-                              'صور الشقة',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        ElevatedButton.icon(
-                          onPressed: _pickImages,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: fieldColor,
-                            foregroundColor: accentColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: accentColor, width: 2),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 20,
+                            horizontal: 16,
                           ),
-                          icon: const Icon(Icons.add_photo_alternate),
-                          label: const Text(
-                            'إضافة صور',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        _buildImagesGrid(textColor, cardColor),
-                        const SizedBox(height: 25),
-                        Row(
-                          children: [
-                            Icon(Icons.apartment, color: accentColor),
-                            const SizedBox(width: 8),
-                            Text(
-                              'تفاصيل الشقة',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: _nameController,
-                          decoration: _inputDecoration('اسم الشقة *', Icons.home, fieldColor, borderColor, accentColor),
-                          style: TextStyle(color: textColor),
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _selectedGovernorate,
-                          decoration: _inputDecoration('اختر المحافظة *', Icons.location_city, fieldColor, borderColor, accentColor),
-                          items: _governorates.map((governorate) {
-                            return DropdownMenuItem(value: governorate, child: Text(governorate, style: TextStyle(color: textColor)));
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedGovernorate = value;
-                              _selectedCity = null;
-                              _loadCities();
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
-                          value: _selectedCity,
-                          decoration: _inputDecoration('اختر المدينة *', Icons.location_on, fieldColor, borderColor, accentColor),
-                          items: _cities.map((city) {
-                            return DropdownMenuItem(value: city, child: Text(city, style: TextStyle(color: textColor)));
-                          }).toList(),
-                          onChanged: _selectedGovernorate == null ? null : (value) { setState(() { _selectedCity = value; }); },
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _titleController,
-                          decoration: _inputDecoration('الموقع التفصيلي', Icons.location_pin, fieldColor, borderColor, accentColor),
-                          style: TextStyle(color: textColor),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _roomsController,
-                                keyboardType: TextInputType.number,
-                                decoration: _inputDecoration('عدد الغرف', Icons.bed, fieldColor, borderColor, accentColor),
-                                style: TextStyle(color: textColor),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextField(
-                                controller: _bathroomsController,
-                                keyboardType: TextInputType.number,
-                                decoration: _inputDecoration('عدد الحمامات', Icons.bathtub, fieldColor, borderColor, accentColor),
-                                style: TextStyle(color: textColor),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: _discController,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: 3,
-                          decoration: _inputDecoration('وصف الشقة', Icons.description, fieldColor, borderColor, accentColor),
-                          style: TextStyle(color: textColor),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _areaController,
-                                keyboardType: TextInputType.number,
-                                decoration: _inputDecoration('المساحة', Icons.square_foot, fieldColor, borderColor, accentColor),
-                                style: TextStyle(color: textColor),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: TextField(
-                                controller: _priceController,
-                                keyboardType: TextInputType.number,
-                                decoration: _inputDecoration('السعر  *', Icons.price_change, fieldColor, borderColor, accentColor),
-                                style: TextStyle(color: textColor),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 25),
-                        SizedBox(
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: accentColor,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 3,
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          child: Form(
+                            key: cubit.formState,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text(
-                                  'إضافة الشقة',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                Row(
+                                  children: [
+                                    Icon(Icons.category, color: accentColor),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'نوع الشقة',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                                const SizedBox(height: 15),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children:
+                                          _apartmentTypes
+                                              .map(
+                                                (type) =>
+                                                    _buildApartmentTypeChip(
+                                                      onTap: (value) {
+                                                        cubit
+                                                            .typeController
+                                                            .text = value;
+                                                      },
+                                                      type,
+                                                      textColor,
+                                                      chipColor,
+                                                    ),
+                                              )
+                                              .toList(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 25),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.photo_library,
+                                      color: accentColor,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'صور الشقة',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                ListOfImage(
+                                  images: cubit.images,
+                                  appartmentCubit: cubit,
+                                ),
+                                const SizedBox(height: 15),
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: DottedContainerAddImagesWidget(
+                                    function: () => cubit.showPicker(context),
+                                  ),
+                                ),
+                                const SizedBox(height: 15),
+                                Row(
+                                  children: [
+                                    Icon(Icons.apartment, color: accentColor),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'تفاصيل الشقة',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                TextField(
+                                  controller: cubit.nameController,
+                                  decoration: _inputDecoration(
+                                    'اسم الشقة *',
+                                    Icons.home,
+                                    fieldColor,
+                                    borderColor,
+                                    accentColor,
+                                  ),
+                                  style: TextStyle(color: textColor),
+                                ),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<String>(
+                                  value: _selectedGovernorate,
+                                  decoration: _inputDecoration(
+                                    'اختر المحافظة *',
+                                    Icons.location_city,
+                                    fieldColor,
+                                    borderColor,
+                                    accentColor,
+                                  ),
+                                  items:
+                                      _governorates.map((governorate) {
+                                        return DropdownMenuItem(
+                                          value: governorate,
+                                          child: Text(
+                                            governorate,
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        );
+                                      }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      cubit.governorateController.text =
+                                          value ?? '';
+                                      _selectedGovernorate = value;
+                                      _selectedCity = null;
+                                      _loadCities();
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                DropdownButtonFormField<String>(
+                                  value: _selectedCity,
+                                  decoration: _inputDecoration(
+                                    'اختر المدينة *',
+                                    Icons.location_on,
+                                    fieldColor,
+                                    borderColor,
+                                    accentColor,
+                                  ),
+                                  items:
+                                      _cities.map((city) {
+                                        return DropdownMenuItem(
+                                          value: city,
+                                          child: Text(
+                                            city,
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        );
+                                      }).toList(),
+                                  onChanged:
+                                      _selectedGovernorate == null
+                                          ? null
+                                          : (value) {
+                                            setState(() {
+                                              cubit.cityController.text =
+                                                  value ?? '';
+                                              _selectedCity = value;
+                                            });
+                                          },
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: cubit.locationController,
+                                  decoration: _inputDecoration(
+                                    'الموقع التفصيلي',
+                                    Icons.location_pin,
+                                    fieldColor,
+                                    borderColor,
+                                    accentColor,
+                                  ),
+                                  style: TextStyle(color: textColor),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: cubit.roomsController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _inputDecoration(
+                                          'عدد الغرف',
+                                          Icons.bed,
+                                          fieldColor,
+                                          borderColor,
+                                          accentColor,
+                                        ),
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: cubit.bathroomsController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _inputDecoration(
+                                          'عدد الحمامات',
+                                          Icons.bathtub,
+                                          fieldColor,
+                                          borderColor,
+                                          accentColor,
+                                        ),
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                TextField(
+                                  controller: cubit.descriptionController,
+                                  keyboardType: TextInputType.multiline,
+                                  maxLines: 3,
+                                  decoration: _inputDecoration(
+                                    'وصف الشقة',
+                                    Icons.description,
+                                    fieldColor,
+                                    borderColor,
+                                    accentColor,
+                                  ),
+                                  style: TextStyle(color: textColor),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: cubit.areaController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _inputDecoration(
+                                          'المساحة',
+                                          Icons.square_foot,
+                                          fieldColor,
+                                          borderColor,
+                                          accentColor,
+                                        ),
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: cubit.priceController,
+                                        keyboardType: TextInputType.number,
+                                        decoration: _inputDecoration(
+                                          'السعر  *',
+                                          Icons.price_change,
+                                          fieldColor,
+                                          borderColor,
+                                          accentColor,
+                                        ),
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 25),
+                                SizedBox(
+                                  height: 60,
+                                  child: ElevatedButton(
+                                    onPressed:
+                                        _isLoading
+                                            ? null
+                                            : () {
+                                              cubit.addAppartment();
+                                            },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: accentColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 3,
+                                    ),
+                                    child:
+                                        _isLoading
+                                            ? const CircularProgressIndicator(
+                                              color: Colors.white,
+                                            )
+                                            : const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  'إضافة الشقة',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_isLoading)
-                  Container(
-                    color: Colors.black.withOpacity(0.3),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                       ),
-                    ),
-                  ),
-              ],
+                      if (_isLoading)
+                        Container(
+                          color: Colors.black.withOpacity(0.3),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                accentColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         );
       },
     );
   }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -556,5 +749,6 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
     _nameController.dispose();
     _governorateController.dispose();
     _cityController.dispose();
-    super.dispose();}
+    super.dispose();
   }
+}
