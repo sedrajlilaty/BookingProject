@@ -41,6 +41,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   image_picker: ^1.2.1
   dio: ^5.9.0
+  sizer:
+  dotted_border:
+  bloc:
+  pretty_dio_logger:
   provider: ^6.1.5+1
   shared_preferences: ^2.5.4
   flutter_localization: ^0.3.3

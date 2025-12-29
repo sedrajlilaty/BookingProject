@@ -4,12 +4,20 @@ import 'package:flutter_application_8/l10n/app_localizations.dart'
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../constants.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +47,6 @@ class ProfileScreen extends StatelessWidget {
         ),
       );
     }
-
-    bool _notificationsEnabled = true;
 
     void _handleLogout(BuildContext context) {
       showDialog(
@@ -330,7 +336,11 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         trailing: Switch(
                           value: _notificationsEnabled,
-                          onChanged: (value) {},
+                          onChanged: (value) {
+                            setState(() {
+                              _notificationsEnabled = value;
+                            });
+                          },
                           activeColor: accentColor,
                         ),
                       ),

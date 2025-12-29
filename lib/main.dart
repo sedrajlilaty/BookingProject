@@ -1,48 +1,38 @@
 import 'package:flutter/material.dart';
+import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'constants.dart';
 import 'Theme/theme_cubit.dart';
 import 'Theme/theme_state.dart';
-
 import 'l10n/Cubit.dart';
+
+import 'network/network_service.dart';
 import 'providers/authoProvider.dart';
 import 'providers/booking_provider.dart';
 
 import 'screens/SplashScreen.dart';
 import 'main_navigation_screen.dart';
 
-import 'l10n/app_localizations.dart';
-
-
-// =======================
-// MAIN
-// =======================
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Network.init();
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => BookingProvider(),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<ThemeCubit>(
-            create: (_) => ThemeCubit(),
-          ),
-          BlocProvider<LanguageCubit>(
-            create: (_) => LanguageCubit(prefs),
-          ),
+          BlocProvider<ThemeCubit>(create: (_) => ThemeCubit()),
+          BlocProvider<LanguageCubit>(create: (_) => LanguageCubit(prefs)),
         ],
         child: const MyApp(),
       ),
@@ -50,10 +40,6 @@ void main() async {
   );
 }
 
-
-// =======================
-// APP
-// =======================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -69,14 +55,14 @@ class MyApp extends StatelessWidget {
 
               // 🌍 Language
               locale: langState.locale,
-              supportedLocales: const [
-                Locale('en'),
-                Locale('ar'),
-              ],
-              localizationsDelegates:
-              AppLocalizations.localizationsDelegates,
 
-              // 🌞 Light Theme
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+
+              // 🎨 Theme
+              themeMode:
+                  themeState is DarkState ? ThemeMode.dark : ThemeMode.light,
+
               theme: ThemeData(
                 brightness: Brightness.light,
                 primaryColor: primaryBackgroundColor,
@@ -89,7 +75,6 @@ class MyApp extends StatelessWidget {
                 ),
               ),
 
-              // 🌙 Dark Theme
               darkTheme: ThemeData(
                 brightness: Brightness.dark,
                 primaryColor: accentColor,
@@ -102,17 +87,12 @@ class MyApp extends StatelessWidget {
                 ),
               ),
 
-              themeMode: themeState is DarkState
-                  ? ThemeMode.dark
-                  : ThemeMode.light,
-
               // 🏠 Start Screen
               home: Consumer<AuthProvider>(
-                builder: (context, authProvider, child) {
+                builder: (context, authProvider, _) {
                   if (authProvider.isLoggedIn) {
                     return MainNavigationScreen(
-                      isOwner:
-                      authProvider.user?.userType == 'owner',
+                      isOwner: authProvider.user?.userType == 'owner',
                     );
                   } else {
                     return const SplashScreen();
