@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
+
 import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/screens/signUp.dart';
 import 'package:flutter_application_8/services/logIn_serves.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../constants.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../constants.dart';
-import '../Theme/theme_cubit.dart';
-import '../Theme/theme_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,20 +24,38 @@ class _LoginScreenState extends State<LoginScreen> {
   static final RegExp _phoneRegExp = RegExp(r'^09[0-9]{8}$');
 
   String? _validateForm() {
-    if (_phoneController.text.trim().isEmpty) return 'الرجاء إدخال رقم الهاتف';
-    if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
-    if (_passwordController.text.isEmpty) return 'الرجاء إدخال كلمة المرور';
-    if (_passwordController.text.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-    if (_userType == null) return 'الرجاء اختيار نوع الحساب';
+    if (_phoneController.text.trim().isEmpty) {
+      return 'الرجاء إدخال رقم الهاتف';
+    }
+    if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) {
+      return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
+    }
+
+    if (_passwordController.text.isEmpty) {
+      return 'الرجاء إدخال كلمة المرور';
+    }
+    if (_passwordController.text.length < 8) {
+      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+    }
+
+    if (_userType == null) {
+      return 'الرجاء اختيار نوع الحساب';
+    }
+
     return null;
   }
 
   Future<void> _handleLogin(BuildContext context) async {
     FocusScope.of(context).unfocus();
+
     final validationError = _validateForm();
     if (validationError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(validationError), backgroundColor: Colors.red, duration: const Duration(seconds: 3)),
+        SnackBar(
+          content: Text(validationError),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -50,27 +64,79 @@ class _LoginScreenState extends State<LoginScreen> {
     authProvider.setLoading(true);
 
     try {
-      final response = await LoginServes.logIn(context, _phoneController.text, _passwordController.text, _userType!);
-      if (response == null) throw Exception('فشل الاتصال بالخادم');
+      print('📞 جاري تسجيل الدخول...');
+      print('📱 رقم الهاتف: ${_phoneController.text}');
+      print('🔑 نوع الحساب: $_userType');
 
+      // استدعاء خدمة تسجيل الدخول
+      final response = await LoginServes.logIn(
+        context,
+        _phoneController.text,
+        _passwordController.text,
+        _userType!,
+      );
+
+      print('📥 استجابة الخادم: ${response?.data}');
+      print('📊 نوع الاستجابة: ${response?.runtimeType}');
+
+      // ⚠️ **التحقق من أن response ليست null**
+      if (response == null) {
+        throw Exception('فشل الاتصال بالخادم');
+      }
+
+      // ⚠️ **التصحيح: response هو كائن Response، البيانات في response.data**
       final data = response.data as Map<String, dynamic>;
+      print('✅ البيانات المستلمة: $data');
+
+      // استخرج البيانات
       final message = data['message'] as String?;
       final userData = data['User'] as Map<String, dynamic>?;
       final token = data['Token'] as String?;
 
-      if (userData == null) throw Exception('لا توجد بيانات مستخدم في الاستجابة');
-      if (token == null || token.isEmpty) throw Exception('لا يوجد رمز مصادقة في الاستجابة');
+      if (message != null) print('📝 الرسالة: $message');
+      if (userData != null) print('👤 المستخدم: ${userData['name']}');
+      if (token != null) print('🔐 التوكن: ${token.substring(0, 20)}...');
 
-      String baseUrl = 'http://192.168.137.101:8000';
-      String? profileImageUrl = userData['personal_image'] != null ? '$baseUrl/storage/${userData['personal_image']}' : null;
-      String? idImageUrl = userData['national_id_image'] != null ? '$baseUrl/storage/${userData['national_id_image']}' : null;
+      // ⚠️ **التحقق من البيانات الأساسية**
+      if (userData == null) {
+        print('❌ userData is null');
+        throw Exception('لا توجد بيانات مستخدم في الاستجابة');
+      }
 
+      if (token == null || token.isEmpty) {
+        print('❌ token is null or empty');
+        throw Exception('لا يوجد رمز مصادقة في الاستجابة');
+      }
+
+      // ⚠️ **بناء URL للصور**
+      String baseUrl =
+          'http://192.168.137.101:8000'; // نفس الـ baseUrl في LoginServes
+      String? profileImageUrl;
+      String? idImageUrl;
+
+      if (userData['personal_image'] != null) {
+        profileImageUrl = '$baseUrl/storage/${userData['personal_image']}';
+        print('🖼️ رابط الصورة الشخصية: $profileImageUrl');
+      } else {
+        print('⚠️ لا توجد صورة شخصية في الاستجابة');
+      }
+
+      if (userData['national_id_image'] != null) {
+        idImageUrl = '$baseUrl/storage/${userData['national_id_image']}';
+        print('🆔 رابط صورة الهوية: $idImageUrl');
+      } else {
+        print('⚠️ لا توجد صورة هوية في الاستجابة');
+      }
+
+      // ⚠️ **استخراج البيانات بأسماء الحقول الصحيحة**
       await authProvider.login(
         userId: userData['id']?.toString() ?? '0',
         firstName: userData['name']?.toString() ?? '',
         lastName: userData['last_name']?.toString() ?? '',
         phone: userData['phone']?.toString() ?? _phoneController.text,
-        email: userData['email']?.toString() ?? '${userData['phone'] ?? _phoneController.text}@temp.com',
+        email:
+        userData['email']?.toString() ??
+            '${userData['phone'] ?? _phoneController.text}@temp.com',
         userType: userData['account_type']?.toString() ?? _userType!,
         birthDate: userData['birthdate']?.toString() ?? '',
         profileImageUrl: profileImageUrl,
@@ -79,45 +145,120 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message ?? 'تم تسجيل الدخول بنجاح'), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
+        SnackBar(
+          content: Text(message ?? 'تم تسجيل الدخول بنجاح'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
       );
 
+      // التنقل بناءً على نوع المستخدم
       final accountType = userData['account_type']?.toString() ?? _userType!;
+      print('🎯 نوع الحساب للتنقل: $accountType');
+
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainNavigationScreen(isOwner: accountType == 'owner')),
+        MaterialPageRoute(
+          builder:
+              (context) =>
+              MainNavigationScreen(isOwner: accountType == 'owner'),
+        ),
+      );
+    } on FormatException catch (e) {
+      print('❌ خطأ في تنسيق البيانات: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ في تنسيق البيانات: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } on Exception catch (e) {
+      print('❌ خطأ عام: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطأ في تسجيل الدخول: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('خطأ في تسجيل الدخول: ${e.toString()}'), backgroundColor: Colors.red));
+      print('❌ خطأ غير متوقع: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('حدث خطأ غير متوقع: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       authProvider.setLoading(false);
     }
   }
 
-  Widget _buildUserTypeDropdown(Color textColor, Color fillColor) {
+  Widget _buildUserTypeDropdown() {
     return Container(
-      decoration: BoxDecoration(color: fillColor, borderRadius: BorderRadius.circular(15)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+      ),
       child: DropdownButtonFormField<String>(
         value: _userType,
         decoration: InputDecoration(
           hintText: 'اختر نوع الحساب',
-          hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
-          prefixIcon: Icon(Icons.person_pin, color: textColor.withOpacity(0.7)),
+          hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),
+          prefixIcon: Icon(
+            Icons.person_pin,
+            color: darkTextColor.withOpacity(0.7),
+          ),
           filled: true,
-          fillColor: fillColor,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 20,
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(color: Colors.red),
+          ),
         ),
-        items: _userTypes.map((value) => DropdownMenuItem(value: value, child: Text(value == 'owner' ? 'مالك' : 'مستأجر', style: TextStyle(color: textColor), textAlign: TextAlign.right))).toList(),
-        onChanged: _isLoading ? null : (val) => setState(() => _userType = val),
-        dropdownColor: fillColor,
-        icon: Icon(Icons.arrow_drop_down, color: textColor.withOpacity(0.7)),
+        items:
+        _userTypes.map((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(
+              value == 'owner' ? 'owner' : 'tenant',
+              style: const TextStyle(color: darkTextColor),
+              textAlign: TextAlign.right,
+            ),
+          );
+        }).toList(),
+        onChanged:
+        _isLoading
+            ? null
+            : (String? newValue) {
+          setState(() {
+            _userType = newValue;
+          });
+        },
+        dropdownColor: Colors.white,
+        icon: Icon(
+          Icons.arrow_drop_down,
+          color: darkTextColor.withOpacity(0.7),
+        ),
         isExpanded: true,
       ),
     );
   }
 
-  Widget _buildInputField({required String hintText, required IconData icon, bool isPassword = false, TextEditingController? controller, required Color textColor, required Color fillColor, required Color iconColor}) {
+  Widget _buildInputField({
+    required String hintText,
+    required IconData icon,
+    bool isPassword = false,
+    TextEditingController? controller,
+    String? errorText,
+  }) {
     return TextField(
       controller: controller,
       obscureText: isPassword,
@@ -125,32 +266,69 @@ class _LoginScreenState extends State<LoginScreen> {
       textAlign: TextAlign.right,
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
-        prefixIcon: Icon(icon, color: iconColor),
+        hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),
+        prefixIcon: Icon(icon, color: darkTextColor.withOpacity(0.7)),
         filled: true,
-        fillColor: fillColor,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 15,
+          horizontal: 20,
+        ),
+        errorText: errorText,
+        errorStyle: const TextStyle(color: Colors.red),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
       ),
-      style: TextStyle(color: textColor),
+      style: TextStyle(
+        color: darkTextColor,
+        decoration: _isLoading ? TextDecoration.none : null,
+      ),
     );
   }
 
-  Widget _buildLoginButton(Color accentColor) {
+  Widget _buildLoginButton(BuildContext context) {
     return ElevatedButton(
       onPressed: _isLoading ? null : () => _handleLogin(context),
       style: ElevatedButton.styleFrom(
-        backgroundColor: _isLoading ? accentColor.withOpacity(0.7) : accentColor,
+        backgroundColor:
+        _isLoading ? accentColor.withOpacity(0.7) : accentColor,
         padding: const EdgeInsets.symmetric(vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
-      child: _isLoading
-          ? Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-        SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
-        SizedBox(width: 10),
-        Text('جاري تسجيل الدخول...', style: TextStyle(fontSize: 18, color: Colors.white)),
-      ])
-          : const Text('تسجيل الدخول', style: TextStyle(fontSize: 18, color: Colors.white)),
+      child:
+      _isLoading
+          ? Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            'جاري تسجيل الدخول...',
+            style: const TextStyle(fontSize: 18, color: Colors.white),
+          ),
+        ],
+      )
+          : const Text(
+        'تسجيل الدخول',
+        style: TextStyle(fontSize: 18, color: Colors.white),
+      ),
     );
   }
 
@@ -158,99 +336,176 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     _isLoading = authProvider.isLoading;
+
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      builder: (context, state) {
-        final isDark = state is DarkState;
-        final backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
-        final cardColor = isDark ? Colors.grey[800]! : Colors.white;
-        final textColor = isDark ? Colors.white : darkTextColor;
-
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            backgroundColor: backgroundColor,
-            body: Stack(
-              children: [
-                SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: screenHeight, minWidth: screenWidth),
-                    child: Column(
-                      children: [
-                        Container(
-                          height: screenHeight * 0.35,
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 40),
-                          alignment: Alignment.bottomRight,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [Colors.grey[850]!, Colors.grey[850]!]
-                                  : [Color(0xFFF1F3F5), Color(0xFF005F73)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [Icon(Icons.home_work, size: 150, color: Colors.white), const SizedBox(height: 10)],
-                          ),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: primaryBackgroundColor,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: screenHeight,
+                  minWidth: screenWidth,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      height: screenHeight * 0.35,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 40,
+                      ),
+                      alignment: Alignment.bottomRight,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFF1F3F5),
+                            Color(0xFF005F73),
+                            Color(0xFF005F73),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        Container(
-                          constraints: BoxConstraints(minHeight: screenHeight * 0.65),
-                          decoration: BoxDecoration(color: cardColor, borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40))),
-                          padding: const EdgeInsets.all(30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('تسجيل الدخول', style: TextStyle(color: textColor, fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.right),
-                              const SizedBox(height: 30),
-                              _buildUserTypeDropdown(textColor, cardColor),
-                              const SizedBox(height: 20),
-                              _buildInputField(hintText: 'رقم الهاتف (09XXXXXXXX)', icon: Icons.phone, controller: _phoneController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
-                              const SizedBox(height: 20),
-                              _buildInputField(hintText: 'كلمة المرور (8 أحرف على الأقل)', icon: Icons.lock, isPassword: true, controller: _passwordController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
-                              const SizedBox(height: 10),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: TextButton(
-                                  onPressed: _isLoading ? null : () => print('Forgot Password?'),
-                                  child: Text('نسيت كلمة المرور؟', style: TextStyle(color: textColor.withOpacity(0.7))),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: const [
+                          Icon(Icons.home_work, size: 150, color: Colors.white),
+                          SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                        minHeight: screenHeight * 0.65,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: cardBackgroundColor,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(30),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'تسجيل الدخول',
+                            style: TextStyle(
+                              color: darkTextColor,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                          const SizedBox(height: 30),
+                          _buildUserTypeDropdown(),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'رقم الهاتف (09XXXXXXXX)',
+                            icon: Icons.phone,
+                            controller: _phoneController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'كلمة المرور (8 أحرف على الأقل)',
+                            icon: Icons.lock,
+                            isPassword: true,
+                            controller: _passwordController,
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                              onPressed:
+                              _isLoading
+                                  ? null
+                                  : () {
+                                print('Forgot Password?');
+                              },
+                              child: Text(
+                                'نسيت كلمة المرور؟',
+                                style: TextStyle(
+                                  color:
+                                  _isLoading
+                                      ? darkTextColor.withOpacity(0.3)
+                                      : darkTextColor.withOpacity(0.7),
                                 ),
                               ),
-                              const SizedBox(height: 30),
-                              _buildLoginButton(accentColor),
-                              const SizedBox(height: 25),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('ليس لديك حساب؟', style: TextStyle(color: textColor.withOpacity(0.7))),
-                                  TextButton(
-                                    onPressed: _isLoading ? null : () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignUpScreen())),
-                                    child: Text('إنشاء حساب', style: TextStyle(color: accentColor, fontWeight: FontWeight.bold)),
-                                  ),
-                                ],
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 30),
+                          _buildLoginButton(context),
+                          const SizedBox(height: 25),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 30),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'ليس لديك حساب؟',
+                                  style: TextStyle(
+                                    color:
+                                    _isLoading
+                                        ? darkTextColor.withOpacity(0.3)
+                                        : darkTextColor.withOpacity(0.7),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed:
+                                  _isLoading
+                                      ? null
+                                      : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                        const SignUpScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'إنشاء حساب',
+                                    style: TextStyle(
+                                      color:
+                                      _isLoading
+                                          ? accentColor.withOpacity(0.5)
+                                          : accentColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                   ),
                 ),
-                if (_isLoading)
-                  Container(
-                    color: Colors.black.withOpacity(0.3),
-                    child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(accentColor))),
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

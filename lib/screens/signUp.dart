@@ -1,14 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/providers/authoProvider.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_application_8/Theme/theme_cubit.dart';
+import 'package:flutter_application_8/Theme/theme_state.dart';
 import 'package:flutter_application_8/screens/welcomeScreen2.dart';
 import 'package:flutter_application_8/services/signUp-serves.dart' show Signupserves;
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../constants.dart';
-import '../Theme/theme_cubit.dart';
-import '../Theme/theme_state.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,16 +18,20 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   String? _userType;
   final List<String> _userTypes = ['tenant', 'owner'];
+
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+
   File? _idImageFile;
   File? _profileImageFile;
+
   bool _isLoading = false;
   final ImagePicker _picker = ImagePicker();
+
   static final RegExp _phoneRegExp = RegExp(r'^09[0-9]{8}$');
 
   Widget _buildInputField({
@@ -43,7 +45,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String? errorText,
     required Color textColor,
     required Color fillColor,
-    required Color iconColor,
   }) {
     return TextField(
       controller: controller,
@@ -55,7 +56,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
-        prefixIcon: Icon(icon, color: iconColor),
+        prefixIcon: Icon(icon, color: textColor.withOpacity(0.7)),
         filled: true,
         fillColor: fillColor,
         border: OutlineInputBorder(
@@ -70,7 +71,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildUserTypeDropdown(Color textColor, Color fillColor) {
+  Widget _buildUserTypeDropdown({
+    required Color textColor,
+    required Color fillColor,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: fillColor,
@@ -90,23 +94,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         ),
-        items: _userTypes.map((String value) {
-          return DropdownMenuItem<String>(
+        items: _userTypes.map((value) {
+          return DropdownMenuItem(
             value: value,
-            child: Text(
-              value == 'owner' ? 'مالك' : 'مستأجر',
-              style: TextStyle(color: textColor),
-              textAlign: TextAlign.right,
-            ),
+            child: Text(value, style: TextStyle(color: textColor), textAlign: TextAlign.right),
           );
         }).toList(),
-        onChanged: _isLoading
-            ? null
-            : (String? newValue) {
-          setState(() {
-            _userType = newValue;
-          });
-        },
+        onChanged: _isLoading ? null : (newValue) { setState(() { _userType = newValue; }); },
         dropdownColor: fillColor,
         icon: Icon(Icons.arrow_drop_down, color: textColor.withOpacity(0.7)),
         isExpanded: true,
@@ -123,28 +117,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
-          data: ThemeData.light().copyWith(
+          data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: accentColor,
               onPrimary: Colors.white,
               onSurface: darkTextColor,
+              surface: Colors.white,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: accentColor,
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           child: child!,
         );
       },
     );
+
     if (picked != null) {
       setState(() {
-        _dateController.text = "${picked.year}/${picked.month}/${picked.day}";
+        _dateController.text =
+        "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
 
-  Future<void> _pickImage(bool isIdImage) async {
+  Future<void> _pickImage(bool isIdImage, {bool fromCamera = false}) async {
     if (_isLoading) return;
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80, maxWidth: 800);
+      final XFile? image = await _picker.pickImage(
+        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
       if (image != null) {
         setState(() {
           if (isIdImage) _idImageFile = File(image.path);
@@ -156,100 +163,80 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _takePhoto(bool isIdImage) async {
-    if (_isLoading) return;
-    try {
-      final XFile? photo = await _picker.pickImage(source: ImageSource.camera, imageQuality: 80, maxWidth: 800);
-      if (photo != null) {
-        setState(() {
-          if (isIdImage) _idImageFile = File(photo.path);
-          else _profileImageFile = File(photo.path);
-        });
-      }
-    } catch (e) {
-      _showErrorSnackBar('حدث خطأ أثناء التقاط الصورة');
-    }
-  }
-
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
-  Future<void> _showImagePickerOptions(bool isIdImage) async {
-    if (_isLoading) return;
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library, color: Colors.black54),
-                  title: const Text('اختيار من المعرض'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(isIdImage);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt, color: Colors.black54),
-                  title: const Text('التقاط صورة'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _takePhoto(isIdImage);
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.close, color: Colors.red),
-                  title: const Text('إلغاء'),
-                  onTap: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  String? _validateForm() {
+    if (_firstNameController.text.trim().isEmpty) return 'الرجاء إدخال الاسم الأول';
+    if (_lastNameController.text.trim().isEmpty) return 'الرجاء إدخال اسم العائلة';
+    if (_userType == null) return 'الرجاء اختيار نوع الحساب';
+    if (_phoneController.text.trim().isEmpty) return 'الرجاء إدخال رقم الهاتف';
+    if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) return 'رقم الهاتف غير صحيح (09XXXXXXXX)';
+    if (_passwordController.text.isEmpty) return 'الرجاء إدخال كلمة المرور';
+    if (_passwordController.text.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+    if (_confirmPasswordController.text.isEmpty) return 'الرجاء تأكيد كلمة المرور';
+    if (_passwordController.text != _confirmPasswordController.text) return 'كلمات المرور غير متطابقة';
+    if (_dateController.text.isEmpty) return 'الرجاء اختيار تاريخ الميلاد';
+    if (_idImageFile == null) return 'الرجاء تحميل صورة الهوية الوطنية';
+    if (_profileImageFile == null) return 'الرجاء تحميل صورة شخصية';
+    return null;
   }
 
   Widget _buildImageUploadArea(String title, IconData icon, bool isIdImage, Color textColor, Color fillColor) {
     final imageFile = isIdImage ? _idImageFile : _profileImageFile;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-      decoration: BoxDecoration(color: fillColor, borderRadius: BorderRadius.circular(15), border: Border.all(color: textColor.withOpacity(0.1))),
+      decoration: BoxDecoration(
+        color: fillColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: textColor.withOpacity(0.1)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [Text(title, style: TextStyle(color: textColor, fontSize: 16), textAlign: TextAlign.right), const SizedBox(width: 10), Icon(icon, color: textColor.withOpacity(0.7))],
+            children: [
+              Text(title, style: TextStyle(color: textColor, fontSize: 16), textAlign: TextAlign.right),
+              const SizedBox(width: 10),
+              Icon(icon, color: textColor.withOpacity(0.7)),
+            ],
           ),
           const SizedBox(height: 10),
           if (imageFile != null)
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(height: 150, width: double.infinity, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), image: DecorationImage(image: FileImage(imageFile), fit: BoxFit.cover))),
+                Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    image: DecorationImage(image: FileImage(imageFile), fit: BoxFit.cover),
+                  ),
+                ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton.icon(
-                      onPressed: _isLoading ? null : () => setState(() => isIdImage ? _idImageFile = null : _profileImageFile = null),
+                      onPressed: _isLoading ? null : () {
+                        setState(() {
+                          if (isIdImage) _idImageFile = null;
+                          else _profileImageFile = null;
+                        });
+                      },
                       icon: Icon(Icons.delete, color: _isLoading ? Colors.red.withOpacity(0.5) : Colors.red),
                       label: Text('حذف', style: TextStyle(color: _isLoading ? Colors.red.withOpacity(0.5) : Colors.red)),
                     ),
                     const SizedBox(width: 10),
                     TextButton.icon(
-                      onPressed: _isLoading ? null : () => _showImagePickerOptions(isIdImage),
-                      icon: Icon(Icons.edit, color: _isLoading ? accentColor.withOpacity(0.5) : accentColor),
-                      label: Text('تغيير', style: TextStyle(color: _isLoading ? accentColor.withOpacity(0.5) : accentColor)),
+                      onPressed: _isLoading ? null : () => _pickImage(isIdImage),
+                      icon: Icon(Icons.edit, color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor),
+                      label: Text('تغيير', style: TextStyle(color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor)),
                     ),
                   ],
                 ),
@@ -257,12 +244,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             )
           else
             OutlinedButton.icon(
-              onPressed: _isLoading ? null : () => _showImagePickerOptions(isIdImage),
-              icon: Icon(Icons.upload_file, color: _isLoading ? accentColor.withOpacity(0.5) : accentColor),
-              label: Text('اختر صورة', style: TextStyle(color: _isLoading ? accentColor.withOpacity(0.5) : accentColor)),
+              onPressed: _isLoading ? null : () => _pickImage(isIdImage),
+              icon: Icon(Icons.upload_file, color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor),
+              label: Text('اختر صورة', style: TextStyle(color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor)),
               style: OutlinedButton.styleFrom(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: _isLoading ? accentColor.withOpacity(0.3) : accentColor.withOpacity(0.5)),
+                side: BorderSide(color: _isLoading ? buttonColor.withOpacity(0.3) : buttonColor.withOpacity(0.5)),
               ),
             ),
         ],
@@ -270,18 +257,75 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  Future<void> _handleSignUp(BuildContext context) async {
+    FocusScope.of(context).unfocus();
+    final validationError = _validateForm();
+    if (validationError != null) {
+      _showErrorSnackBar(validationError);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final response = await Signupserves.Signup(
+        context,
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
+        _phoneController.text.trim(),
+        _passwordController.text,
+        _confirmPasswordController.text,
+        _dateController.text,
+        _userType!,
+        _idImageFile!,
+        _profileImageFile!,
+      );
+
+      if (response != null && response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تم إنشاء الحساب بنجاح كـ $_userType'), backgroundColor: Colors.green),
+        );
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const WelcomeScreen2()));
+      }
+    } catch (e) {
+      _showErrorSnackBar('حدث خطأ أثناء إنشاء الحساب');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildSubmitButton(Color textColor, Color buttonBg) {
+    return ElevatedButton(
+      onPressed: _isLoading ? null : () => _handleSignUp(context),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: buttonBg,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+      child: _isLoading
+          ? Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white))),
+          SizedBox(width: 10),
+          Text('جاري التسجيل...', style: TextStyle(fontSize: 18, color: Colors.white)),
+        ],
+      )
+          : Text('إنشاء حساب جديد', style: TextStyle(fontSize: 18, color: textColor)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    _isLoading = authProvider.isLoading;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
-        final isDark = state is DarkState;
-        final backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
-        final cardColor = isDark ? Colors.grey[800]! : Colors.white;
-        final textColor = isDark ? Colors.white : darkTextColor;
+        bool isDark = state is DarkState;
+
+        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
+        Color textColor = isDark ? Colors.white : darkTextColor;
+        Color inputFillColor = isDark ? Colors.grey[700]! : Colors.white;
 
         return Directionality(
           textDirection: TextDirection.rtl,
@@ -301,17 +345,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 TextButton.icon(
-                                  onPressed: _isLoading ? null : () => Navigator.pop(context),
-                                  icon: Icon(Icons.arrow_forward_ios, color: accentColor, size: 18),
-                                  label: Text('العودة لتسجيل الدخول', style: TextStyle(color: accentColor, fontSize: 16)),
+                                  onPressed: _isLoading ? null : () { Navigator.pop(context); },
+                                  icon: Icon(Icons.arrow_forward_ios, color: _isLoading ? Colors.white.withOpacity(0.5) : accentColor, size: 18),
+                                  label: Text('العودة لتسجيل الدخول', style: TextStyle(color: _isLoading ? buttonColor.withOpacity(0.5) : buttonColor, fontSize: 16)),
                                 ),
                               ],
                             ),
                             const Spacer(),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
-                              children: [Icon(Icons.home_work, size: 150, color: accentColor)],
+                              children: [
+                                Icon(Icons.home_work, size: 150, color: _isLoading ? accentColor.withOpacity(0.7) : accentColor),
+                              ],
                             ),
+                            const SizedBox(height: 10),
                           ],
                         ),
                       ),
@@ -326,31 +373,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           children: [
                             Text('أدخل بياناتك', style: TextStyle(color: textColor, fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.right),
                             const SizedBox(height: 30),
-                            _buildInputField(hintText: 'الاسم الأول', icon: Icons.person, controller: _firstNameController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'الاسم الأول', icon: Icons.person, controller: _firstNameController, textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildInputField(hintText: 'اسم العائلة', icon: Icons.person_outline, controller: _lastNameController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'اسم العائلة', icon: Icons.person_outline, controller: _lastNameController, textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildUserTypeDropdown(textColor, cardColor),
+                            _buildUserTypeDropdown(textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildInputField(hintText: 'رقم الهاتف (09XXXXXXXX)', icon: Icons.phone, keyboardType: TextInputType.phone, controller: _phoneController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'رقم الهاتف (09XXXXXXXX)', icon: Icons.phone, keyboardType: TextInputType.phone, controller: _phoneController, textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildInputField(hintText: 'كلمة المرور (8 أحرف على الأقل)', icon: Icons.lock, isPassword: true, controller: _passwordController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'كلمة المرور (8 أحرف على الأقل)', icon: Icons.lock, isPassword: true, controller: _passwordController, textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildInputField(hintText: 'تأكيد كلمة المرور', icon: Icons.lock, isPassword: true, controller: _confirmPasswordController, textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'تأكيد كلمة المرور', icon: Icons.lock, isPassword: true, controller: _confirmPasswordController, textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildInputField(controller: _dateController, hintText: 'تاريخ الميلاد (YYYY/MM/DD)', icon: Icons.calendar_today, readOnly: true, onTap: () => _selectDate(context), textColor: textColor, fillColor: cardColor, iconColor: textColor),
+                            _buildInputField(hintText: 'تاريخ الميلاد (YYYY/MM/DD)', icon: Icons.calendar_today, controller: _dateController, readOnly: true, onTap: () => _selectDate(context), textColor: textColor, fillColor: inputFillColor),
                             const SizedBox(height: 20),
-                            _buildImageUploadArea('صورة الهوية الوطنية (أمامية)', Icons.credit_card, true, textColor, cardColor),
+                            _buildImageUploadArea('صورة الهوية الوطنية (أمامية)', Icons.credit_card, true, textColor, inputFillColor),
                             const SizedBox(height: 20),
-                            _buildImageUploadArea('صورة شخصية (للملف الشخصي)', Icons.camera_alt, false, textColor, cardColor),
+                            _buildImageUploadArea('صورة شخصية (للملف الشخصي)', Icons.camera_alt, false, textColor, inputFillColor),
                             const SizedBox(height: 30),
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : () {},
-                              style: ElevatedButton.styleFrom(backgroundColor: accentColor, padding: const EdgeInsets.symmetric(vertical: 18), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                              child: _isLoading
-                                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white), strokeWidth: 2))
-                                  : const Text('إنشاء حساب جديد', style: TextStyle(color: Colors.white, fontSize: 18)),
-                            ),
+                            _buildSubmitButton(Colors.white, accentColor),
                           ],
                         ),
                       ),
@@ -360,7 +401,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 if (_isLoading)
                   Container(
                     color: Colors.black.withOpacity(0.3),
-                    child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(accentColor))),
+                    child: const Center(
+                      child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(accentColor)),
+                    ),
                   ),
               ],
             ),

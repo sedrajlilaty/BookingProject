@@ -19,7 +19,7 @@ class Signupserves {
     File personal_image,
   ) async {
     final Dio dio = Dio();
-    final String baseUrl = 'http://10.0.2.2:8000/api';
+    final String baseUrl = 'http://192.168.1.100:8000/api';
     final String register = '/register';
     dio.options.baseUrl = baseUrl;
     var formData = FormData.fromMap({
