@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../Theme/theme_cubit.dart';
+import '../../Theme/theme_state.dart';
 import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/screens/signUp.dart';
@@ -135,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
         lastName: userData['last_name']?.toString() ?? '',
         phone: userData['phone']?.toString() ?? _phoneController.text,
         email:
-        userData['email']?.toString() ??
+            userData['email']?.toString() ??
             '${userData['phone'] ?? _phoneController.text}@temp.com',
         userType: userData['account_type']?.toString() ?? _userType!,
         birthDate: userData['birthdate']?.toString() ?? '',
@@ -161,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(
           builder:
               (context) =>
-              MainNavigationScreen(isOwner: accountType == 'owner'),
+                  MainNavigationScreen(isOwner: accountType == 'owner'),
         ),
       );
     } on FormatException catch (e) {
@@ -224,24 +227,24 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         items:
-        _userTypes.map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(
-              value == 'owner' ? 'owner' : 'tenant',
-              style: const TextStyle(color: darkTextColor),
-              textAlign: TextAlign.right,
-            ),
-          );
-        }).toList(),
+            _userTypes.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value == 'owner' ? 'owner' : 'tenant',
+                  style: const TextStyle(color: darkTextColor),
+                  textAlign: TextAlign.right,
+                ),
+              );
+            }).toList(),
         onChanged:
-        _isLoading
-            ? null
-            : (String? newValue) {
-          setState(() {
-            _userType = newValue;
-          });
-        },
+            _isLoading
+                ? null
+                : (String? newValue) {
+                  setState(() {
+                    _userType = newValue;
+                  });
+                },
         dropdownColor: Colors.white,
         icon: Icon(
           Icons.arrow_drop_down,
@@ -301,34 +304,34 @@ class _LoginScreenState extends State<LoginScreen> {
       onPressed: _isLoading ? null : () => _handleLogin(context),
       style: ElevatedButton.styleFrom(
         backgroundColor:
-        _isLoading ? accentColor.withOpacity(0.7) : accentColor,
+            _isLoading ? accentColor.withOpacity(0.7) : accentColor,
         padding: const EdgeInsets.symmetric(vertical: 18),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       ),
       child:
-      _isLoading
-          ? Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            'جاري تسجيل الدخول...',
-            style: const TextStyle(fontSize: 18, color: Colors.white),
-          ),
-        ],
-      )
-          : const Text(
-        'تسجيل الدخول',
-        style: TextStyle(fontSize: 18, color: Colors.white),
-      ),
+          _isLoading
+              ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'جاري تسجيل الدخول...',
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ],
+              )
+              : const Text(
+                'تسجيل الدخول',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
     );
   }
 
@@ -340,172 +343,174 @@ class _LoginScreenState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: primaryBackgroundColor,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: screenHeight,
-                  minWidth: screenWidth,
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: screenHeight * 0.35,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 40,
-                      ),
-                      alignment: Alignment.bottomRight,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFFF1F3F5),
-                            Color(0xFF005F73),
-                            Color(0xFF005F73),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: const [
-                          Icon(Icons.home_work, size: 150, color: Colors.white),
-                          SizedBox(height: 10),
-                        ],
-                      ),
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        bool isDark = state is DarkState;
+
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
+        Color textColor = isDark ? Colors.white : darkTextColor;
+
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            backgroundColor: backgroundColor,
+            body: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: screenHeight,
+                      minWidth: screenWidth,
                     ),
-                    Container(
-                      constraints: BoxConstraints(
-                        minHeight: screenHeight * 0.65,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: cardBackgroundColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                      ),
-                      padding: const EdgeInsets.all(30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'تسجيل الدخول',
-                            style: TextStyle(
-                              color: darkTextColor,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: screenHeight * 0.35,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 40,
+                          ),
+                          alignment: Alignment.bottomRight,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Color(0xFFF1F3F5),
+                                Color(0xFF005F73),
+                                Color(0xFF005F73),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            textAlign: TextAlign.right,
                           ),
-                          const SizedBox(height: 30),
-                          _buildUserTypeDropdown(),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'رقم الهاتف (09XXXXXXXX)',
-                            icon: Icons.phone,
-                            controller: _phoneController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'كلمة المرور (8 أحرف على الأقل)',
-                            icon: Icons.lock,
-                            isPassword: true,
-                            controller: _passwordController,
-                          ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton(
-                              onPressed:
-                              _isLoading
-                                  ? null
-                                  : () {
-                                print('Forgot Password?');
-                              },
-                              child: Text(
-                                'نسيت كلمة المرور؟',
-                                style: TextStyle(
-                                  color:
-                                  _isLoading
-                                      ? darkTextColor.withOpacity(0.3)
-                                      : darkTextColor.withOpacity(0.7),
-                                ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: const [
+                              Icon(
+                                Icons.home_work,
+                                size: 150,
+                                color: Colors.white,
                               ),
+                              SizedBox(height: 10),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          constraints: BoxConstraints(
+                            minHeight: screenHeight * 0.65,
+                          ),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(40),
+                              topRight: Radius.circular(40),
                             ),
                           ),
-                          const SizedBox(height: 30),
-                          _buildLoginButton(context),
-                          const SizedBox(height: 25),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 30),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'ليس لديك حساب؟',
-                                  style: TextStyle(
-                                    color:
-                                    _isLoading
-                                        ? darkTextColor.withOpacity(0.3)
-                                        : darkTextColor.withOpacity(0.7),
-                                  ),
+                          padding: const EdgeInsets.all(30),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'تسجيل الدخول',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                TextButton(
-                                  onPressed:
-                                  _isLoading
-                                      ? null
-                                      : () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                        const SignUpScreen(),
-                                      ),
-                                    );
-                                  },
+                                textAlign: TextAlign.right,
+                              ),
+                              const SizedBox(height: 30),
+                              _buildUserTypeDropdown(),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'رقم الهاتف (09XXXXXXXX)',
+                                icon: Icons.phone,
+                                controller: _phoneController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'كلمة المرور (8 أحرف على الأقل)',
+                                icon: Icons.lock,
+                                isPassword: true,
+                                controller: _passwordController,
+                              ),
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: TextButton(
+                                  onPressed: _isLoading ? null : () {},
                                   child: Text(
-                                    'إنشاء حساب',
+                                    'نسيت كلمة المرور؟',
                                     style: TextStyle(
-                                      color:
-                                      _isLoading
-                                          ? accentColor.withOpacity(0.5)
-                                          : accentColor,
-                                      fontWeight: FontWeight.bold,
+                                      color: textColor.withOpacity(0.7),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 30),
+                              _buildLoginButton(context),
+                              const SizedBox(height: 25),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 30),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'ليس لديك حساب؟',
+                                      style: TextStyle(
+                                        color: textColor.withOpacity(0.7),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          _isLoading
+                                              ? null
+                                              : () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (_) =>
+                                                            const SignUpScreen(),
+                                                  ),
+                                                );
+                                              },
+                                      child: Text(
+                                        'إنشاء حساب',
+                                        style: TextStyle(
+                                          color: accentColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
                   ),
                 ),
-              ),
-          ],
-        ),
-      ),
+
+                if (_isLoading)
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
