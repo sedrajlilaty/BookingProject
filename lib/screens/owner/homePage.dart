@@ -318,7 +318,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
 
           endDrawer: EndDrawer(),
           body: BlocProvider(
-            create: (context) => AppartmentCubit()..getMyApartment(),
+            create:
+                widget.isOwner
+                    ? (context) => AppartmentCubit()..getMyApartment()
+                    : (context) => AppartmentCubit()..getAllApartment(),
             child: BlocConsumer<AppartmentCubit, AppartmentState>(
               listener: (context, state) {
                 // TODO: implement listener
@@ -344,7 +347,12 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                         const SizedBox(height: 24),
                         state is AppartmentLoading
                             ? const Center(child: CircularProgressIndicator())
-                            : _buildApartmentsGrid(isDark, cubit.appartments),
+                            : _buildApartmentsGrid(
+                              isDark,
+                              widget.isOwner
+                                  ? cubit.myappartments
+                                  : cubit.appartments,
+                            ),
                         const SizedBox(height: 24),
                       ],
                     ),

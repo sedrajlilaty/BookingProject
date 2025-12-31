@@ -128,7 +128,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
   }
 
   List<ApartmentModel> appartments = [];
-  Future<void> getMyApartment() async {
+  Future<void> getAllApartment() async {
     try {
       appartments = [];
       emit(AppartmentLoading());
@@ -138,6 +138,30 @@ class AppartmentCubit extends Cubit<AppartmentState> {
       final List data = response.data;
 
       appartments = data.map((e) => ApartmentModel.fromJson(e)).toList();
+
+      emit(AppartmentSuccess());
+    } on DioException catch (error) {
+      if (error.type == DioExceptionType.badResponse) {
+        emit(AppartmentCubitError(message: error.response?.data['message']));
+      } else {
+        emit(AppartmentCubitError(message: unknownError()));
+      }
+    }
+  }
+
+  List<ApartmentModel> myappartments = [];
+  Future<void> getMyApartment() async {
+    try {
+      myappartments = [];
+      emit(AppartmentLoading());
+
+      final Response response = await Network.getData(
+        url: Urls.getMyAppartments,
+      );
+
+      final List data = response.data;
+
+      myappartments = data.map((e) => ApartmentModel.fromJson(e)).toList();
 
       emit(AppartmentSuccess());
     } on DioException catch (error) {

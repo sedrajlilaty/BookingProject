@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_8/network/urls.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +6,6 @@ import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/screens/signUp.dart';
 import 'package:flutter_application_8/services/logIn_serves.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -45,12 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     return null;
-  }
-
-  Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(kToken, token);
-    await prefs.setBool(kIsLoggedIn, true);
   }
 
   Future<void> _handleLogin(BuildContext context) async {
@@ -117,7 +109,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // ⚠️ **بناء URL للصور**
-      String baseUrl = Urls.baseUrl; // نفس الـ baseUrl في LoginServes
+      String baseUrl =
+          'http://192.168.137.101:8000'; // نفس الـ baseUrl في LoginServes
       String? profileImageUrl;
       String? idImageUrl;
 
@@ -162,17 +155,15 @@ class _LoginScreenState extends State<LoginScreen> {
       // التنقل بناءً على نوع المستخدم
       final accountType = userData['account_type']?.toString() ?? _userType!;
       print('🎯 نوع الحساب للتنقل: $accountType');
-      if (response != null && response.statusCode == 200) {
-        saveToken(response.data['data']['token']);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) =>
-                    MainNavigationScreen(isOwner: accountType == 'owner'),
-          ),
-        );
-      }
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) =>
+                  MainNavigationScreen(isOwner: accountType == 'owner'),
+        ),
+      );
     } on FormatException catch (e) {
       print('❌ خطأ في تنسيق البيانات: $e');
       ScaffoldMessenger.of(context).showSnackBar(

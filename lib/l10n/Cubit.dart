@@ -31,7 +31,6 @@ class LanguageCubit extends Cubit<LanguageState> {
   void loadLanguage() {
     final deviceLocale =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-
     final code = _prefs.getString('language_code') ?? deviceLocale;
     // Default to 'en'
     emit(LanguageState(locale: Locale(code)));

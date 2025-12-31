@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/screens/SplashScreen.dart';
+import 'package:sizer/sizer.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:sizer/sizer.dart'; // ✅ أضف Sizer هنا
+// ✅ أضف Sizer هنا
 
 import 'constants.dart';
 import 'Theme/theme_cubit.dart';
@@ -14,8 +16,6 @@ import 'l10n/Cubit.dart';
 import 'network/network_service.dart';
 import 'providers/authoProvider.dart';
 import 'providers/booking_provider.dart';
-
-import 'screens/SplashScreen.dart';
 import 'main_navigation_screen.dart';
 
 void main() async {

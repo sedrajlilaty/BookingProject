@@ -8,8 +8,6 @@ class DottedContainerAddImagesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double? width;
-    final double? height;
     return DottedBorder(
       child: InkWell(
         onTap: function,

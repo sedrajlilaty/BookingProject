@@ -52,7 +52,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   String? _selectedCity;
 
   String? _apartmentType;
-  final List<String> _apartmentTypes = ['شقة', 'استوديو', 'فيلا', 'دوبلكس'];
+  final List<String> _apartmentTypes = ['شقة', 'استوديو', 'فيلا', 'apartment'];
 
   final List<XFile> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
