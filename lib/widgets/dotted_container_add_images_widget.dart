@@ -1,19 +1,18 @@
-
 import 'package:dotted_border/dotted_border.dart' show DottedBorder;
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
-
 class DottedContainerAddImagesWidget extends StatelessWidget {
-  final void Function()function;
-  const DottedContainerAddImagesWidget(
-      {super.key, required this.function});
+  final void Function() function;
+  const DottedContainerAddImagesWidget({super.key, required this.function});
 
   @override
   Widget build(BuildContext context) {
+    final double? width;
+    final double? height;
     return DottedBorder(
       child: InkWell(
-        onTap:function, 
+        onTap: function,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           width: 50.w,
@@ -40,10 +39,7 @@ class DottedContainerAddImagesWidget extends StatelessWidget {
               SizedBox(height: 2.h),
               Text(
                 "Upload photos",
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 16.sp, color: Colors.grey.shade600),
               ),
             ],
           ),

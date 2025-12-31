@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/network/urls.dart';
 
 class Signupserves {
   static Future<Response?> Signup(
@@ -19,8 +20,9 @@ class Signupserves {
     File personal_image,
   ) async {
     final Dio dio = Dio();
-    final String baseUrl = 'http://192.168.137.201:8000/api';
-    final String register = '/register';
+    final String baseUrl = Urls.domain;
+    ;
+    final String register = '/api/register';
     dio.options.baseUrl = baseUrl;
     var formData = FormData.fromMap({
       "name": name,

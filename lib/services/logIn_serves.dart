@@ -2,6 +2,7 @@ import 'dart:developer' show log;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/network/urls.dart';
 
 class LoginServes {
   static Future<Response?> logIn(
@@ -11,8 +12,8 @@ class LoginServes {
     String account_type,
   ) async {
     final Dio dio = Dio();
-    final String baseUrl = 'http://192.168.137.201:8000/api';
-    final String login = '/login';
+    final String baseUrl = Urls.domain;
+    final String login = '/api/login';
     dio.options.baseUrl = baseUrl;
 
     try {

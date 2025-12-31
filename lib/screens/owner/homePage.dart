@@ -254,7 +254,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
           backgroundColor: isDark ? Colors.grey[900] : Colors.white,
           appBar: AppBar(
             title: const Text(
-              'الرئيسية',
+              'Home page',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

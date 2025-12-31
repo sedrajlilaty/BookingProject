@@ -31,7 +31,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
   final TextEditingController descriptionController = TextEditingController();
 
   List<dynamic> images = [];
-  
+
   void showPicker(BuildContext context, {bool isDocument = false}) {
     showModalBottomSheet(
       backgroundColor: Colors.white,
@@ -41,10 +41,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
           child: Wrap(
             children: <Widget>[
               ListTile(
-                leading: const Icon(
-                  Icons.photo_library,
-                  color: Colors.blue,
-                ),
+                leading: const Icon(Icons.photo_library, color: Colors.blue),
                 title: const Text('Choose from gallery'),
                 onTap: () {
                   _pickImage(ImageSource.gallery, isDocument: isDocument);
@@ -52,10 +49,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
                 },
               ),
               ListTile(
-                leading: const Icon(
-                  Icons.photo_camera,
-                  color: Colors.blue,
-                ),
+                leading: const Icon(Icons.photo_camera, color: Colors.blue),
                 title: const Text('Take a photo'),
                 onTap: () {
                   _pickImage(ImageSource.camera, isDocument: isDocument);
@@ -132,8 +126,9 @@ class AppartmentCubit extends Cubit<AppartmentState> {
       }
     }
   }
+
   List<ApartmentModel> appartments = [];
-Future<void> getMyApartment() async {
+  Future<void> getMyApartment() async {
     try {
       appartments = [];
       emit(AppartmentLoading());
@@ -153,5 +148,4 @@ Future<void> getMyApartment() async {
       }
     }
   }
-
 }

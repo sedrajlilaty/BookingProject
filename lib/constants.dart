@@ -16,3 +16,6 @@ const Color cardBackgroundColor = Color.fromRGBO(
 const Color darkTextColor = Color(0xFF333333); // لون نص داكن للحقول
 const Color buttonColor = Colors.black; // لون زر أغمق (للتناسق)
 const Color textColor = Color(0xFF9A8C98);
+
+const String kToken = "token";
+const String kIsLoggedIn = "isLoggedIn";

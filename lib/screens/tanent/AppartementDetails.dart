@@ -27,7 +27,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
     super.initState();
     // التحقق إذا كانت الشقة موجودة في المفضلة
     isFavorite = FavoritesScreen.favoriteApartments.any(
-          (apt) => apt['title'] == widget.apartment.name,
+      (apt) => apt['title'] == widget.apartment.name,
     );
   }
 
@@ -39,12 +39,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
       'assets/images/apartment1_2.jpg',
       'assets/images/apartment1_3.jpg',
     ];
+    //final images = apartment.images
 
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
 
-        Color backgroundColor = isDark ? Colors.grey[900]! : Colors.brown.shade50;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : Colors.brown.shade50;
         Color cardColor = isDark ? Colors.grey[800]! : Colors.white;
         Color textColor = isDark ? Colors.white : Colors.black87;
 
@@ -59,13 +61,13 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                   children: [
                     PageView.builder(
                       controller: _pageController,
-                      itemCount: images.length,
+                      itemCount: apartment.images.length,
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
                       itemBuilder: (context, index) {
                         return Image.asset(
-                          images[index],
+                          apartment.images[index].image,
                           fit: BoxFit.cover,
                           width: double.infinity,
                         );
@@ -107,15 +109,16 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           images.length,
-                              (index) => Container(
+                          (index) => Container(
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             width: _currentPage == index ? 10 : 8,
                             height: _currentPage == index ? 10 : 8,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _currentPage == index
-                                  ? Colors.white
-                                  : Colors.white54,
+                              color:
+                                  _currentPage == index
+                                      ? Colors.white
+                                      : Colors.white54,
                             ),
                           ),
                         ),
@@ -131,7 +134,9 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: cardColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(32),
+                    ),
                   ),
                   child: SingleChildScrollView(
                     child: Column(
@@ -151,9 +156,12 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                           style: TextStyle(color: textColor.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 20),
-                              Text(
+                        Text(
                           apartment.type,
-                          style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 14),
+                          style: TextStyle(
+                            color: textColor.withOpacity(0.7),
+                            fontSize: 14,
+                          ),
                         ),
 
                         const SizedBox(height: 16),
@@ -167,7 +175,8 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         const SizedBox(height: 24),
 
                         const SizedBox(height: 20),
-                         /// التفاصيل
+
+                        /// التفاصيل
                         _info(
                           Icons.meeting_room,
                           '${apartment.rooms} غرف',
@@ -178,7 +187,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                           '${apartment.bathrooms} حمامات',
                           textColor,
                         ),
-                                    _info(Icons.map, apartment.location, textColor),
+                        _info(Icons.map, apartment.location, textColor),
                         _info(
                           Icons.location_city,
                           '${apartment.governorate} - ${apartment.city}',
@@ -186,10 +195,18 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         ),
 
                         _info(Icons.location_on, apartment.city, textColor),
-                        _info(Icons.crop_square, '${apartment.area} متر مربع', textColor),
-                        _info(Icons.attach_money, '${apartment.price} \$ / شهر', textColor),
+                        _info(
+                          Icons.crop_square,
+                          '${apartment.area} متر مربع',
+                          textColor,
+                        ),
+                        _info(
+                          Icons.attach_money,
+                          '${apartment.price} \$ / شهر',
+                          textColor,
+                        ),
                         const SizedBox(height: 30),
-                                const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
                         /// التواريخ
                         _info(
@@ -217,19 +234,30 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
                                   foregroundColor: accentColor,
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                 ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => FullBookingPage(
-                                        pricePerDay: apartment.price.toDouble(),
-                                        apartmentId: apartment.id.toString(),
-                                        apartmentName: apartment.name.toString(),          // اسم الشقة
-                                        apartmentImage: apartment.images[0].toString(),        // رابط الصورة
-                                        apartmentLocation: apartment.location.toString(),  // الموقع
-                                      ),
+                                      builder:
+                                          (_) => FullBookingPage(
+                                            pricePerDay:
+                                                apartment.price.toDouble(),
+                                            apartmentId:
+                                                apartment.id.toString(),
+                                            apartmentName:
+                                                apartment.name
+                                                    .toString(), // اسم الشقة
+                                            apartmentImage:
+                                                apartment.images[0]
+                                                    .toString(), // رابط الصورة
+                                            apartmentLocation:
+                                                apartment.location
+                                                    .toString(), // الموقع
+                                          ),
                                     ),
                                   );
                                 },
@@ -289,6 +317,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
     );
   }
 }
+
 String formatDate(String dateString) {
   try {
     final dateTime = DateTime.parse(dateString);

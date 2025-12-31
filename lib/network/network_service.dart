@@ -1,16 +1,19 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_application_8/constants.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Network {
   static late Dio dio;
   static String language = 'en';
-  static init() {
+  static init() async {
+    final prefs = await SharedPreferences.getInstance();
+
     dio = Dio(
       BaseOptions(
         headers: {
-      'Authorization':
-              "Bearer IpDDAWHHschGrEBQUhziRMR0s4rRJFTMHVvtsdct4be1d498",
-          //     "Bearer ${CacheHelper.getData(key: CacheHelperKeys.token)}",
+          'Authorization': "Bearer ${prefs.getString(kToken)}",
+          // "Bearer ${CacheHelper.getData(key: CacheHelperKeys.token)}",
           'Accept': 'application/json',
           // "language": language,
         },
@@ -48,11 +51,12 @@ class Network {
     language = newLanguage;
   }
 
-  static void _setAuthHeaders() {
+  static void _setAuthHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
     dio.options.headers = {
       'Authorization':
-          "Bearer IpDDAWHHschGrEBQUhziRMR0s4rRJFTMHVvtsdct4be1d498",
-      //     "Bearer ${CacheHelper.getData(key: CacheHelperKeys.token)}",
+          //"Bearer 26|78Fy4Ei7KsysKEABobcNaAA4ziIrdSoMQB77qDct76dfdacd",
+          "Bearer ${prefs.getString(kToken)}",
       'Accept': 'application/json',
       // "language": language,
     };
