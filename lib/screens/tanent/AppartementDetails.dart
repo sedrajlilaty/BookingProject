@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../../constants.dart';
+import '../../models/my_appartment_model.dart';
 import 'favorateScreen.dart';
 import 'fullbookingPage.dart';
 
 class ApartmentDetailsPage extends StatefulWidget {
-  final Map<String, dynamic> apartment;
+  final ApartmentModel apartment;
 
   const ApartmentDetailsPage({super.key, required this.apartment});
 
@@ -25,7 +27,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
     super.initState();
     // التحقق إذا كانت الشقة موجودة في المفضلة
     isFavorite = FavoritesScreen.favoriteApartments.any(
-          (apt) => apt['title'] == widget.apartment['title'],
+          (apt) => apt['title'] == widget.apartment.name,
     );
   }
 
@@ -57,13 +59,13 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                   children: [
                     PageView.builder(
                       controller: _pageController,
-                      itemCount: images.length,
+                      itemCount: apartment.images.length,
                       onPageChanged: (index) {
                         setState(() => _currentPage = index);
                       },
                       itemBuilder: (context, index) {
                         return Image.asset(
-                          images[index],
+                          apartment.images[index].image,
                           fit: BoxFit.cover,
                           width: double.infinity,
                         );
@@ -82,20 +84,20 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                       ),
                     ),
                     // زر المفضلة
-                    Positioned(
-                      top: 40,
-                      right: 20,
-                      child: InkWell(
-                        onTap: _toggleFavorite,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: accentColor,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Positioned(
+                    //   top: 40,
+                    //   right: 20,
+                    //   child: InkWell(
+                    //     onTap: _toggleFavorite,
+                    //     child: CircleAvatar(
+                    //       backgroundColor: Colors.white,
+                    //       child: Icon(
+                    //         isFavorite ? Icons.favorite : Icons.favorite_border,
+                    //         color: accentColor,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                     // مؤشرات الصور
                     Positioned(
                       bottom: 16,
@@ -136,7 +138,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          apartment['title'],
+                          apartment.name,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -145,13 +147,62 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'شقة رائعة تقع في ${apartment['city']} بمواصفات ممتازة.',
+                          'شقة رائعة تقع في ${apartment.city} بمواصفات ممتازة.',
                           style: TextStyle(color: textColor.withOpacity(0.7)),
                         ),
                         const SizedBox(height: 20),
-                        _info(Icons.location_on, apartment['city'], textColor),
-                        _info(Icons.crop_square, '${apartment['area']} متر مربع', textColor),
-                        _info(Icons.attach_money, '${apartment['price']} \$ / شهر', textColor),
+                              Text(
+                          apartment.type,
+                          style: TextStyle(color: textColor.withOpacity(0.7), fontSize: 14),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        /// الوصف
+                        Text(
+                          apartment.description,
+                          style: TextStyle(color: textColor.withOpacity(0.7)),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        const SizedBox(height: 20),
+                         /// التفاصيل
+                        _info(
+                          Icons.meeting_room,
+                          '${apartment.rooms} غرف',
+                          textColor,
+                        ),
+                        _info(
+                          Icons.bathtub,
+                          '${apartment.bathrooms} حمامات',
+                          textColor,
+                        ),
+                                    _info(Icons.map, apartment.location, textColor),
+                        _info(
+                          Icons.location_city,
+                          '${apartment.governorate} - ${apartment.city}',
+                          textColor,
+                        ),
+
+                        _info(Icons.location_on, apartment.city, textColor),
+                        _info(Icons.crop_square, '${apartment.area} متر مربع', textColor),
+                        _info(Icons.attach_money, '${apartment.price} \$ / شهر', textColor),
+                        const SizedBox(height: 30),
+                                const SizedBox(height: 24),
+
+                        /// التواريخ
+                        _info(
+                          Icons.calendar_today,
+                          'تاريخ الإضافة: ${formatDate(apartment.createdAt)}',
+                          textColor,
+                        ),
+                        _info(
+                          Icons.update,
+                          'آخر تعديل: ${formatDate(apartment.updatedAt)}',
+                          textColor,
+                        ),
+
                         const SizedBox(height: 30),
                         Card(
                           color: accentColor,
@@ -173,11 +224,11 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => FullBookingPage(
-                                        pricePerDay: apartment['price'].toDouble(),
-                                        apartmentId: apartment['id'].toString(),
-                                        apartmentName: apartment['name'].toString(),          // اسم الشقة
-                                        apartmentImage: apartment['image'].toString(),        // رابط الصورة
-                                        apartmentLocation: apartment['location'].toString(),  // الموقع
+                                        pricePerDay: apartment.price.toDouble(),
+                                        apartmentId: apartment.id.toString(),
+                                        apartmentName: apartment.name.toString(),          // اسم الشقة
+                                        apartmentImage: apartment.images[0].toString(),        // رابط الصورة
+                                        apartmentLocation: apartment.location.toString(),  // الموقع
                                       ),
                                     ),
                                   );
@@ -200,29 +251,29 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   }
 
   // ================= FAVORITE =================
-  void _toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
+  // void _toggleFavorite() {
+  //   setState(() {
+  //     isFavorite = !isFavorite;
 
-      if (isFavorite) {
-        if (!FavoritesScreen.favoriteApartments.any(
-              (apt) => apt['title'] == widget.apartment['title'],
-        )) {
-          final apartmentWithImages = Map<String, dynamic>.from(widget.apartment);
-          apartmentWithImages['images'] = [
-            'assets/images/apartment1_1.jpg',
-            'assets/images/apartment1_2.jpg',
-            'assets/images/apartment1_3.jpg',
-          ];
-          FavoritesScreen.favoriteApartments.add(apartmentWithImages);
-        }
-      } else {
-        FavoritesScreen.favoriteApartments.removeWhere(
-              (apt) => apt['title'] == widget.apartment['title'],
-        );
-      }
-    });
-  }
+  //     if (isFavorite) {
+  //       if (!FavoritesScreen.favoriteApartments.any(
+  //             (apt) => apt['title'] == widget.apartment['title'],
+  //       )) {
+  //         final apartmentWithImages = Map<String, dynamic>.from(widget.apartment);
+  //         apartmentWithImages['images'] = [
+  //           'assets/images/apartment1_1.jpg',
+  //           'assets/images/apartment1_2.jpg',
+  //           'assets/images/apartment1_3.jpg',
+  //         ];
+  //         FavoritesScreen.favoriteApartments.add(apartmentWithImages);
+  //       }
+  //     } else {
+  //       FavoritesScreen.favoriteApartments.removeWhere(
+  //             (apt) => apt['title'] == widget.apartment['title'],
+  //       );
+  //     }
+  //   });
+  // }
 
   // ================= INFO ROW =================
   Widget _info(IconData icon, String text, Color textColor) {
@@ -236,5 +287,13 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
         ],
       ),
     );
+  }
+}
+String formatDate(String dateString) {
+  try {
+    final dateTime = DateTime.parse(dateString);
+    return DateFormat('yyyy/MM/dd – HH:mm').format(dateTime);
+  } catch (e) {
+    return dateString; // fallback إذا صار خطأ
   }
 }

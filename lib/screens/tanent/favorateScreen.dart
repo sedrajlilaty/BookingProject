@@ -114,12 +114,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ApartmentDetailsPage(apartment: apartment),
-          ),
-        ).then((_) => setState(() {}));
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (_) => ApartmentDetailsPage(apartment: apartment),
+        //   ),
+        // ).then((_) => setState(() {}));
       },
       child: Container(
         decoration: BoxDecoration(

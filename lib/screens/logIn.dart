@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/network/Helper/cach_helper.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application_8/screens/owner/AddApartement.dart';
@@ -61,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (userData == null) throw Exception('لا توجد بيانات مستخدم في الاستجابة');
       if (token == null || token.isEmpty) throw Exception('لا يوجد رمز مصادقة في الاستجابة');
 
-      String baseUrl = 'http://192.168.137.101:8000';
+      String baseUrl = 'http://10.122.94.249:8000';
       String? profileImageUrl = userData['personal_image'] != null ? '$baseUrl/storage/${userData['personal_image']}' : null;
       String? idImageUrl = userData['national_id_image'] != null ? '$baseUrl/storage/${userData['national_id_image']}' : null;
 
@@ -77,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
         idImageUrl: idImageUrl,
         token: token,
       );
-
+      CacheHelper.saveData(key: 'token', value:token);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message ?? 'تم تسجيل الدخول بنجاح'), backgroundColor: Colors.green, duration: const Duration(seconds: 2)),
       );

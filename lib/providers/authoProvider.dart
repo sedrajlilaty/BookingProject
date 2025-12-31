@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/models/userModel.dart';
+import 'package:flutter_application_8/network/Helper/cach_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // ⚠️ تأكد أن اسم الملف صحيح
 
@@ -29,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
 
       final userJson = _prefs.getString('user_data');
       final token = _prefs.getString('auth_token');
+      CacheHelper.saveData(key: 'token', value: token);
 
       print('🔍 البحث عن بيانات:');
       print('   - user_data: ${userJson != null ? "موجود" : "غير موجود"}');
@@ -108,13 +110,13 @@ class AuthProvider extends ChangeNotifier {
       String? fullIdImageUrl = idImageUrl;
 
       if (profileImageUrl != null && !profileImageUrl.startsWith('http')) {
-        String baseUrl = 'http://10.0.2.2:8000'; // ⚠️ غير بناءً على خادمك
+        String baseUrl = 'http://10.122.94.249:8000'; // ⚠️ غير بناءً على خادمك
         fullProfileImageUrl = '$baseUrl/storage/$profileImageUrl';
         print('🖼️ تحويل مسار الصورة الشخصية: $fullProfileImageUrl');
       }
 
       if (idImageUrl != null && !idImageUrl.startsWith('http')) {
-        String baseUrl = 'http://10.0.2.2:8000'; // ⚠️ غير بناءً على خادمك
+        String baseUrl = 'http://10.122.94.249:8000'; // ⚠️ غير بناءً على خادمك
         fullIdImageUrl = '$baseUrl/storage/$idImageUrl';
         print('🆔 تحويل مسار صورة الهوية: $fullIdImageUrl');
       }
@@ -137,6 +139,7 @@ class AuthProvider extends ChangeNotifier {
 
       await _prefs.setString('user_data', jsonEncode(user.toJson()));
       await _prefs.setString('auth_token', token);
+      CacheHelper.saveData(key: 'token', value: token);
 
       print('✅ تم حفظ بيانات المستخدم بنجاح');
       print('👤 المستخدم: ${user.fullName}');
