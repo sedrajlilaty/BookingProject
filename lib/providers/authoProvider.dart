@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/models/userModel.dart';
 import 'package:flutter_application_8/network/Helper/cach_helper.dart';
+import 'package:flutter_application_8/network/urls.dart' show Urls;
 import 'package:shared_preferences/shared_preferences.dart';
 // ⚠️ تأكد أن اسم الملف صحيح
 
@@ -23,27 +25,19 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _user != null;
 
   // 📥 تحميل البيانات من التخزين
-  // 📥 تحميل البيانات من التخزين
   Future<void> _loadUserFromStorage() async {
     try {
-      print('🔄 جاري تحميل بيانات المستخدم من التخزين...');
-
       final userJson = _prefs.getString('user_data');
       final token = _prefs.getString('auth_token');
-      CacheHelper.saveData(key: 'token', value: token);
 
-      print('🔍 البحث عن بيانات:');
-      print('   - user_data: ${userJson != null ? "موجود" : "غير موجود"}');
-      print('   - auth_token: ${token != null ? "موجود" : "غير موجود"}');
+      if (token != null) {
+        CacheHelper.saveData(key: 'token', value: token);
+      }
 
       if (userJson != null && token != null) {
-        print('📄 JSON المستخدم: $userJson');
-
         try {
           final userMap = jsonDecode(userJson) as Map<String, dynamic>;
-          print('🗺️ خريطة المستخدم: $userMap');
 
-          // ⚠️ **التصحيح: استخدام نفس بنية الحقول التي تحفظها في toJson**
           _user = User(
             id: userMap['id']?.toString() ?? '',
             firstName: userMap['firstName']?.toString() ?? '',
@@ -54,28 +48,17 @@ class AuthProvider extends ChangeNotifier {
             birthDate: userMap['birthDate']?.toString() ?? '',
             profileImageUrl: userMap['profileImageUrl']?.toString(),
             idImageUrl: userMap['idImageUrl']?.toString(),
-            token: token, // استخدم التوكن من Storage مباشرة
+            token: token,
           );
 
           _token = token;
-
-          print('✅ تم تحميل المستخدم بنجاح:');
-          print('   👤 الاسم: ${_user!.fullName}');
-          print('   📞 الهاتف: ${_user!.phone}');
-          print('   🎯 النوع: ${_user!.userType}');
-          print('   🔐 التوكن: ${_token!.substring(0, 20)}...');
-
           notifyListeners();
         } catch (e) {
-          print('❌ خطأ في تحليل JSON: $e');
           await logout();
         }
-      } else {
-        print('⚠️ لا توجد بيانات محفوظة للدخول');
       }
     } catch (e) {
-      print('❌ خطأ في تحميل المستخدم: $e');
-      await logout();
+      // Silent fail - no user data is normal for first launch
     }
   }
 
@@ -96,29 +79,22 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      print('💾 بدء حفظ بيانات المستخدم...');
-
-      // إذا كانت email فارغة، أنشئ واحدة افتراضية
       String userEmail = email;
       if (userEmail.isEmpty) {
         userEmail = '$phone@temp.com';
-        print('📧 تم إنشاء email افتراضي: $userEmail');
       }
 
-      // ⚠️ تحويل مسارات الصور إلى URLs كاملة إذا لزم الأمر
       String? fullProfileImageUrl = profileImageUrl;
       String? fullIdImageUrl = idImageUrl;
 
       if (profileImageUrl != null && !profileImageUrl.startsWith('http')) {
-        String baseUrl = 'http://10.122.94.249:8000'; // ⚠️ غير بناءً على خادمك
+        String baseUrl = Urls.domain;
         fullProfileImageUrl = '$baseUrl/storage/$profileImageUrl';
-        print('🖼️ تحويل مسار الصورة الشخصية: $fullProfileImageUrl');
       }
 
       if (idImageUrl != null && !idImageUrl.startsWith('http')) {
-        String baseUrl = 'http://10.122.94.249:8000'; // ⚠️ غير بناءً على خادمك
+        String baseUrl = Urls.domain;
         fullIdImageUrl = '$baseUrl/storage/$idImageUrl';
-        print('🆔 تحويل مسار صورة الهوية: $fullIdImageUrl');
       }
 
       final user = User(
@@ -140,14 +116,7 @@ class AuthProvider extends ChangeNotifier {
       await _prefs.setString('user_data', jsonEncode(user.toJson()));
       await _prefs.setString('auth_token', token);
       CacheHelper.saveData(key: 'token', value: token);
-
-      print('✅ تم حفظ بيانات المستخدم بنجاح');
-      print('👤 المستخدم: ${user.fullName}');
-      print('📞 الهاتف: ${user.phone}');
-      print('🎯 النوع: ${user.userType}');
-      print('🖼️ الصورة الشخصية: ${user.profileImageUrl}');
     } catch (e) {
-      print('❌ خطأ في حفظ بيانات المستخدم: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -156,65 +125,51 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // 🚪 تسجيل الخروج
+  // 🚪 تسجيل الخروج (ربط مع الباك إند باستخدام Dio)
   Future<void> logout() async {
-    print('🚪 بدء عملية تسجيل الخروج');
+    _isLoading = true;
+    notifyListeners();
 
-    // 🔍 طباعة البيانات قبل الحذف للمراقبة
-    print('👤 المستخدم قبل الخروج: ${_user?.fullName ?? "لا يوجد"}');
-    if (_token != null && _token!.isNotEmpty) {
-      // ⚠️ تجنب خطأ substring إذا كان التوكن قصيراً
-      int endIndex = _token!.length > 20 ? 20 : _token!.length;
-      print('🔐 التوكن قبل الخروج: ${_token!.substring(0, endIndex)}...');
-    } else {
-      print('🔐 التوكن قبل الخروج: فارغ');
-    }
+    final dio = Dio(); // يمكنك استخدام instance جاهزة إذا كانت متوفرة لديك
 
-    // 🧹 مسح البيانات من الذاكرة
-    _user = null;
-    _token = null;
-    _isLoading = false;
-
-    // 🗑️ مسح التخزين المحلي
-    bool storageCleared = true;
     try {
-      // محاولة حذف البيانات
+      // 1. التحقق من وجود توكن قبل الإرسال
+      if (_token != null) {
+        // إرسال الطلب للباك إند
+        final response = await dio.post(
+          '${Urls.domain}/api/logout',
+          options: Options(
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $_token', // إرسال التوكن لتعريف الجلسة
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          debugPrint("تم تسجيل الخروج من السيرفر بنجاح");
+        }
+      }
+    } on DioException catch (e) {
+      // طباعة الخطأ إذا فشل الاتصال بالسيرفر
+      debugPrint("خطأ في الاتصال بالسيرفر: ${e.message}");
+    } catch (e) {
+      debugPrint("خطأ غير متوقع: $e");
+    } finally {
+      // 2. مسح البيانات محلياً (هذه الخطوة تنفذ دائماً لضمان خروج المستخدم)
+      _user = null;
+      _token = null;
+      _isLoading = false;
+
+      // حذف البيانات من التخزين الدائم
       await _prefs.remove('user_data');
       await _prefs.remove('auth_token');
 
-      // التحقق من الحذف
-      final checkUser = _prefs.getString('user_data');
-      final checkToken = _prefs.getString('auth_token');
+      // مسح التوكن من الكلاس المساعد إذا كنت تستخدمه
+      await CacheHelper.removeData(key: 'token');
 
-      if (checkUser == null && checkToken == null) {
-        print('✅ تم مسح التخزين بنجاح');
-      } else {
-        print('⚠️ تحذير: قد تكون البيانات موجودة');
-        storageCleared = false;
-
-        // محاولة ثانية أكثر قوة
-        await _prefs.clear(); // مسح كل شيء إذا فشل الحذف المحدد
-        print('🧹 تم مسح جميع بيانات التخزين');
-      }
-    } catch (e) {
-      print('❌ خطأ في مسح التخزين: $e');
-      storageCleared = false;
-
-      // محاولة بديلة
-      try {
-        await _prefs.clear();
-        print('🧹 تم مسح التخزين باستخدام clear()');
-      } catch (e2) {
-        print('❌ فشل مسح التخزين تماماً: $e2');
-      }
+      notifyListeners();
     }
-
-    // 🔔 إعلام المكونات بالتغيير
-    notifyListeners();
-
-    print('✅ عملية تسجيل الخروج مكتملة');
-    print('👤 المستخدم بعد الخروج: ${_user?.fullName ?? "null"}');
-    print('🔐 التوكن بعد الخروج: ${_token ?? "null"}');
-    print('📁 حالة التخزين: ${storageCleared ? "نظيف" : "مشكلة"}');
   }
 
   // ⏱️ ضبط حالة التحميل

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/services/favorateSErves.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../../constants.dart';
 import '../../models/my_appartment_model.dart';
-import 'favorateScreen.dart';
 import 'fullbookingPage.dart';
 
 class ApartmentDetailsPage extends StatefulWidget {
@@ -21,14 +21,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool isFavorite = false;
-
+  bool isLoading = false;
   @override
   void initState() {
     super.initState();
     // التحقق إذا كانت الشقة موجودة في المفضلة
-    isFavorite = FavoritesScreen.favoriteApartments.any(
-      (apt) => apt['title'] == widget.apartment.name,
-    );
+    /* isFavorite = FavoritesScreen.favoriteApartments.any(
+      (apt) => apt['name'] == widget.apartment.name,
+    );*/
   }
 
   @override
@@ -85,22 +85,83 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         ),
                       ),
                     ),
-                    // زر المفضلة
-                    // Positioned(
-                    //   top: 40,
-                    //   right: 20,
-                    //   child: InkWell(
-                    //     onTap: _toggleFavorite,
-                    //     child: CircleAvatar(
-                    //       backgroundColor: Colors.white,
-                    //       child: Icon(
-                    //         isFavorite ? Icons.favorite : Icons.favorite_border,
-                    //         color: accentColor,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // مؤشرات الصور
+                    Positioned(
+                      top: 40,
+                      right: 20,
+                      child: InkWell(
+                        onTap:
+                            isLoading
+                                ? null
+                                : () async {
+                                  // 1. استدعاء خدمة السيرفر
+                                  final favoriteService = FavoriteService();
+
+                                  setState(() {
+                                    isLoading =
+                                        true; // تفعيل مؤشر التحميل لمنع الضغط المتكرر
+                                  });
+
+                                  // 2. إرسال طلب (Toggle) للسيرفر (إضافة أو حذف بناءً على الحالة الحالية)
+                                  bool success = await favoriteService
+                                      .toggleFavorite(apartment.id);
+
+                                  if (success) {
+                                    setState(() {
+                                      // 3. تحديث حالة القلب في الواجهة فقط عند نجاح طلب السيرفر
+                                      isFavorite = !isFavorite;
+
+                                      /* ملاحظة: تم حذف التعامل مع القائمة المحلية FavoritesScreen.favoriteApartments 
+                لأن الكود الخاص بك الآن يجلب البيانات مباشرة من السيرفر عبر FutureBuilder 
+                في صفحة المفضلة، مما يمنع تعارض البيانات ويحل مشكلة الـ Error.
+                */
+                                    });
+
+                                    // رسالة تأكيد للمستخدم بناءً على الحالة الجديدة
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isFavorite
+                                              ? "تمت الإضافة للمفضلة"
+                                              : "تمت الإزالة من المفضلة",
+                                        ),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  } else {
+                                    // في حال فشل الاتصال بالسيرفر أو انتهاء صلاحية التوكن
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "عذراً، تعذر تحديث المفضلة.. تأكد من الاتصال",
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  setState(() {
+                                    isLoading = false; // إيقاف مؤشر التحميل
+                                  });
+                                },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          child:
+                              isLoading
+                                  ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : Icon(
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: accentColor,
+                                  ),
+                        ),
+                      ),
+                    ),
                     Positioned(
                       bottom: 16,
                       left: 0,

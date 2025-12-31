@@ -11,10 +11,10 @@ class EditBookingScreen extends StatefulWidget {
   final Function(Booking) onBookingUpdated;
 
   const EditBookingScreen({
-    Key? key,
+    super.key,
     required this.booking,
     required this.onBookingUpdated,
-  }) : super(key: key);
+  });
 
   @override
   State<EditBookingScreen> createState() => _EditBookingScreenState();
@@ -247,7 +247,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: selectedPayment,
+                    initialValue: selectedPayment,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: cardColor.withOpacity(0.15),

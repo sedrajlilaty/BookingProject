@@ -1,11 +1,13 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 
-import 'package:flutter_application_8/screens/owner/AddApartement.dart';
+// import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/screens/signUp.dart';
 import 'package:flutter_application_8/services/logIn_serves.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,6 +15,39 @@ class LoginScreen extends StatefulWidget {
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
+}
+
+Future<void> saveToken(String token) async {
+  // أضف هذه الثوابت في الأعلى
+  const String kToken = 'auth_token';
+  const String kIsLoggedIn = 'is_logged_in';
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+
+    // حفظ التوكن
+    await prefs.setString(kToken, token);
+
+    // حفظ حالة تسجيل الدخول
+    await prefs.setBool(kIsLoggedIn, true);
+
+    // ✅ حفظ الوقت لتتبع صلاحية التوكن
+    await prefs.setString('token_saved_at', DateTime.now().toIso8601String());
+
+    print('✅ تم حفظ التوكن بنجاح: ${token.substring(0, 20)}...');
+    print('📅 وقت الحفظ: ${DateTime.now()}');
+
+    // التحقق من الحفظ
+    final savedToken = prefs.getString(kToken);
+    if (savedToken == token) {
+      print('✅ التحقق: التوكن محفوظ بشكل صحيح');
+    } else {
+      print('❌ التحقق: هناك مشكلة في حفظ التوكن');
+    }
+  } catch (e) {
+    print('❌ خطأ في حفظ التوكن: $e');
+    rethrow;
+  }
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -62,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     authProvider.setLoading(true);
+    setState(() => _isLoading = true);
 
     try {
       print('📞 جاري تسجيل الدخول...');
@@ -76,59 +112,57 @@ class _LoginScreenState extends State<LoginScreen> {
         _userType!,
       );
 
+      print('✅ حالة الاستجابة: ${response?.statusCode}');
       print('📥 استجابة الخادم: ${response?.data}');
-      print('📊 نوع الاستجابة: ${response?.runtimeType}');
 
-      // ⚠️ **التحقق من أن response ليست null**
       if (response == null) {
         throw Exception('فشل الاتصال بالخادم');
       }
 
-      // ⚠️ **التصحيح: response هو كائن Response، البيانات في response.data**
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('فشل تسجيل الدخول: ${response.statusCode}');
+      }
+
       final data = response.data as Map<String, dynamic>;
       print('✅ البيانات المستلمة: $data');
 
-      // استخرج البيانات
       final message = data['message'] as String?;
       final userData = data['user'] as Map<String, dynamic>?;
       final token = data['token'] as String?;
 
-      if (message != null) print('📝 الرسالة: $message');
-      if (userData != null) print('👤 المستخدم: ${userData['name']}');
-      if (token != null) print('🔐 التوكن: ${token.substring(0, 20)}...');
-
       // ⚠️ **التحقق من البيانات الأساسية**
-      if (userData == null) {
-        print('❌ userData is null');
-        throw Exception('لا توجد بيانات مستخدم في الاستجابة');
-      }
-
       if (token == null || token.isEmpty) {
         print('❌ token is null or empty');
         throw Exception('لا يوجد رمز مصادقة في الاستجابة');
       }
 
-      // ⚠️ **بناء URL للصور**
-      String baseUrl =
-          'http://192.168.137.101:8000'; // نفس الـ baseUrl في LoginServes
+      if (userData == null) {
+        print('❌ userData is null');
+        throw Exception('لا توجد بيانات مستخدم في الاستجابة');
+      }
+
+      print('🔐 التوكن المستلم: ${token.substring(0, 20)}...');
+      print('👤 بيانات المستخدم: $userData');
+
+      // ✅ **1. حفظ التوكن باستخدام saveToken**
+      await saveToken(token);
+
+      // ✅ **2. تحديث AuthProvider**
+      String baseUrl = 'http://192.168.137.101:8000';
       String? profileImageUrl;
       String? idImageUrl;
 
       if (userData['personal_image'] != null) {
         profileImageUrl = '$baseUrl/storage/${userData['personal_image']}';
         print('🖼️ رابط الصورة الشخصية: $profileImageUrl');
-      } else {
-        print('⚠️ لا توجد صورة شخصية في الاستجابة');
       }
 
       if (userData['national_id_image'] != null) {
         idImageUrl = '$baseUrl/storage/${userData['national_id_image']}';
         print('🆔 رابط صورة الهوية: $idImageUrl');
-      } else {
-        print('⚠️ لا توجد صورة هوية في الاستجابة');
       }
 
-      // ⚠️ **استخراج البيانات بأسماء الحقول الصحيحة**
+      // استخراج البيانات
       await authProvider.login(
         userId: userData['id']?.toString() ?? '0',
         firstName: userData['name']?.toString() ?? '',
@@ -136,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
         phone: userData['phone']?.toString() ?? _phoneController.text,
         email:
             userData['email']?.toString() ??
-            '${userData['phone'] ?? _phoneController.text}@temp.com',
+            '${_phoneController.text}@temp.com',
         userType: userData['account_type']?.toString() ?? _userType!,
         birthDate: userData['birthdate']?.toString() ?? '',
         profileImageUrl: profileImageUrl,
@@ -144,6 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
         token: token,
       );
 
+      // ✅ **3. عرض رسالة النجاح**
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message ?? 'تم تسجيل الدخول بنجاح'),
@@ -152,18 +187,32 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // التنقل بناءً على نوع المستخدم
-      final accountType = userData['account_type']?.toString() ?? _userType!;
-      print('🎯 نوع الحساب للتنقل: $accountType');
+      // ✅ **4. التنقل بعد تأكيد الحفظ**
+      // انتظر قليلاً للتأكد من حفظ البيانات
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) =>
-                  MainNavigationScreen(isOwner: accountType == 'owner'),
-        ),
-      );
+      // التحقق من حفظ التوكن
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString(kToken);
+
+      if (savedToken == token) {
+        print('✅ التحقق النهائي: التوكن محفوظ وجاهز للاستخدام');
+
+        final accountType = userData['account_type']?.toString() ?? _userType!;
+        print('🎯 نوع الحساب للتنقل: $accountType');
+
+        // التنقل
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    MainNavigationScreen(isOwner: accountType == 'owner'),
+          ),
+        );
+      } else {
+        throw Exception('فشل في حفظ التوكن بشكل دائم');
+      }
     } on FormatException catch (e) {
       print('❌ خطأ في تنسيق البيانات: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -190,6 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } finally {
       authProvider.setLoading(false);
+      setState(() => _isLoading = false);
     }
   }
 
@@ -200,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: DropdownButtonFormField<String>(
-        value: _userType,
+        initialValue: _userType,
         decoration: InputDecoration(
           hintText: 'اختر نوع الحساب',
           hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),

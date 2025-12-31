@@ -9,7 +9,7 @@ import '../../Theme/theme_state.dart';// تأكد من مسار ThemeCubit
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;
 
-  const BookingDetailsScreen({Key? key, required this.booking}) : super(key: key);
+  const BookingDetailsScreen({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {

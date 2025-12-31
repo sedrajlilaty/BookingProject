@@ -3,7 +3,7 @@ import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
 class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+  AppLocalizationsEn([super.locale = 'en']);
 
   @override
   String get welcome_back => 'Welcome back';

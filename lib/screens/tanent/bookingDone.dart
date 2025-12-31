@@ -18,7 +18,7 @@ class BookingDone extends StatelessWidget {
   final int durationInDays;
 
   const BookingDone({
-    Key? key,
+    super.key,
     required this.bookingId,
     required this.apartmentName,
     required this.totalPrice,
@@ -27,7 +27,7 @@ class BookingDone extends StatelessWidget {
     this.apartmentLocation = '',
     this.paymentMethod = 'نقدًا',
     this.durationInDays = 1,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

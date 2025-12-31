@@ -47,11 +47,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     }
-
-    void _handleLogout(BuildContext context) {
+    void handleLogout(BuildContext context) {
       showDialog(
         context: context,
-        builder: (context) {
+        builder: (dialogContext) {
+          // نستخدم dialogContext للتفريق عن سياق الصفحة الأصلي
           return Directionality(
             textDirection: TextDirection.rtl,
             child: AlertDialog(
@@ -71,7 +71,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               actions: [
                 OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(dialogContext),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -82,12 +82,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    Navigator.pop(context);
+                    // 1. إغلاق دايالوج التأكيد أولاً
+                    Navigator.pop(dialogContext);
+
+                    // 2. إظهار دايالوج التحميل (Loading Indicator)
                     showDialog(
                       context: context,
                       barrierDismissible: false,
                       builder:
-                          (_) => Center(
+                          (loadingContext) => Center(
                             child: CircularProgressIndicator(
                               color: accentColor,
                             ),
@@ -95,29 +98,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     );
 
                     try {
+                      // الوصول للـ Provider
                       final authProvider = Provider.of<AuthProvider>(
                         context,
                         listen: false,
                       );
+
+                      // تنفيذ عملية تسجيل الخروج (التي تستخدم Dio داخلياً)
                       await authProvider.logout();
-                      Navigator.pop(context);
+
+                      // 🛑 أهم خطوة: التحقق من أن الصفحة لا تزال موجودة قبل استخدام الـ context 🛑
+                      if (!mounted) return;
+
+                      // 3. إغلاق دايالوج التحميل
+                      Navigator.of(context, rootNavigator: true).pop();
+
+                      // 4. الانتقال لصفحة البداية وتصفير المكدس (Stack)
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/',
                         (route) => false,
                       );
+
+                      // 5. إظهار رسالة النجاح
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(loc.logout + ' ${loc.confirm}'),
+                          content: Text('${loc.logout} ${loc.confirm}'),
                           backgroundColor: Colors.green,
                           duration: const Duration(seconds: 2),
                         ),
                       );
                     } catch (e) {
-                      Navigator.pop(context);
+                      // في حال حدوث خطأ
+                      if (!mounted) return;
+
+                      // إغلاق دايالوج التحميل
+                      Navigator.of(context, rootNavigator: true).pop();
+
+                      // إظهار رسالة الخطأ
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${loc.loginFailedError} $e'),
+                          content: Text('${loc.loginFailedError}: $e'),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -341,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               _notificationsEnabled = value;
                             });
                           },
-                          activeColor: accentColor,
+                          activeThumbColor: accentColor,
                         ),
                       ),
                       Divider(height: 1, color: secondaryTextColor),
@@ -392,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 16),
                 InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () => _handleLogout(context),
+                  onTap: () => handleLogout(context),
                   child: Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(

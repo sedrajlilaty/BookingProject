@@ -8,12 +8,12 @@ class CustomBottomNavBar extends StatelessWidget {
   final bool isOwner; // true = مالك, false = مستأجر
 
   const CustomBottomNavBar({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTabChanged,
     required this.isOwner,
     this.activeColor = accentColor,
-  }) : super(key: key);
+  });
 
   List<NavItem> get _ownerNavItems => [
     NavItem(

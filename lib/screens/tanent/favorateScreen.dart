@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
- import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_8/models/my_appartment_model.dart';
+import 'package:flutter_application_8/services/favorateSErves.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../../constants.dart';
@@ -8,23 +10,23 @@ import 'AppartementDetails.dart';
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
-  // قائمة مشتركة للمفضلة
-  static List<Map<String, dynamic>> favoriteApartments = [];
-
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
+  // تعريف الخدمة لجلب البيانات من السيرفر
+  final FavoriteService _favoriteService = FavoriteService();
+
   @override
   Widget build(BuildContext context) {
-    final favorites = FavoritesScreen.favoriteApartments;
-
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
 
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        // إعدادات الألوان بناءً على حالة الثيم
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : Colors.white;
         Color textColor = isDark ? Colors.white : darkTextColor;
         Color subtitleColor = isDark ? Colors.grey[300]! : Colors.grey[600]!;
@@ -49,77 +51,116 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
           ),
+          // استخدام FutureBuilder لجلب الشقق من السيرفر
+          body: FutureBuilder<List<dynamic>>(
+            future: _favoriteService.getAllFavorites(),
+            builder: (context, snapshot) {
+              // 1. حالة التحميل
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
+              // 2. حالة الخطأ أو القائمة فارغة
+              if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data!.isEmpty) {
+                return _buildEmptyState(isDark);
+              }
 
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: favorites.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.favorite_border,
-                    size: 100,
-                    color: isDark ? Colors.grey[600] : Colors.grey[400],
+              // 3. حالة نجاح جلب البيانات
+              final favorites = snapshot.data!;
+
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.68,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'لا توجد شقق مفضلة بعد',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: isDark ? Colors.grey[300] : Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'ابدأ بإضافة شقق إلى قائمة المفضلة',
-                    style: TextStyle(
-                      color: isDark ? Colors.grey[400] : Colors.grey[500],
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            )
-                : GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.68,
-              ),
-              itemCount: favorites.length,
-              itemBuilder: (context, index) {
-                final apt = favorites[index];
-                return _buildApartmentCard(apt, cardColor, textColor, subtitleColor, iconBgColor, isDark, index);
-              },
-            ),
+                  itemCount: favorites.length,
+                  itemBuilder: (context, index) {
+                    final apt = favorites[index];
+                    return _buildApartmentCard(
+                      apt,
+                      cardColor,
+                      textColor,
+                      subtitleColor,
+                      iconBgColor,
+                      isDark,
+                      index,
+                    );
+                  },
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
 
+  // واجهة عرض القائمة الفارغة
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.favorite_border,
+            size: 100,
+            color: isDark ? Colors.grey[600] : Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'لا توجد شقق مفضلة بعد',
+            style: TextStyle(
+              fontSize: 20,
+              color: isDark ? Colors.grey[300] : Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'ابدأ بإضافة شقق إلى قائمة المفضلة',
+            style: TextStyle(
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildApartmentCard(
-      Map<String, dynamic> apartment,
-      Color cardColor,
-      Color textColor,
-      Color subtitleColor,
-      Color iconBgColor,
-      bool isDark,
-      int index,
-      ) {
+    Map<String, dynamic> apartment,
+    Color cardColor,
+    Color textColor,
+    Color subtitleColor,
+    Color iconBgColor,
+    bool isDark,
+    int index,
+  ) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => ApartmentDetailsPage(apartment: apartment),
-        //   ),
-        // ).then((_) => setState(() {}));
+        // Convert map to ApartmentModel and navigate to details
+        try {
+          final apartmentModel = ApartmentModel.fromJson(apartment);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => ApartmentDetailsPage(apartment: apartmentModel),
+            ),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('خطأ في فتح تفاصيل الشقة')),
+          );
+        }
       },
       child: Container(
         decoration: BoxDecoration(
@@ -127,7 +168,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+              color:
+                  isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -136,7 +180,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صورة الشقة + أيقونة المفضلة
             Stack(
               children: [
                 ClipRRect(
@@ -145,47 +188,43 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     topRight: Radius.circular(16),
                   ),
                   child: Image.network(
-                    apartment['image'] ?? 'https://via.placeholder.com/150',
+                    apartment['image'] ??
+                        apartment['images']?[0]?['image'] ??
+                        'https://via.placeholder.com/150',
                     height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 120,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Positioned(
                   top: 8,
                   right: 8,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (FavoritesScreen.favoriteApartments.contains(apartment)) {
-                          FavoritesScreen.favoriteApartments.removeAt(index);
-                        } else {
-                          FavoritesScreen.favoriteApartments.add(apartment);
-                        }
-                      });
-                    },
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: iconBgColor,
-                      child: Icon(
-                        FavoritesScreen.favoriteApartments.contains(apartment)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.red,
-                      ),
-                    ),
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundColor: iconBgColor,
+                    child: const Icon(Icons.favorite, color: Colors.red),
                   ),
                 ),
               ],
             ),
-            // تفاصيل الشقة
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    apartment['title'],
+                    apartment['name'] ?? 'بدون اسم',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -197,39 +236,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        apartment['city'],
-                        style: TextStyle(fontSize: 12, color: subtitleColor),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: Colors.grey,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.aspect_ratio_outlined, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
-                        '${apartment['area']} sq ft',
+                        apartment['city'] ?? 'موقع غير معروف',
                         style: TextStyle(fontSize: 12, color: subtitleColor),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.attach_money_outlined, size: 16, color: accentColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${apartment['price']} / month',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: accentColor,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    '${apartment['price'] ?? 0} / month',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
                   ),
                 ],
               ),

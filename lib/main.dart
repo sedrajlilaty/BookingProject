@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/network/Helper/cach_helper.dart';
 import 'package:flutter_application_8/screens/SplashScreen.dart';
 import 'package:sizer/sizer.dart';
 import 'l10n/app_localizations.dart';
@@ -8,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 // ✅ أضف Sizer هنا
 
-import 'constants.dart';
 import 'Theme/theme_cubit.dart';
 import 'Theme/theme_state.dart';
 import 'l10n/Cubit.dart';
@@ -24,8 +24,15 @@ void main() async {
   // تهيئة SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+  // تهيئة CacheHelper
+  await CacheHelper.init(prefs);
+
   // تهيئة Network
-  Network.init();
+  try {
+    await Network.init();
+  } catch (e) {
+    // Continue even if network init fails
+  }
 
   runApp(
     MultiProvider(
@@ -54,63 +61,40 @@ class MyApp extends StatelessWidget {
         return BlocBuilder<LanguageCubit, LanguageState>(
           builder: (context, langState) {
             return Sizer(
-              // ✅ لف MaterialApp بـ Sizer
               builder: (context, orientation, deviceType) {
                 return MaterialApp(
                   title: 'King Booking App',
                   debugShowCheckedModeBanner: false,
-
-                  // 🌍 Language
                   locale: langState.locale,
-
                   localizationsDelegates: const [
                     AppLocalizations.delegate,
                     GlobalMaterialLocalizations.delegate,
                     GlobalWidgetsLocalizations.delegate,
                     GlobalCupertinoLocalizations.delegate,
                   ],
-                  supportedLocales: AppLocalizations.supportedLocales,
-
-                  // 🎨 Theme
-                  themeMode:
-                      themeState is DarkState
-                          ? ThemeMode.dark
-                          : ThemeMode.light,
-
+                  supportedLocales: const [
+                    Locale('en'),
+                    Locale('ar'),
+                  ],
+                  themeMode: themeState is DarkState ? ThemeMode.dark : ThemeMode.light,
                   theme: ThemeData(
+                    primarySwatch: Colors.blue,
                     brightness: Brightness.light,
-                    primaryColor: primaryBackgroundColor,
-                    scaffoldBackgroundColor: primaryBackgroundColor,
-                    hintColor: accentColor,
-                    fontFamily: 'Cairo',
-                    appBarTheme: const AppBarTheme(
-                      backgroundColor: accentColor,
-                      foregroundColor: Colors.white,
-                    ),
                   ),
-
                   darkTheme: ThemeData(
                     brightness: Brightness.dark,
-                    primaryColor: accentColor,
-                    scaffoldBackgroundColor: const Color(0xFF121212),
-                    hintColor: accentColor,
-                    fontFamily: 'Cairo',
-                    appBarTheme: const AppBarTheme(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                    ),
                   ),
-
-                  // 🏠 Start Screen
                   home: Consumer<AuthProvider>(
                     builder: (context, authProvider, _) {
+                      if (authProvider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
                       if (authProvider.isLoggedIn) {
                         return MainNavigationScreen(
                           isOwner: authProvider.user?.userType == 'owner',
                         );
-                      } else {
-                        return const SplashScreen();
                       }
+                      return const SplashScreen();
                     },
                   ),
                 );

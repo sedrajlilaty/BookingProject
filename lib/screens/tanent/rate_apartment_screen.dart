@@ -10,10 +10,10 @@ class RateApartmentScreen extends StatefulWidget {
   final Function(double rating, String review) onRatingSubmitted;
 
   const RateApartmentScreen({
-    Key? key,
+    super.key,
     required this.booking,
     required this.onRatingSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   State<RateApartmentScreen> createState() => _RateApartmentScreenState();

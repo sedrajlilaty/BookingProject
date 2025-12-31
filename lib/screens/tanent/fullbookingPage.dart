@@ -284,7 +284,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: selectedDuration,
+                    initialValue: selectedDuration,
                     dropdownColor: Colors.white,
                     decoration: InputDecoration(
                       filled: true,
@@ -374,7 +374,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: selectedPayment,
+                    initialValue: selectedPayment,
                     dropdownColor: Colors.white,
                     decoration: InputDecoration(
                       filled: true,

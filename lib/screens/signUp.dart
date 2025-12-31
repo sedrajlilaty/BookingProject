@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 
-import 'package:flutter_application_8/screens/owner/AddApartement.dart';
 import 'package:flutter_application_8/screens/welcomeScreen2.dart';
 import 'package:flutter_application_8/services/signUp-serves.dart'
     show Signupserves;
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_application_8/screens/owner/homePage.dart';
 import '../constants.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -87,7 +85,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: DropdownButtonFormField<String>(
-        value: _userType,
+        initialValue: _userType,
         decoration: InputDecoration(
           hintText: 'اختر نوع الحساب',
           hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),

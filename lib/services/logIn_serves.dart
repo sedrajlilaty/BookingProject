@@ -9,7 +9,7 @@ class LoginServes {
     context,
     String phone,
     String password,
-    String account_type,
+    String accountType,
   ) async {
     final Dio dio = Dio();
     final String baseUrl = Urls.domain;
@@ -28,7 +28,7 @@ class LoginServes {
         data: {
           "phone": phone,
           "password": password,
-          "account_type": account_type,
+          "account_type": accountType,
         },
       );
 

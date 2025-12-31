@@ -11,7 +11,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 class MainNavigationScreen extends StatefulWidget {
   final bool isOwner; // true = مالك, false = مستأجر
 
-  const MainNavigationScreen({Key? key, required this.isOwner}) : super(key: key);
+  const MainNavigationScreen({super.key, required this.isOwner});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();

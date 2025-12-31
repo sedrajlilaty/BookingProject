@@ -10,30 +10,29 @@ class Signupserves {
   static Future<Response?> Signup(
     context,
     String name,
-    String last_name,
+    String lastName,
     String phone,
     String password,
-    String password_confirmation,
+    String passwordConfirmation,
     String birthdate,
-    String _userType,
-    File national_id_image,
-    File personal_image,
+    String userType,
+    File nationalIdImage,
+    File personalImage,
   ) async {
     final Dio dio = Dio();
     final String baseUrl = Urls.domain;
-    ;
     final String register = '/api/register';
     dio.options.baseUrl = baseUrl;
     var formData = FormData.fromMap({
       "name": name,
-      "last_name": last_name,
+      "last_name": lastName,
       "phone": phone,
       "password": password,
-      "password_confirmation": password_confirmation,
+      "password_confirmation": passwordConfirmation,
       "birthdate": birthdate,
-      "account_type": _userType,
-      "national_id_image": await MultipartFile.fromFile(national_id_image.path),
-      "personal_image": await MultipartFile.fromFile(personal_image.path),
+      "account_type": userType,
+      "national_id_image": await MultipartFile.fromFile(nationalIdImage.path),
+      "personal_image": await MultipartFile.fromFile(personalImage.path),
     });
     try {
       final response = await dio.post(

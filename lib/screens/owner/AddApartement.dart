@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/cubit/appartment_cubit_cubit.dart';
-import 'package:flutter_application_8/main_navigation_screen.dart';
 import 'package:flutter_application_8/models/apartment_model.dart';
 import 'package:flutter_application_8/screens/owner/doneAdd.dart';
 import 'package:image_picker/image_picker.dart';
@@ -58,7 +57,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   bool _isLoading = false;
 
-  List<Apartment> _allApartments = [];
+  final List<Apartment> _allApartments = [];
 
   Future<void> _pickImages() async {
     try {
@@ -516,7 +515,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 DropdownButtonFormField<String>(
-                                  value: _selectedGovernorate,
+                                  initialValue: _selectedGovernorate,
                                   decoration: _inputDecoration(
                                     'اختر المحافظة *',
                                     Icons.location_city,
@@ -546,7 +545,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 DropdownButtonFormField<String>(
-                                  value: _selectedCity,
+                                  initialValue: _selectedCity,
                                   decoration: _inputDecoration(
                                     'اختر المدينة *',
                                     Icons.location_on,

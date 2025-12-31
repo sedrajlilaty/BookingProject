@@ -25,6 +25,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   String _selectedCity = 'All Cities';
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
+  String _selectedRoomsRange = 'Any Rooms';
   bool _showAllApartments = false;
   bool _isEnglish = true;
 
@@ -57,95 +58,12 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     '2,000+ sq ft',
   ];
 
-  final List<Map<String, dynamic>> _allApartments = [
-    {
-      'id': 1,
-      'title': 'Central Park View Apartment',
-      'city': 'New York',
-      'price': 1200,
-      'area': 800,
-      'image':
-          'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&fit=crop',
-      'description': 'شقة فاخرة مع إطلالة رائعة على سنترال بارك',
-      'fallbackColor': Colors.blue[100],
-    },
-    {
-      'id': 2,
-      'title': 'Luxury Downtown Apartment',
-      'city': 'Los Angeles',
-      'price': 1800,
-      'area': 1200,
-      'image':
-          'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=600&fit=crop',
-      'description': 'شقة حديثة في وسط المدينة مع وسائل راحة متطورة',
-      'fallbackColor': Colors.orange[100],
-    },
-    {
-      'id': 3,
-      'title': 'Modern City Center Studio',
-      'city': 'Chicago',
-      'price': 900,
-      'area': 600,
-      'image':
-          'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&fit=crop',
-      'description': 'استوديو عصري في قلب شيكاغو',
-      'fallbackColor': Colors.grey[200],
-    },
-    {
-      'id': 4,
-      'title': 'Beachfront Miami Condo',
-      'city': 'Miami',
-      'price': 2200,
-      'area': 1500,
-      'image':
-          'https://images.unsplash.com/photo-1494526585095-c41746248156?w=600&fit=crop',
-      'description': 'كوندو مع إطلالة مباشرة على الشاطئ',
-      'fallbackColor': Colors.lightBlue[100],
-    },
-    {
-      'id': 5,
-      'title': 'Luxury Dubai Penthouse',
-      'city': 'Dubai',
-      'price': 3000,
-      'area': 2000,
-      'image':
-          'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=600&fit=crop',
-      'description': 'بنتهاوس فاخر مع إطلالة بانورامية على المدينة',
-      'fallbackColor': Colors.amber[100],
-    },
-    {
-      'id': 6,
-      'title': 'Historic London Flat',
-      'city': 'London',
-      'price': 1600,
-      'area': 900,
-      'image':
-          'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&fit=crop',
-      'description': 'شقة تاريخية في حي لندني تقليدي',
-      'fallbackColor': Colors.brown[100],
-    },
-    {
-      'id': 7,
-      'title': 'Chic Parisian Apartment',
-      'city': 'Paris',
-      'price': 1400,
-      'area': 750,
-      'image':
-          'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&fit=crop',
-      'description': 'شقة أنيقة في قلب باريس',
-      'fallbackColor': Colors.pink[100],
-    },
-    {
-      'id': 8,
-      'title': 'Spacious New York Loft',
-      'city': 'New York',
-      'price': 2500,
-      'area': 1800,
-      'image':
-          'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600&fit=crop',
-      'description': 'لوفت واسع بتصميم صناعي عصري',
-      'fallbackColor': Colors.indigo[100],
-    },
+  final List<String> _roomsRanges = [
+    'Any Rooms',
+    '1 Room',
+    '2 Rooms',
+    '3 Rooms',
+    '4+ Rooms',
   ];
 
   @override
@@ -154,48 +72,72 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     super.dispose();
   }
 
-  List<Map<String, dynamic>> get _filteredApartments {
-    if (_showAllApartments) return _allApartments;
+  List<ApartmentModel> _filterApartments(List<ApartmentModel> apartments) {
+    if (_showAllApartments) return apartments;
 
-    return _allApartments.where((apartment) {
+    return apartments.where((apartment) {
+      // فلترة المدينة
       bool cityMatch =
-          _selectedCity == 'All Cities' || apartment['city'] == _selectedCity;
+          _selectedCity == 'All Cities' || apartment.city == _selectedCity;
+      
+      // فلترة السعر
       bool priceMatch = true;
       switch (_selectedPriceRange) {
         case '\$500 - \$1,000':
-          priceMatch = apartment['price'] >= 500 && apartment['price'] <= 1000;
+          priceMatch = apartment.price >= 500 && apartment.price <= 1000;
           break;
         case '\$1,000 - \$1,500':
-          priceMatch = apartment['price'] >= 1000 && apartment['price'] <= 1500;
+          priceMatch = apartment.price >= 1000 && apartment.price <= 1500;
           break;
         case '\$1,500 - \$2,000':
-          priceMatch = apartment['price'] >= 1500 && apartment['price'] <= 2000;
+          priceMatch = apartment.price >= 1500 && apartment.price <= 2000;
           break;
         case '\$2,000+':
-          priceMatch = apartment['price'] >= 2000;
+          priceMatch = apartment.price >= 2000;
           break;
         default:
           priceMatch = true;
       }
 
+      // فلترة المساحة
       bool areaMatch = true;
       switch (_selectedAreaRange) {
         case '500 - 1,000 sq ft':
-          areaMatch = apartment['area'] >= 500 && apartment['area'] <= 1000;
+          areaMatch = apartment.area >= 500 && apartment.area <= 1000;
           break;
         case '1,000 - 1,500 sq ft':
-          areaMatch = apartment['area'] >= 1000 && apartment['area'] <= 1500;
+          areaMatch = apartment.area >= 1000 && apartment.area <= 1500;
           break;
         case '1,500 - 2,000 sq ft':
-          areaMatch = apartment['area'] >= 1500 && apartment['area'] <= 2000;
+          areaMatch = apartment.area >= 1500 && apartment.area <= 2000;
           break;
         case '2,000+ sq ft':
-          areaMatch = apartment['area'] >= 2000;
+          areaMatch = apartment.area >= 2000;
           break;
         default:
           areaMatch = true;
       }
 
+      // فلترة عدد الغرف
+      bool roomsMatch = true;
+      switch (_selectedRoomsRange) {
+        case '1 Room':
+          roomsMatch = apartment.rooms == 1;
+          break;
+        case '2 Rooms':
+          roomsMatch = apartment.rooms == 2;
+          break;
+        case '3 Rooms':
+          roomsMatch = apartment.rooms == 3;
+          break;
+        case '4+ Rooms':
+          roomsMatch = apartment.rooms >= 4;
+          break;
+        default:
+          roomsMatch = true;
+      }
+
+      // فلترة البحث
       bool searchMatch =
           _searchController.text.isEmpty ||
           _doesApartmentMatchSearch(
@@ -203,23 +145,29 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             _searchController.text.toLowerCase(),
           );
 
-      return cityMatch && priceMatch && areaMatch && searchMatch;
+      return cityMatch && priceMatch && areaMatch && roomsMatch && searchMatch;
     }).toList();
   }
 
   bool _doesApartmentMatchSearch(
-    Map<String, dynamic> apartment,
+    ApartmentModel apartment,
     String searchText,
   ) {
     if (searchText.isEmpty) return true;
 
-    final title = apartment['title'].toLowerCase();
-    final city = apartment['city'].toLowerCase();
+    final name = apartment.name.toLowerCase();
+    final city = apartment.city.toLowerCase();
+    final governorate = apartment.governorate.toLowerCase() ?? '';
+    final description = apartment.description.toLowerCase() ?? '';
 
     final searchWords = searchText.split(' ');
 
     for (final word in searchWords) {
-      if (word.isNotEmpty && (title.contains(word) || city.contains(word))) {
+      if (word.isNotEmpty && 
+          (name.contains(word) || 
+           city.contains(word) || 
+           governorate.contains(word) ||
+           description.contains(word))) {
         return true;
       }
     }
@@ -232,6 +180,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       _selectedCity = 'All Cities';
       _selectedPriceRange = 'Any Price';
       _selectedAreaRange = 'Any Area';
+      _selectedRoomsRange = 'Any Rooms';
       _showAllApartments = false;
       _searchController.clear();
     });
@@ -328,6 +277,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               },
               builder: (context, state) {
                 var cubit = AppartmentCubit.get(context);
+                final apartments = widget.isOwner
+                    ? cubit.myappartments
+                    : cubit.appartments;
+                final filteredApartments = _filterApartments(apartments);
 
                 return SafeArea(
                   child: SingleChildScrollView(
@@ -349,9 +302,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                             ? const Center(child: CircularProgressIndicator())
                             : _buildApartmentsGrid(
                               isDark,
-                              widget.isOwner
-                                  ? cubit.myappartments
-                                  : cubit.appartments,
+                              filteredApartments,
                             ),
                         const SizedBox(height: 24),
                       ],
@@ -494,6 +445,18 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       );
     }
 
+    if (_selectedRoomsRange != 'Any Rooms') {
+      indicators.add(
+        _buildFilterChip(
+          '${_isEnglish ? 'Rooms' : 'الغرف'}: $_selectedRoomsRange',
+          isDark,
+          () {
+            setState(() => _selectedRoomsRange = 'Any Rooms');
+          },
+        ),
+      );
+    }
+
     return indicators.isNotEmpty
         ? Wrap(spacing: 8, children: indicators)
         : const SizedBox();
@@ -553,8 +516,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                     decoration: InputDecoration(
                       hintText:
                           _isEnglish
-                              ? 'Search by title or city...'
-                              : 'ابحث بالعنوان أو المدينة...',
+                              ? 'Search by name, city, governorate...'
+                              : 'ابحث بالاسم، المدينة، المحافظة...',
                       border: InputBorder.none,
                     ),
                     style: TextStyle(
@@ -617,6 +580,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
         String tempSelectedCity = _selectedCity;
         String tempSelectedPriceRange = _selectedPriceRange;
         String tempSelectedAreaRange = _selectedAreaRange;
+        String tempSelectedRoomsRange = _selectedRoomsRange;
 
         return StatefulBuilder(
           builder: (context, setStateDialog) {
@@ -672,6 +636,18 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                             });
                           },
                         ),
+                        const SizedBox(height: 16),
+                        _buildFilterSection(
+                          _isEnglish ? 'Number of Rooms' : 'عدد الغرف',
+                          tempSelectedRoomsRange,
+                          _roomsRanges,
+                          isDark,
+                          (value) {
+                            setStateDialog(() {
+                              tempSelectedRoomsRange = value;
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -682,6 +658,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           tempSelectedCity = 'All Cities';
                           tempSelectedPriceRange = 'Any Price';
                           tempSelectedAreaRange = 'Any Area';
+                          tempSelectedRoomsRange = 'Any Rooms';
                         });
                       },
                       child: Text(
@@ -705,6 +682,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           _selectedCity = tempSelectedCity;
                           _selectedPriceRange = tempSelectedPriceRange;
                           _selectedAreaRange = tempSelectedAreaRange;
+                          _selectedRoomsRange = tempSelectedRoomsRange;
                           _showAllApartments = false;
                         });
                         Navigator.pop(context);
@@ -770,10 +748,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     );
   }
 
-  Widget _buildApartmentsGrid(bool isDark, List<ApartmentModel> appartments) {
-    // final apartments = _filteredApartments;
-
-    if (appartments.isEmpty) {
+  Widget _buildApartmentsGrid(bool isDark, List<ApartmentModel> apartments) {
+    if (apartments.isEmpty) {
       return Center(
         child: Column(
           children: [
@@ -823,17 +799,16 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
         mainAxisSpacing: 12,
         childAspectRatio: 0.8,
       ),
-      itemCount: appartments.length,
+      itemCount: apartments.length,
       itemBuilder: (context, index) {
-        final apartment = appartments[index];
+        final apartment = apartments[index];
         return InkWell(
           borderRadius: BorderRadius.circular(8),
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (_) => ApartmentDetailsPage(apartment: appartments[index]),
+                builder: (_) => ApartmentDetailsPage(apartment: apartments[index]),
               ),
             );
           },
@@ -871,7 +846,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        appartments[index].name,
+                        apartment.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -888,12 +863,16 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                             color: Colors.grey[600],
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            appartments[index].city,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                          Flexible(
+                            child: Text(
+                              apartment.city,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -908,7 +887,22 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${appartments[index].area} sq ft',
+                            '${apartment.area} sq ft',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.bed_outlined,
+                            size: 12,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${apartment.rooms} rooms',
                             style: TextStyle(
                               fontSize: 10,
                               color: Colors.grey[600],
@@ -927,7 +921,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${appartments[index].price} / month',
+                            '${apartment.price} / month',
                             style: TextStyle(
                               fontSize: 12,
                               color: accentColor,

@@ -16,7 +16,7 @@ import 'package:intl/intl.dart';
 enum BookingFilter { all, current, completed, cancelled, pending }
 
 class MyBookingsScreen extends StatefulWidget {
-  const MyBookingsScreen({Key? key}) : super(key: key);
+  const MyBookingsScreen({super.key});
 
   @override
   State<MyBookingsScreen> createState() => _MyBookingsScreenState();
@@ -383,13 +383,13 @@ class BookingCard extends StatelessWidget {
   final VoidCallback onRate;
 
   const BookingCard({
-    Key? key,
+    super.key,
     required this.booking,
     required this.onTap,
     required this.onCancel,
     required this.onEdit,
     required this.onRate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

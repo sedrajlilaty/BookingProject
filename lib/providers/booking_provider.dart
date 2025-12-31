@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
 
 class BookingProvider extends ChangeNotifier {
-  List<Booking> _bookings = [];
+  final List<Booking> _bookings = [];
   List<Booking> get bookings => _bookings;
 
   // 📝 إضافة حجز جديد

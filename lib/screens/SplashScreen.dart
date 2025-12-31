@@ -14,15 +14,25 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
-      );
+    _timer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const WelcomeScreen2()),
+        );
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -32,11 +42,18 @@ class _SplashScreenState extends State<SplashScreen> {
         final bool isDarkMode = state is DarkState;
 
         // ألوان حسب الثيم
-        final backgroundColor = isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
+        final backgroundColor =
+            isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
         final cardColor = isDarkMode ? Colors.grey[800]! : cardBackgroundColor;
         final textColor = isDarkMode ? Colors.white : darkTextColor;
-        final secondaryBackground = isDarkMode ? Colors.grey[850]! : primaryBackgroundColor.withOpacity(0.8);
-        final overlayColor = isDarkMode ? Colors.black.withOpacity(0.1) : Colors.white.withOpacity(0.1);
+        final secondaryBackground =
+            isDarkMode
+                ? Colors.grey[850]!
+                : primaryBackgroundColor.withOpacity(0.8);
+        final overlayColor =
+            isDarkMode
+                ? Colors.black.withOpacity(0.1)
+                : Colors.white.withOpacity(0.1);
 
         return Directionality(
           textDirection: TextDirection.rtl,
@@ -50,7 +67,11 @@ class _SplashScreenState extends State<SplashScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [backgroundColor, secondaryBackground, overlayColor],
+                      colors: [
+                        backgroundColor,
+                        secondaryBackground,
+                        overlayColor,
+                      ],
                     ),
                   ),
                 ),
@@ -65,7 +86,10 @@ class _SplashScreenState extends State<SplashScreen> {
                           borderRadius: BorderRadius.circular(100),
                           boxShadow: [
                             BoxShadow(
-                              color: isDarkMode ? Colors.black26 : Colors.grey.withOpacity(0.1),
+                              color:
+                                  isDarkMode
+                                      ? Colors.black26
+                                      : Colors.grey.withOpacity(0.1),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
@@ -73,7 +97,11 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
-                          child: Icon(Icons.home_work, size: 120, color: accentColor),
+                          child: Icon(
+                            Icons.home_work,
+                            size: 120,
+                            color: accentColor,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 30),
@@ -105,7 +133,9 @@ class _SplashScreenState extends State<SplashScreen> {
                                 width: 50,
                                 height: 50,
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(accentColor.withOpacity(0.3)),
+                                  valueColor: AlwaysStoppedAnimation(
+                                    accentColor.withOpacity(0.3),
+                                  ),
                                   strokeWidth: 2,
                                 ),
                               ),
@@ -115,7 +145,9 @@ class _SplashScreenState extends State<SplashScreen> {
                                 width: 40,
                                 height: 40,
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation(accentColor),
+                                  valueColor: AlwaysStoppedAnimation(
+                                    accentColor,
+                                  ),
                                   strokeWidth: 3,
                                 ),
                               ),
@@ -126,7 +158,10 @@ class _SplashScreenState extends State<SplashScreen> {
                       const SizedBox(height: 20),
                       Text(
                         'جاري التحميل...',
-                        style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 14),
+                        style: TextStyle(
+                          color: textColor.withOpacity(0.6),
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
