@@ -571,7 +571,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             email: userData['email'] ?? '', // Laravel قد لا يرجع email
             userType: userData['account_type'] ?? _userType!,
             birthDate: userData['birthdate'] ?? laravelBirthdate,
-            profileImageUrl:
+            personalImage:
                 userData['personal_image'], // ⚠️ قد يكون مسار وليس URL
             idImageUrl:
                 userData['national_id_image'], // ⚠️ قد يكون مسار وليس URL

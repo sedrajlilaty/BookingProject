@@ -104,28 +104,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         listen: false,
                       );
 
-                      // تنفيذ عملية تسجيل الخروج (التي تستخدم Dio داخلياً)
+                      // تنفيذ عملية تسجيل الخروج
                       await authProvider.logout();
 
-                      // 🛑 أهم خطوة: التحقق من أن الصفحة لا تزال موجودة قبل استخدام الـ context 🛑
-                      if (!mounted) return;
-
-                      // 3. إغلاق دايالوج التحميل
+                      // إغلاق دايالوج التحميل
                       Navigator.of(context, rootNavigator: true).pop();
 
-                      // 4. الانتقال لصفحة البداية وتصفير المكدس (Stack)
+                      // الانتقال لصفحة البداية وتصفير المكدس (Stack)
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/',
                         (route) => false,
                       );
 
-                      // 5. إظهار رسالة النجاح
+                      // ❌ حذف سطر SnackBar هنا لأنه لن يعمل بعد الانتقال
+                      // سيتم عرض رسالة النجاح في الصفحة الجديدة
+                    } catch (e) {
+                      // في حال حدوث خطأ
+                      if (!mounted) return;
+
+                      // إغلاق دايالوج التحميل
+                      Navigator.of(context, rootNavigator: true).pop();
+
+                      // إظهار رسالة الخطأ
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('${loc.logout} ${loc.confirm}'),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 2),
+                          content: Text('${loc.loginFailedError}: $e'),
+                          backgroundColor: Colors.red,
                         ),
                       );
                     } catch (e) {
@@ -173,7 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Color secondaryTextColor =
             isDark ? Colors.grey[300]! : Colors.grey[600]!;
         Color iconColor = isDark ? Colors.white70 : Colors.grey[700]!;
-
+        print(user.personalImage);
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
@@ -216,6 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
+                      // استبدل جزء الـ Container الخاص بالصورة بهذا الكود المحدث
                       Container(
                         width: 120,
                         height: 120,
@@ -225,21 +231,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           border: Border.all(color: accentColor, width: 3),
                         ),
                         child:
-                            user.profileImageUrl != null
+                            user.personalImage != null &&
+                                    user.personalImage!.isNotEmpty
                                 ? ClipOval(
                                   child: Image.network(
-                                    user.profileImageUrl!,
+                                    user.personalImage!, // ⬅️ هذا هو الرابط القادم من السيرفر
                                     fit: BoxFit.cover,
+                                    // معالجة حالة التحميل
                                     loadingBuilder: (
                                       context,
                                       child,
                                       loadingProgress,
                                     ) {
                                       if (loadingProgress == null) return child;
-                                      return const Center(
-                                        child: CircularProgressIndicator(),
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value:
+                                              loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                          color: accentColor,
+                                        ),
                                       );
                                     },
+                                    // معالجة حالة الخطأ (مثلاً لو كان الرابط لا يعمل أو الـ IP اختلف)
                                     errorBuilder: (context, error, stackTrace) {
                                       return Center(
                                         child: Icon(
@@ -269,13 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        user.email,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: secondaryTextColor,
-                        ),
-                      ),
+
                       const SizedBox(height: 8),
                       Chip(
                         label: Text(

@@ -32,6 +32,45 @@ class Apartment {
     required this.createdAt,
   });
 
+  factory Apartment.fromJson(Map<String, dynamic> json) {
+    // دالة داخلية مساعدة لتحويل أي قيمة (حتى لو Map) إلى String
+    String safeString(dynamic value) {
+      if (value == null) return '';
+      if (value is Map || value is List) return value.toString();
+      return value.toString();
+    }
+
+    return Apartment(
+      id: safeString(json['id']),
+      name: safeString(json['name']),
+      type: safeString(json['type']),
+      governorate: safeString(json['governorate']),
+      city: safeString(json['city']),
+      detailedLocation: json['detailed_location']?.toString(),
+      description: safeString(json['description']),
+
+      // الأرقام: تحويل آمن جداً
+      rooms: int.tryParse(json['rooms']?.toString() ?? '0') ?? 0,
+      bathrooms: int.tryParse(json['bathrooms']?.toString() ?? '0') ?? 0,
+      area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+
+      // الصور
+      images:
+          json['images'] is List
+              ? List<String>.from(json['images'].map((item) => item.toString()))
+              : [],
+
+      isBooked:
+          json['is_booked'] == 1 ||
+          json['is_booked'] == true ||
+          json['is_booked'].toString() == "true",
+
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
+  }
   // يمكنك إضافة toJson/fromJson إذا كنت سترسل البيانات للخادم
   Map<String, dynamic> toJson() {
     return {

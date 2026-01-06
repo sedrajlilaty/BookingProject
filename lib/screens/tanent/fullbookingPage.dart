@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:flutter_application_8/providers/booking_provider.dart';
-import 'package:flutter_application_8/screens/tanent/bookingDone.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:intl/intl.dart';
@@ -9,10 +8,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 
+// ملاحظة: تأكد من أن ملف bookingDone.dart يحتوي على متغير bool isPendingApproval
+import 'package:flutter_application_8/screens/tanent/bookingDone.dart';
 
 class FullBookingPage extends StatefulWidget {
   final double pricePerDay;
-  final String apartmentId;
+  final int apartmentId; // تم التعديل إلى int لحل مشكلة النوع
   final String apartmentName;
   final String apartmentImage;
   final String apartmentLocation;
@@ -86,11 +87,10 @@ class _FullBookingPageState extends State<FullBookingPage> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
       builder: (context, child) {
-        final accent = accentColor;
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: accent),
-          ),
+          data: Theme.of(
+            context,
+          ).copyWith(colorScheme: ColorScheme.light(primary: accentColor)),
           child: child!,
         );
       },
@@ -106,33 +106,33 @@ class _FullBookingPageState extends State<FullBookingPage> {
 
   Future<void> selectNumberOfMonths(BuildContext context) async {
     final controller = TextEditingController(text: numberOfMonths.toString());
-
     final months = await showDialog<int>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("اختر عدد الأشهر"),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            hintText: "عدد الأشهر",
-            border: OutlineInputBorder(),
+      builder:
+          (context) => AlertDialog(
+            title: const Text("اختر عدد الأشهر"),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: "عدد الأشهر",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final value = int.tryParse(controller.text) ?? 1;
+                  Navigator.pop(context, value);
+                },
+                child: const Text('تأكيد'),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final value = int.tryParse(controller.text) ?? 1;
-              Navigator.pop(context, value);
-            },
-            child: const Text('تأكيد'),
-          ),
-        ],
-      ),
     );
 
     if (months != null && months > 0) {
@@ -144,13 +144,15 @@ class _FullBookingPageState extends State<FullBookingPage> {
     }
   }
 
-  void _addBooking(BuildContext context) {
+  // 1. أضفنا async للدالة لنتمكن من استخدام await
+  Future<void> _addBooking(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final bookingProvider = Provider.of<BookingProvider>(
       context,
       listen: false,
     );
 
+    // التأكد من تسجيل الدخول
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -165,43 +167,57 @@ class _FullBookingPageState extends State<FullBookingPage> {
     final now = DateTime.now();
     final durationInDays = endDate.difference(startDate).inDays;
 
+    // إنشاء معرف الحجز المحلي للعرض فقط
     final String bookingId =
-        'B${now.millisecondsSinceEpoch}${_getUserPrefix(user.id)}';
+        'B${now.millisecondsSinceEpoch}${_getUserPrefix(user.id.toString())}';
 
+    // 2. تجهيز البيانات المطلوبة للسيرفر بدقة
     final Map<String, dynamic> newBooking = {
-      'id': bookingId,
-      'userId': user.id,
-      'apartmentId': widget.apartmentId,
-      'apartmentName': widget.apartmentName,
-      'apartmentImage': widget.apartmentImage,
-      'apartmentLocation': widget.apartmentLocation,
-      'startDate': startDate,
-      'endDate': endDate,
-      'pricePerDay': pricePerDay,
-      'totalPrice': totalPrice,
-      'status': 'pending',
-      'paymentMethod': selectedPayment,
-      'bookingDate': now,
-      'hasRated': false,
+      'apartment_id': widget.apartmentId, // إرسال الـ ID كـ int
+      'start_date':
+          startDate.toIso8601String().split('T')[0], // تنسيق YYYY-MM-DD
+      'end_date': endDate.toIso8601String().split('T')[0],
     };
 
-    bookingProvider.addBooking(newBooking);
+    debugPrint("Token being sent: ${authProvider.token}");
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BookingDone(
-          bookingId: bookingId,
-          apartmentName: widget.apartmentName,
-          apartmentLocation: widget.apartmentLocation,
-          totalPrice: totalPrice,
-          checkInDate: startDate,
-          checkOutDate: endDate,
-          paymentMethod: selectedPayment,
-          durationInDays: durationInDays,
-        ),
-      ),
+    // 3. تنفيذ الحجز وانتظار النتيجة (Success or Failure)
+    bool success = await bookingProvider.createBookingOnServer(
+      newBooking,
+      authProvider.token!,
     );
+
+    if (success) {
+      // 4. في حالة النجاح فقط، ننتقل لصفحة النجاح
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => BookingDone(
+                bookingId: bookingId,
+                apartmentName: widget.apartmentName,
+                apartmentLocation: widget.apartmentLocation,
+                totalPrice: totalPrice,
+                checkInDate: startDate,
+                checkOutDate: endDate,
+                paymentMethod: selectedPayment,
+                durationInDays: durationInDays,
+              ),
+        ),
+      );
+    } else {
+      // 5. في حالة الفشل (مثلاً خطأ 409 - العقار محجوز مسبقاً)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'عذراً، هذه التواريخ محجوزة بالفعل لهذه الشقة. يرجى اختيار تاريخ آخر.',
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      // يبقى المستخدم في الصفحة الحالية لتعديل التاريخ
+    }
   }
 
   String _getUserPrefix(String userId) {
@@ -216,8 +232,8 @@ class _FullBookingPageState extends State<FullBookingPage> {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
-
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : darkTextColor;
         Color accent = accentColor;
@@ -236,7 +252,6 @@ class _FullBookingPageState extends State<FullBookingPage> {
             backgroundColor: accent,
             centerTitle: true,
             elevation: 4,
-            automaticallyImplyLeading: false,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
@@ -247,24 +262,28 @@ class _FullBookingPageState extends State<FullBookingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // بطاقة معلومات الشقة
                   Card(
                     color: cardColor,
                     elevation: 3,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 90),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 18,
+                        horizontal: 20,
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
                             child: Text(
                               widget.apartmentName,
                               style: TextStyle(
-                                fontSize: 30,
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: accent,
                               ),
                             ),
                           ),
+                          const SizedBox(height: 10),
                           Text(
                             'السعر اليومي: \$${pricePerDay.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -278,127 +297,63 @@ class _FullBookingPageState extends State<FullBookingPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    "مدة الحجز",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedDuration,
-                    dropdownColor: Colors.white,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: cardColor.withOpacity(0.17),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent, width: 3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: textColor),
-                    items: durationOptions.map((d) {
-                      return DropdownMenuItem<String>(
-                        value: d,
-                        child: Text(
-                          d == "عدة أشهر"
-                              ? "عدة أشهر ($numberOfMonths)"
-                              : d,
-                        ),
-                      );
-                    }).toList(),
 
-                    onChanged: (value) async {
-                      if (value != null) {
-                        if (value == "عدة أشهر") {
-                          await selectNumberOfMonths(context);
-                        }
-                        setState(() {
-                          selectedDuration = value;
-                          calculateEndDate();
-                        });
+                  _buildLabel("مدة الحجز"),
+                  _buildDropdown(
+                    durationOptions,
+                    selectedDuration,
+                    (String? newValue) async {
+                      if (newValue == "عدة أشهر") {
+                        await selectNumberOfMonths(context);
                       }
+                      setState(() {
+                        selectedDuration = newValue!;
+                        calculateEndDate();
+                      });
                     },
+                    cardColor,
+                    textColor,
+                    accent,
                   ),
+
                   const SizedBox(height: 20),
-                  const Text(
-                    "تاريخ بداية الحجز",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  _buildLabel("تاريخ بداية الحجز"),
+                  _buildDateTile(
+                    dateFormat.format(startDate),
+                    Icons.calendar_today,
+                    () => selectStartDate(context),
+                    cardColor,
+                    textColor,
+                    accent,
                   ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () => selectStartDate(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: cardColor.withOpacity(0.15),
-                        border: Border.all(color: accent, width: 1.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(dateFormat.format(startDate), style: TextStyle(color: textColor)),
-                          Icon(Icons.calendar_today, color: accent),
-                        ],
-                      ),
-                    ),
-                  ),
+
                   const SizedBox(height: 20),
-                  const Text(
-                    "تاريخ نهاية الحجز",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  _buildLabel("تاريخ نهاية الحجز (تلقائي)"),
+                  _buildDateTile(
+                    dateFormat.format(endDate),
+                    Icons.event_available,
+                    null,
+                    cardColor,
+                    textColor,
+                    accent,
                   ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: cardColor.withOpacity(0.15),
-                      border: Border.all(color: accent, width: 1.5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(dateFormat.format(endDate), style: TextStyle(color: textColor)),
-                        Icon(Icons.event_available, color: accent),
-                      ],
-                    ),
-                  ),
+
                   const SizedBox(height: 20),
-                  const Text(
-                    "طريقة الدفع",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedPayment,
-                    dropdownColor: Colors.white,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: cardColor.withOpacity(0.15),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent, width: 3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(color: textColor),
-                    items: paymentMethods
-                        .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => selectedPayment = value);
-                      }
+                  _buildLabel("طريقة الدفع"),
+                  _buildDropdown(
+                    paymentMethods,
+                    selectedPayment,
+                    (String? newValue) {
+                      setState(() => selectedPayment = newValue!);
                     },
+                    cardColor,
+                    textColor,
+                    accent,
                   ),
-                  const SizedBox(height: 20),
+
+                  const SizedBox(height: 25),
+
+                  // ملخص السعر
                   Card(
                     color: cardColor,
                     child: Padding(
@@ -406,82 +361,75 @@ class _FullBookingPageState extends State<FullBookingPage> {
                       child: Column(
                         children: [
                           Text(
-                            "ملخص السعر",
+                            "ملخص الطلب",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: accent,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          _buildPriceRow("السعر اليومي", "\$${pricePerDay.toStringAsFixed(2)}", textColor: textColor),
-                          _buildPriceRow("عدد الأيام", "${endDate.difference(startDate).inDays} يوم", textColor: textColor),
                           const Divider(),
-                          _buildPriceRow("الإجمالي", "\$${totalPrice.toStringAsFixed(2)}", isTotal: true, textColor: accent),
+                          _buildPriceRow(
+                            "مدة الإقامة",
+                            "${endDate.difference(startDate).inDays} يوم",
+                            textColor,
+                          ),
+                          _buildPriceRow(
+                            "الإجمالي",
+                            "\$${totalPrice.toStringAsFixed(2)}",
+                            accent,
+                            isTotal: true,
+                          ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      return SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: accent,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            if (authProvider.user == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('يجب تسجيل الدخول لإتمام الحجز'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            } else {
-                              _addBooking(context);
-                            }
-                          },
+
+                  const SizedBox(height: 20),
+                  // تنبيه بانتظار الموافقة
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.orange),
+                        const SizedBox(width: 10),
+                        Expanded(
                           child: Text(
-                            authProvider.user == null ? 'سجل الدخول للحجز' : 'تأكيد الحجز',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
+                            "ملاحظة: سيتم إرسال طلبك للمالك للموافقة عليه قبل تأكيد الحجز النهائي.",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color:
+                                  isDark
+                                      ? Colors.orange[200]
+                                      : Colors.orange[800],
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  Card(
-                    color: cardColor,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 90),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "ملاحظات مهمة:",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "• يمكن إلغاء الحجز خلال 24 ساعة من التأكيد\n"
-                                "• السعر يشمل الضرائب والخدمات\n"
-                                "• تأكد من تواريخ الحجز قبل التأكيد\n"
-                                "• سيتواصل معك المالك لتأكيد التفاصيل",
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        ],
+
+                  const SizedBox(height: 30),
+
+                  // زر التأكيد
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => _addBooking(context),
+                      child: const Text(
+                        'إرسال طلب الحجز للمالك',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
                   ),
@@ -495,25 +443,91 @@ class _FullBookingPageState extends State<FullBookingPage> {
     );
   }
 
-  Widget _buildPriceRow(String label, String value, {bool isTotal = false, Color? textColor}) {
+  // ودجات مساعدة لتقليل تكرار الكود
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+    ),
+  );
+
+  Widget _buildDropdown(
+    List<String> items,
+    String value,
+    Function(String?) onChanged,
+    Color cardColor,
+    Color textColor,
+    Color accent,
+  ) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      dropdownColor: cardColor,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: cardColor.withOpacity(0.15),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: accent),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: accent, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      style: TextStyle(color: textColor),
+      items:
+          items.map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildDateTile(
+    String text,
+    IconData icon,
+    VoidCallback? onTap,
+    Color cardColor,
+    Color textColor,
+    Color accent,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: cardColor.withOpacity(0.15),
+          border: Border.all(color: accent, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(text, style: TextStyle(color: textColor)),
+            Icon(icon, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(
+    String label,
+    String value,
+    Color color, {
+    bool isTotal = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: textColor?.withOpacity(0.7) ?? Colors.grey[600],
-              fontSize: isTotal ? 16 : 14,
-            ),
-          ),
+          Text(label, style: TextStyle(fontSize: isTotal ? 16 : 14)),
           Text(
             value,
             style: TextStyle(
               fontSize: isTotal ? 18 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: textColor ?? (isTotal ? accentColor : Colors.black),
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
           ),
         ],

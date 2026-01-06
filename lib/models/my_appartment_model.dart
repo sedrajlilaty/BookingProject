@@ -34,6 +34,7 @@ class ApartmentModel {
   });
 
   factory ApartmentModel.fromJson(Map<String, dynamic> json) {
+    
     return ApartmentModel(
       id: json['id'],
       userId: json['user_id'],

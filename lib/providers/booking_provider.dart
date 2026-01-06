@@ -1,95 +1,158 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_application_8/models/apartment_model.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
+import 'package:flutter_application_8/models/my_appartment_model.dart';
+import 'package:flutter_application_8/network/urls.dart';
 
 class BookingProvider extends ChangeNotifier {
-  final List<Booking> _bookings = [];
+  List<Booking> _bookings = [];
+  bool _isLoading = false;
+
   List<Booking> get bookings => _bookings;
+  bool get isLoading => _isLoading;
 
-  // 📝 إضافة حجز جديد
-  void addBooking(Map<String, dynamic> bookingData) {
-    final newBooking = Booking(
-      id: bookingData['id'],
-      userId: bookingData['userId'],
-      apartmentId: bookingData['apartmentId'],
-      apartmentName: bookingData['apartmentName'],
-      apartmentImage: bookingData['apartmentImage'],
-      apartmentLocation: bookingData['apartmentLocation'],
-      startDate: bookingData['startDate'],
-      endDate: bookingData['endDate'],
-      pricePerDay: bookingData['pricePerDay'],
-      totalPrice: bookingData['totalPrice'],
-      status: _parseStatus(bookingData['status']),
-      paymentMethod: bookingData['paymentMethod'],
-      bookingDate: bookingData['bookingDate'],
-      hasRated: bookingData['hasRated'] ?? false,
-    );
-
-    _bookings.add(newBooking);
+  // 1. جلب طلبات الحجز الخاصة بالمؤجر (Owner)
+  Future<void> fetchOwnerBookings(String token) async {
+    _isLoading = true;
     notifyListeners();
-
-    // حفظ في قاعدة البيانات (اختياري)
-    _saveToDatabase(newBooking);
-  }
-
-  // 📊 الحصول على حجوزات مستخدم معين باستخدام user.id
-  List<Booking> getUserBookings(String userId) {
-    return _bookings.where((booking) => booking.userId == userId).toList();
-  }
-
-  // 📋 الحصول على حجوزات شقة معينة (للمالك)
-  List<Booking> getApartmentBookings(String apartmentId) {
-    return _bookings
-        .where((booking) => booking.apartmentId == apartmentId)
-        .toList();
-  }
-
-  // ✏️ تحديث حالة الحجز
-  void updateBookingStatus(String bookingId, BookingStatus newStatus) {
-    final index = _bookings.indexWhere((b) => b.id == bookingId);
-    if (index != -1) {
-      _bookings[index] = _bookings[index].copyWith(status: newStatus);
-      notifyListeners();
-    }
-  }
-
-  // 🗑️ حذف حجز
-  void deleteBooking(String bookingId) {
-    _bookings.removeWhere((b) => b.id == bookingId);
-    notifyListeners();
-  }
-
-  // 📝 تحديث تقييم الحجز
-  void updateBookingRating(String bookingId, double rating, String review) {
-    final index = _bookings.indexWhere((b) => b.id == bookingId);
-    if (index != -1) {
-      _bookings[index] = _bookings[index].copyWith(
-        hasRated: true,
-        userRating: rating,
-        userReview: review,
+    try {
+      final response = await Dio().get(
+        '${Urls.domain}/api/owner/bookings', // الرابط من صورتك الأخيرة
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
+
+      if (response.data['success'] == true) {
+        final List data = response.data['data'];
+        // تحويل البيانات باستخدام FromJson المصحح
+        _bookings = data.map((json) => Booking.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint("Error fetching owner bookings: $e");
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  // 🔍 تحويل نص الحالة إلى enum
-  BookingStatus _parseStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        return BookingStatus.confirmed;
-      case 'pending':
-        return BookingStatus.pending;
-      case 'cancelled':
-        return BookingStatus.cancelled;
-      case 'completed':
-        return BookingStatus.completed;
-      default:
-        return BookingStatus.pending;
+  // 2. جلب حجوزات المستخدم (المستأجر - User)
+  Future<void> fetchUserBookings(String token) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await Dio().get(
+        '${Urls.domain}/api/bookings', // الرابط العام للحجوزات
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.data['success'] == true) {
+        final List data = response.data['data'];
+        _bookings = data.map((json) => Booking.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint("Error fetching user bookings: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // 💾 حفظ في قاعدة البيانات (محاكاة)
-  Future<void> _saveToDatabase(Booking booking) async {
-    // هنا تكتب كود الاتصال بقاعدة البيانات الحقيقية
-    print('تم حفظ حجز للمستخدم: ${booking.userId}');
+  // 3. إنشاء حجز جديد (إرسال الطلب للسيرفر لكي يظهر للمؤجر)
+  Future<bool> createBookingOnServer(
+    Map<String, dynamic> bookingData,
+    String token,
+  ) async {
+    try {
+      debugPrint("Sending Data: $bookingData");
+      final response = await Dio().post(
+        '${Urls.domain}/api/bookings',
+        data: bookingData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // تحديث القائمة بعد الإضافة الناجحة
+        await fetchUserBookings(token);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("خطأ في إنشاء حجز جديد: $e");
+      return false;
+    }
+  }
+
+  final Dio _dio = Dio();
+  Future<bool> updateBooking(
+    int bookingId,
+    Map<String, dynamic> data,
+    String token,
+  ) async {
+    // الرابط كما ظهر في الـ Postman الخاص بك
+    final String url = "${Urls.domain}/api/bookings/$bookingId";
+
+    try {
+      final response = await _dio.put(
+        url,
+        data: data, // Dio يقوم بتحويل الـ Map تلقائياً إلى JSON
+        options: Options(
+          headers: {
+            "Accept": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // التأكد من نجاح العملية من بيانات الاستجابة (حسب صورة Postman)
+        if (response.data['success'] == true) {
+          // تحديث الحجوزات محلياً حتى يظهر التعديل في الكارد فوراً
+          await fetchUserBookings(token);
+
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
+    } on DioException catch (e) {
+      // التعامل مع أخطاء Dio بشكل مخصص
+      print("خطأ Dio في تحديث الحجز: ${e.response?.data ?? e.message}");
+      return false;
+    } catch (e) {
+      print("خطأ عام: $e");
+      return false;
+    }
+  }
+
+  // داخل ApartmentProvider
+
+  // 4. دالة المؤجر للموافقة أو الرفض
+  Future<void> handleBookingAction(
+    dynamic bookingId,
+    String action,
+    String token,
+  ) async {
+    try {
+      await Dio().post(
+        '${Urls.domain}/api/owner/bookings/$bookingId/$action', // action: 'approve' or 'reject'
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      // بعد الأكشن، تحديث قائمة طلبات المؤجر
+      await fetchOwnerBookings(token);
+    } catch (e) {
+      debugPrint("خطأ في معالجة الطلب: $e");
+    }
+  }
+
+  // دالة فلترة الحجوزات محلياً حسب ID المستخدم (للتأكيد الإضافي)
+  List<Booking> getUserBookingsLocally(String userId) {
+    return _bookings
+        .where((b) => b.userId.toString() == userId.toString())
+        .toList();
   }
 }

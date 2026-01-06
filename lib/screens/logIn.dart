@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
@@ -173,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
             '${_phoneController.text}@temp.com',
         userType: userData['account_type']?.toString() ?? _userType!,
         birthDate: userData['birthdate']?.toString() ?? '',
-        profileImageUrl: profileImageUrl,
+        personalImage: profileImageUrl,
         idImageUrl: idImageUrl,
         token: token,
       );

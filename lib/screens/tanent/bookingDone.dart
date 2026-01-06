@@ -37,7 +37,8 @@ class BookingDone extends StatelessWidget {
       builder: (context, state) {
         bool isDark = state is DarkState;
 
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : Colors.black;
         Color accent = accentColor;
@@ -73,15 +74,11 @@ class BookingDone extends StatelessWidget {
                     color: accent,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 80,
-                    color: cardColor,
-                  ),
+                  child: Icon(Icons.check_circle, size: 80, color: cardColor),
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'تم تأكيد الحجز بنجاح!',
+                  'تم طلب الحجز بانتظار موافقة المالك',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -116,10 +113,30 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        _buildTipItem(Icons.notifications, 'ستتلقى تأكيداً عبر البريد الإلكتروني', accent, textColor),
-                        _buildTipItem(Icons.phone, 'سيتم التواصل معك من قبل المالك', accent, textColor),
-                        _buildTipItem(Icons.calendar_today, 'يمكنك مراجعة حجوزاتك في أي وقت', accent, textColor),
-                        _buildTipItem(Icons.edit, 'يمكنك تعديل الحجز خلال 24 ساعة', accent, textColor),
+                        _buildTipItem(
+                          Icons.notifications,
+                          'ستتلقى تأكيداً عبر البريد الإلكتروني',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.phone,
+                          'سيتم التواصل معك من قبل المالك',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.calendar_today,
+                          'يمكنك مراجعة حجوزاتك في أي وقت',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.edit,
+                          'يمكنك تعديل الحجز خلال 24 ساعة',
+                          accent,
+                          textColor,
+                        ),
                       ],
                     ),
                   ),
@@ -133,7 +150,9 @@ class BookingDone extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => MyBookingsScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => MyBookingsScreen(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -156,7 +175,11 @@ class BookingDone extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => ApartmentBookingScreen(isOwner: false)),
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      ApartmentBookingScreen(isOwner: false),
+                            ),
                           );
                         },
                         style: OutlinedButton.styleFrom(
@@ -199,7 +222,12 @@ class BookingDone extends StatelessWidget {
     );
   }
 
-  Widget _buildTipItem(IconData icon, String text, Color accent, Color textColor) {
+  Widget _buildTipItem(
+    IconData icon,
+    String text,
+    Color accent,
+    Color textColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -208,10 +236,7 @@ class BookingDone extends StatelessWidget {
           Icon(icon, size: 18, color: accent),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 14, color: textColor),
-            ),
+            child: Text(text, style: TextStyle(fontSize: 14, color: textColor)),
           ),
         ],
       ),
@@ -233,25 +258,26 @@ class BookingDone extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تفاصيل الحجز'),
-        content: SingleChildScrollView(child: Text(details)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('تفاصيل الحجز'),
+            content: SingleChildScrollView(child: Text(details)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('حسناً'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
+                  );
+                },
+                child: const Text('نسخ التفاصيل'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
-              );
-            },
-            child: const Text('نسخ التفاصيل'),
-          ),
-        ],
-      ),
     );
   }
 }

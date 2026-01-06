@@ -129,10 +129,12 @@ class AppartmentCubit extends Cubit<AppartmentState> {
           return;
         }
 
-        print('🔑 استخدام التوكن للمصادقة');
+        debugPrint('🔑 التوكن: ${authToken.substring(0, 30)}...');
+        debugPrint('📝 طول التوكن: ${authToken.length} حرف');
 
         FormData formData = FormData();
 
+        // إضافة الحقول الأساسية
         formData.fields.addAll([
           MapEntry('name', nameController.text.trim()),
           MapEntry('governorate', governorateController.text.trim()),
@@ -146,13 +148,21 @@ class AppartmentCubit extends Cubit<AppartmentState> {
           MapEntry('description', descriptionController.text.trim()),
         ]);
 
+        debugPrint('📊 عدد الصور المرفوعة: ${images.length}');
+
+        // إضافة الصور
         if (images.isNotEmpty) {
           for (int i = 0; i < images.length; i++) {
             File imageFile = images[i];
 
+            debugPrint('🖼️ معالجة الصورة ${i + 1}: ${imageFile.path}');
+
             if (await _isValidImageFile(imageFile)) {
               String fileName = path.basename(imageFile.path);
               String extension = path.extension(imageFile.path).toLowerCase();
+
+              debugPrint('📄 اسم الملف: $fileName');
+              debugPrint('🎯 الامتداد: $extension');
 
               String contentType = 'image/jpeg';
               if (extension == '.png') {
@@ -163,7 +173,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
 
               formData.files.add(
                 MapEntry(
-                  'images[]',
+                  'images[]', // تأكد أن Laravel يتوقع هذا الاسم
                   await MultipartFile.fromFile(
                     imageFile.path,
                     filename: fileName,
@@ -174,8 +184,7 @@ class AppartmentCubit extends Cubit<AppartmentState> {
             } else {
               emit(
                 AppartmentCubitError(
-                  message:
-                      'صورة غير صالحة: ${imageFile.path}. يجب أن تكون الصورة بصيغة jpg أو png',
+                  message: 'صورة غير صالحة: ${imageFile.path}',
                 ),
               );
               return;
@@ -188,44 +197,106 @@ class AppartmentCubit extends Cubit<AppartmentState> {
           return;
         }
 
-        Response response = await Network.postData(
-          url: Urls.addAppartments,
-          data: formData,
-          isMultipart: true,
+        // 1. طباعة البيانات المرسلة للمساعدة في التصحيح
+        debugPrint('📤 إرسال البيانات إلى السيرفر...');
+        debugPrint('🌐 الرابط: ${Urls.addAppartments}');
+
+        // 2. إرسال الطلب باستخدام Dio مع تفاصيل أكثر
+        final dio = Dio();
+
+        // إضافة interceptor للتصحيح
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              debugPrint('🚀 Request URL: ${options.uri}');
+              debugPrint(
+                '🔑 Authorization Header: ${options.headers['Authorization']?.substring(0, 30)}...',
+              );
+              debugPrint('📦 Content-Type: ${options.headers['Content-Type']}');
+              debugPrint('📊 Request Data Type: ${options.data.runtimeType}');
+              return handler.next(options);
+            },
+            onResponse: (response, handler) {
+              debugPrint('✅ Response Status: ${response.statusCode}');
+              debugPrint('📄 Response Data: ${response.data}');
+              return handler.next(response);
+            },
+            onError: (error, handler) {
+              debugPrint('❌ Dio Error: $error');
+              debugPrint('📊 Error Type: ${error.type}');
+              debugPrint('🔢 Status Code: ${error.response?.statusCode}');
+              debugPrint('📝 Error Response: ${error.response?.data}');
+              return handler.next(error);
+            },
+          ),
         );
 
-        _clearFields();
+        // إعداد الـ timeout
+        dio.options.connectTimeout = const Duration(seconds: 30);
+        dio.options.receiveTimeout = const Duration(seconds: 30);
 
+        Response response = await dio.post(
+          Urls.addAppartments,
+          data: formData,
+          options: Options(
+            headers: {
+              'Authorization': 'Bearer $authToken',
+              'Accept': 'application/json',
+              // لا تضيف 'Content-Type' هنا لأن Dio سيضيفه تلقائياً لـ FormData
+            },
+          ),
+        );
+
+        debugPrint('🎉 النجاح! حالة الاستجابة: ${response.statusCode}');
+        debugPrint('📋 بيانات الاستجابة: ${response.data}');
+
+        _clearFields();
         emit(AppartmentSuccess());
       } on DioException catch (error) {
+        debugPrint('❌ فشل في إضافة الشقة');
+
         String errorMessage = 'حدث خطأ في إضافة الشقة';
 
-        if (error.response?.data != null) {
-          final data = error.response!.data;
-          if (data is Map<String, dynamic>) {
-            // استخراج رسالة الخطأ الرئيسية
-            if (data.containsKey('message')) {
-              errorMessage = data['message'].toString();
-            }
+        if (error.response != null) {
+          debugPrint('🔢 كود الحالة: ${error.response!.statusCode}');
+          debugPrint('📝 بيانات الخطأ: ${error.response!.data}');
 
-            // استخراج الأخطاء التفصيلية
-            if (data.containsKey('errors')) {
-              final errors = data['errors'];
-              if (errors is Map<String, dynamic>) {
-                errorMessage += '\n';
-                errors.forEach((key, value) {
-                  if (value is List) {
-                    errorMessage += '• $key: ${value.join(', ')}\n';
-                  }
-                });
+          // معالجة أخطاء محددة
+          switch (error.response!.statusCode) {
+            case 401:
+              errorMessage = 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى';
+              // يمكنك إضافة إعادة توجيه لتسجيل الدخول
+              break;
+            case 422:
+              errorMessage = 'بيانات غير صالحة';
+              if (error.response!.data is Map<String, dynamic>) {
+                final errors = error.response!.data['errors'];
+                if (errors != null) {
+                  errorMessage = '';
+                  errors.forEach((key, value) {
+                    if (value is List) {
+                      errorMessage += '• $key: ${value.join(', ')}\n';
+                    }
+                  });
+                }
               }
-            }
+              break;
+            case 500:
+              errorMessage = 'خطأ في السيرفر، يرجى المحاولة لاحقاً';
+              break;
           }
+        } else if (error.type == DioExceptionType.connectionTimeout) {
+          errorMessage = 'انتهت مدة الاتصال، تحقق من اتصال الإنترنت';
+        } else if (error.type == DioExceptionType.connectionError) {
+          errorMessage = 'خطأ في الاتصال، تحقق من اتصال الإنترنت';
         }
 
         emit(AppartmentCubitError(message: errorMessage));
       } catch (e) {
-        emit(AppartmentCubitError(message: 'حدث خطأ غير متوقع: $e'));
+        debugPrint('❌ خطأ عام: $e');
+        emit(
+          AppartmentCubitError(message: 'حدث خطأ غير متوقع: ${e.toString()}'),
+        );
       }
     }
   }

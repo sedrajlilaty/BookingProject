@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/providers/notificationProvider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_application_8/screens/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:provider/provider.dart';
 
 import '../../Notifaction.dart';
 import '../../Theme/theme_cubit.dart';
@@ -79,7 +81,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
       // فلترة المدينة
       bool cityMatch =
           _selectedCity == 'All Cities' || apartment.city == _selectedCity;
-      
+
       // فلترة السعر
       bool priceMatch = true;
       switch (_selectedPriceRange) {
@@ -149,10 +151,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     }).toList();
   }
 
-  bool _doesApartmentMatchSearch(
-    ApartmentModel apartment,
-    String searchText,
-  ) {
+  bool _doesApartmentMatchSearch(ApartmentModel apartment, String searchText) {
     if (searchText.isEmpty) return true;
 
     final name = apartment.name.toLowerCase();
@@ -163,11 +162,11 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     final searchWords = searchText.split(' ');
 
     for (final word in searchWords) {
-      if (word.isNotEmpty && 
-          (name.contains(word) || 
-           city.contains(word) || 
-           governorate.contains(word) ||
-           description.contains(word))) {
+      if (word.isNotEmpty &&
+          (name.contains(word) ||
+              city.contains(word) ||
+              governorate.contains(word) ||
+              description.contains(word))) {
         return true;
       }
     }
@@ -245,23 +244,39 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
 
             // ➡️ اليمين
+            // في قسم actions اليمين داخل الـ AppBar
             actions: [
-              const SizedBox(width: 48), // 🔑 حجز مساحة مساوية لليسار
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsPage(),
+              const SizedBox(width: 48),
+              // 🔔 أيقونة الإشعارات مع العداد
+              Consumer<NotificationProvider>(
+                builder: (context, notiProvider, child) {
+                  return Badge(
+                    label: Text(
+                      notiProvider.unreadCount.toString(),
+                      style: const TextStyle(color: accentColor, fontSize: 10),
+                    ),
+                    // يظهر العداد فقط إذا كان هناك إشعارات غير مقروءة
+                    isLabelVisible: notiProvider.unreadCount > 0,
+                    backgroundColor: cardBackgroundColor,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsPage(),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              ),
+              const SizedBox(width: 16),
             ],
           ),
 
@@ -277,9 +292,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               },
               builder: (context, state) {
                 var cubit = AppartmentCubit.get(context);
-                final apartments = widget.isOwner
-                    ? cubit.myappartments
-                    : cubit.appartments;
+                final apartments =
+                    widget.isOwner ? cubit.myappartments : cubit.appartments;
                 final filteredApartments = _filterApartments(apartments);
 
                 return SafeArea(
@@ -300,10 +314,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                         const SizedBox(height: 24),
                         state is AppartmentLoading
                             ? const Center(child: CircularProgressIndicator())
-                            : _buildApartmentsGrid(
-                              isDark,
-                              filteredApartments,
-                            ),
+                            : _buildApartmentsGrid(isDark, filteredApartments),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -808,7 +819,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ApartmentDetailsPage(apartment: apartments[index]),
+                builder:
+                    (_) => ApartmentDetailsPage(apartment: apartments[index]),
               ),
             );
           },

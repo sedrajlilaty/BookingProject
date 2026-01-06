@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/network/urls.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Network {
@@ -15,7 +16,7 @@ class Network {
 
       dio = Dio(
         BaseOptions(
-          baseUrl: 'http://192.168.137.195:8000/api',
+          baseUrl: Urls.baseUrl,
           connectTimeout: const Duration(seconds: 30),
           receiveTimeout: const Duration(seconds: 30),
           headers: _getHeaders(),
@@ -123,6 +124,7 @@ class Network {
     dynamic data,
     Options? options,
     bool isMultipart = false,
+    String? token,
   }) async {
     try {
       await _updateToken();

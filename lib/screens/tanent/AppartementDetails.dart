@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/services/favorateSErves.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +27,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   @override
   void initState() {
     super.initState();
+    log(widget.apartment.images.first.image);
     // التحقق إذا كانت الشقة موجودة في المفضلة
     /* isFavorite = FavoritesScreen.favoriteApartments.any(
       (apt) => apt['name'] == widget.apartment.name,
@@ -66,7 +69,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         setState(() => _currentPage = index);
                       },
                       itemBuilder: (context, index) {
-                        return Image.asset(
+                        return Image.network(
                           apartment.images[index].image,
                           fit: BoxFit.cover,
                           width: double.infinity,
@@ -299,7 +302,10 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     vertical: 14,
                                   ),
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
+                                  // إظهار نافذة اختيار التاريخ أو الانتقال لصفحة الحجز الكاملة
+                                  // بعد أن يختار المستخدم التواريخ في صفحة FullBookingPage، يتم تنفيذ الطلب:
+
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -308,16 +314,15 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                             pricePerDay:
                                                 apartment.price.toDouble(),
                                             apartmentId:
-                                                apartment.id.toString(),
-                                            apartmentName:
-                                                apartment.name
-                                                    .toString(), // اسم الشقة
+                                                apartment
+                                                    .id, // نمرر الـ ID كرقم
+                                            apartmentName: apartment.name,
                                             apartmentImage:
-                                                apartment.images[0]
-                                                    .toString(), // رابط الصورة
+                                                apartment.images.isNotEmpty
+                                                    ? apartment.images[0].image
+                                                    : '',
                                             apartmentLocation:
-                                                apartment.location
-                                                    .toString(), // الموقع
+                                                apartment.location,
                                           ),
                                     ),
                                   );
