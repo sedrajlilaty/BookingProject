@@ -114,7 +114,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'لا توجد شقق مفضلة بعد',
+            'there is no favorate appartement',
             style: TextStyle(
               fontSize: 20,
               color: isDark ? Colors.grey[300] : Colors.grey[600],
@@ -122,7 +122,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'ابدأ بإضافة شقق إلى قائمة المفضلة',
+            "start adding your favorate appartement",
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[500],
               fontSize: 16,
@@ -158,7 +158,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           );
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('خطأ في فتح تفاصيل الشقة')),
+            const SnackBar(content: Text('error in loading appartement')),
           );
         }
       },
@@ -224,7 +224,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    apartment['name'] ?? 'بدون اسم',
+                    apartment['name'] ?? 'without name',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -243,7 +243,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        apartment['city'] ?? 'موقع غير معروف',
+                        apartment['city'] ?? '  unkonown location',
                         style: TextStyle(fontSize: 12, color: subtitleColor),
                       ),
                     ],

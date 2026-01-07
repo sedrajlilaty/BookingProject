@@ -25,7 +25,7 @@ class BookingDone extends StatelessWidget {
     required this.checkInDate,
     required this.checkOutDate,
     this.apartmentLocation = '',
-    this.paymentMethod = 'نقدًا',
+    this.paymentMethod = 'Cash',
     this.durationInDays = 1,
   });
 
@@ -47,7 +47,7 @@ class BookingDone extends StatelessWidget {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: const Text(
-              'تاكيد الحجز',
+              'Booking Confirmation',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -78,7 +78,7 @@ class BookingDone extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'تم طلب الحجز بانتظار موافقة المالك',
+                  'Booking Request Sent - Awaiting Owner Approval',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class BookingDone extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'رقم الحجز: $bookingId',
+                  'Booking ID: $bookingId',
                   style: TextStyle(
                     fontSize: 16,
                     color: textColor.withOpacity(0.7),
@@ -105,7 +105,7 @@ class BookingDone extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ماذا بعد؟',
+                          'What\'s Next?',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: accent,
@@ -115,25 +115,25 @@ class BookingDone extends StatelessWidget {
                         const SizedBox(height: 8),
                         _buildTipItem(
                           Icons.notifications,
-                          'ستتلقى تأكيداً عبر البريد الإلكتروني',
+                          'You will receive a confirmation via email',
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.phone,
-                          'سيتم التواصل معك من قبل المالك',
+                          'The owner will contact you',
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.calendar_today,
-                          'يمكنك مراجعة حجوزاتك في أي وقت',
+                          'You can review your bookings anytime',
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.edit,
-                          'يمكنك تعديل الحجز خلال 24 ساعة',
+                          'You can modify the booking within 24 hours',
                           accent,
                           textColor,
                         ),
@@ -163,7 +163,7 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          'عرض حجوزاتي',
+                          'View My Bookings',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
@@ -190,7 +190,7 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'العودة للرئيسية',
+                          'Return to Home',
                           style: TextStyle(fontSize: 16, color: accent),
                         ),
                       ),
@@ -206,7 +206,7 @@ class BookingDone extends StatelessWidget {
                           Icon(Icons.share, size: 20, color: accent),
                           const SizedBox(width: 8),
                           Text(
-                            'مشاركة تفاصيل الحجز',
+                            'Share Booking Details',
                             style: TextStyle(color: accent),
                           ),
                         ],
@@ -245,36 +245,38 @@ class BookingDone extends StatelessWidget {
 
   void _shareBookingDetails(BuildContext context) {
     final details = '''
-تم تأكيد حجزك بنجاح!
+Your booking has been successfully confirmed!
 
-رقم الحجز: $bookingId
-اسم الشقة: $apartmentName
-تاريخ الوصول: ${DateFormat('yyyy-MM-dd').format(checkInDate)}
-تاريخ المغادرة: ${DateFormat('yyyy-MM-dd').format(checkOutDate)}
-المبلغ الإجمالي: \$${totalPrice.toStringAsFixed(2)}
+Booking ID: $bookingId
+Apartment Name: $apartmentName
+Check-in Date: ${DateFormat('yyyy-MM-dd').format(checkInDate)}
+Check-out Date: ${DateFormat('yyyy-MM-dd').format(checkOutDate)}
+Total Amount: \$${totalPrice.toStringAsFixed(2)}
 
-شكراً لاستخدامك تطبيقنا!
+Thank you for using our app!
 ''';
 
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('تفاصيل الحجز'),
+            title: const Text('Booking Details'),
             content: SingleChildScrollView(child: Text(details)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('حسناً'),
+                child: const Text('OK'),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
+                    const SnackBar(
+                      content: Text('Details copied to clipboard'),
+                    ),
                   );
                 },
-                child: const Text('نسخ التفاصيل'),
+                child: const Text('Copy Details'),
               ),
             ],
           ),

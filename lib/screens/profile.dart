@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/l10n/app_localizations.dart'
     show AppLocalizations;
+import 'package:flutter_application_8/network/urls.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -167,6 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
+    const String currentIp = "192.168.1.106";
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
@@ -230,12 +232,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: accentColor.withOpacity(0.1),
                           border: Border.all(color: accentColor, width: 3),
                         ),
+
                         child:
                             user.personalImage != null &&
                                     user.personalImage!.isNotEmpty
                                 ? ClipOval(
                                   child: Image.network(
-                                    user.personalImage!, // ⬅️ هذا هو الرابط القادم من السيرفر
+                                    user.personalImage!.replaceAll(
+                                      "192.168.137.101",
+                                      currentIp,
+                                    ),
+
+                                    // ⬅️ هذا هو الرابط القادم من السيرفر
                                     fit: BoxFit.cover,
                                     // معالجة حالة التحميل
                                     loadingBuilder: (

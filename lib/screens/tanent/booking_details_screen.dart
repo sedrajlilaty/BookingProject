@@ -33,7 +33,7 @@ class BookingDetailsScreen extends StatelessWidget {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: const Text(
-              'تفاصيل الحجز',
+              ' booking derails',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -116,7 +116,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
                 // معلومات الحجز
                 Text(
-                  'معلومات الحجز',
+                  " booking's information",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -125,19 +125,19 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(
-                  'رقم الحجز',
+                  ' booking id',
                   booking.id,
                   textColor,
                   secondaryTextColor,
                 ),
                 _buildInfoRow(
-                  'تاريخ الحجز',
+                  "booking's date",
                   dateFormat.format(booking.bookingDate),
                   textColor,
                   secondaryTextColor,
                 ),
                 _buildInfoRow(
-                  'وقت الحجز',
+                  ' booking time',
                   timeFormat.format(booking.bookingDate),
                   textColor,
                   secondaryTextColor,
@@ -147,7 +147,7 @@ class BookingDetailsScreen extends StatelessWidget {
 
                 // التواريخ
                 Text(
-                  'تواريخ الإقامة',
+                  ' date of stay',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -158,14 +158,14 @@ class BookingDetailsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildDateCard('بداية الحجز', booking.startDate, isDark),
+                    _buildDateCard(' start date', booking.startDate, isDark),
                     const Icon(Icons.arrow_forward, color: Colors.grey),
-                    _buildDateCard('نهاية الحجز', booking.endDate, isDark),
+                    _buildDateCard(' end date', booking.endDate, isDark),
                   ],
                 ),
                 const SizedBox(height: 16),
                 _buildInfoRow(
-                  'مدة الإقامة',
+                  'day of stay',
                   '$duration يوم',
                   textColor,
                   secondaryTextColor,
@@ -184,7 +184,7 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(
-                  'السعر اليومي',
+                  ' pirce for month',
                   '\$${booking.pricePerDay.toStringAsFixed(2)}',
                   textColor,
                   secondaryTextColor,
@@ -196,7 +196,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   secondaryTextColor,
                 ),
                 _buildInfoRow(
-                  'طريقة الدفع',
+                  ' payment method',
                   booking.paymentMethod,
                   textColor,
                   secondaryTextColor,
@@ -210,7 +210,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'تقييمك للشقة',
+                        ' your rating',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -273,7 +273,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.edit),
-                          label: const Text('تعديل الحجز'),
+                          label: const Text(' edit booking'),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -287,7 +287,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.cancel),
-                          label: const Text('إلغاء الحجز'),
+                          label: const Text(' cancel booking'),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -388,19 +388,19 @@ class BookingDetailsScreen extends StatelessWidget {
 
     switch (status) {
       case BookingStatus.confirmed:
-        text = "مؤكد";
+        text = "confirmed";
         break;
       case BookingStatus.cancelled:
-        text = "ملغي";
+        text = "cancelled";
         break;
       case BookingStatus.completed:
-        text = "مكتمل";
+        text = "completed";
         break;
       case BookingStatus.pendingUpdate:
-        text = "بانتظار الموافقة على التعديل";
+        text = "pending update";
         break;
       default:
-        text = "بانتظار الموافقة";
+        text = "unknown";
     }
 
     return Container(
@@ -424,17 +424,17 @@ class BookingDetailsScreen extends StatelessWidget {
   String _getStatusText(BookingStatus status) {
     switch (status) {
       case BookingStatus.confirmed:
-        return 'مؤكد';
+        return 'confirmed';
       case BookingStatus.pending:
-        return 'قيد المراجعة';
+        return ' pending';
       case BookingStatus.cancelled:
-        return 'ملغى';
+        return 'canceled';
       case BookingStatus.completed:
-        return 'مكتمل';
+        return 'completed';
       case BookingStatus.pendingUpdate: // إضافة الحالة الجديدة هنا
-        return 'بانتظار الموافقة على التعديل';
+        return '   pending update';
       default:
-        return 'حالة غير معروفة';
+        return '  unknown';
     }
   }
 }

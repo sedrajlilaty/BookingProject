@@ -131,7 +131,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Icon(Icons.event_busy, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            "لا توجد حجوزات حالياً",
+            "There is no booking yet..",
             style: TextStyle(
               fontSize: 18,
               color: Colors.grey[600],
@@ -139,7 +139,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text("ابحث عن شقة وابدأ حجزك الأول!"),
+          const Text("start your first booking"),
         ],
       ),
     );
@@ -211,7 +211,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                apartment?.name ?? "جاري تحميل الاسم...",
+                                apartment?.name ?? "loading name..",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -232,7 +232,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     child: Text(
                                       apartment != null
                                           ? "${apartment.city}, ${apartment.governorate}"
-                                          : "جاري تحميل الموقع...",
+                                          : "loading location..",
                                       style: const TextStyle(
                                         color: Colors.grey,
                                         fontSize: 12,
@@ -257,8 +257,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildDateItem("من", booking.startDate),
-                        _buildDateItem("إلى", booking.endDate),
+                        _buildDateItem("from", booking.startDate),
+                        _buildDateItem("to", booking.endDate),
                         _buildPriceItem(booking.totalPrice),
                       ],
                     ),
@@ -275,8 +275,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () => _cancelBooking(booking.id),
-                              icon: const Icon(Icons.close, size: 16),
-                              label: const Text("إلغاء"),
+                              icon: const Icon(Icons.close, size: 14),
+                              label: const Text("Cancle"),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.red,
                                 side: const BorderSide(color: Colors.red),
@@ -293,7 +293,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                 color: Colors.white,
                               ),
                               label: const Text(
-                                "تعديل",
+                                "Edit",
                                 style: TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -311,13 +311,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               onPressed: () {
                                 /* منطق التواصل */
                               },
-                              icon: const Icon(
-                                Icons.chat_bubble_outline,
-                                color: Colors.white,
-                                size: 16,
-                              ),
+
                               label: const Text(
-                                "تواصل",
+                                "Connect",
                                 style: TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -340,7 +336,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               ),
                               child: Center(
                                 child: Text(
-                                  "طلب التعديل قيد المراجعة...",
+                                  "Request for modification is under review...",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -363,8 +359,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               ),
                               label: Text(
                                 booking.hasRated
-                                    ? "عرض تقييمك"
-                                    : "تقييم الإقامة",
+                                    ? " show your rating"
+                                    : "ratting ",
                                 style: const TextStyle(color: Colors.white),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -381,7 +377,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           const Expanded(
                             child: Center(
                               child: Text(
-                                "تم إلغاء هذا الحجز",
+                                "this booking is canceled",
                                 style: TextStyle(
                                   color: Colors.red,
                                   fontWeight: FontWeight.bold,
@@ -418,10 +414,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        const Text(
-          "الإجمالي",
-          style: TextStyle(fontSize: 12, color: Colors.grey),
-        ),
+        const Text("total", style: TextStyle(fontSize: 12, color: Colors.grey)),
         Text(
           "${price.toStringAsFixed(0)} ر.س",
           style: const TextStyle(
@@ -512,18 +505,20 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text("تأكيد الإلغاء"),
-            content: const Text("هل أنت متأكد من رغبتك في إلغاء هذا الحجز؟"),
+            title: const Text(" confirm cancle"),
+            content: const Text(
+              "are you sure you want to cancle this booking?",
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text("تراجع"),
+                child: const Text("no"),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text(
-                  "تأكيد الإلغاء",
+                  " confirm",
                   style: TextStyle(color: Colors.white),
                 ),
               ),
@@ -532,11 +527,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
 
     if (confirm == true && authProvider.token != null) {
-      await bookingProvider.handleBookingAction(
-        bookingId,
-        'cancel',
-        authProvider.token!,
-      );
+      await bookingProvider.cancelUserBooking(bookingId, authProvider.token!);
       // تحديث القائمة بعد الإلغاء
       bookingProvider.fetchUserBookings(authProvider.token!);
     }
@@ -569,7 +560,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   void _rateApartment(Booking booking) {
     if (booking.hasRated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("لقد قمت بتقييم هذه الشقة مسبقاً")),
+        const SnackBar(content: Text("لقد قمت بتقييم هذا الحجز مسبقاً")),
       );
       return;
     }
@@ -580,18 +571,33 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         builder:
             (context) => RateApartmentScreen(
               booking: booking,
-              onRatingSubmitted: (rating, review) {
+              onRatingSubmitted: (rating, review) async {
                 final authProvider = Provider.of<AuthProvider>(
                   context,
                   listen: false,
                 );
-                // استدعاء دالة التقييم في البروفايدر
-                /* context.read<BookingProvider>().submitReview(
-                bookingId: booking.id,
-                rating: rating,
-                comment: review,
-                token: authProvider.token!,
-              );*/
+
+                try {
+                  // استدعاء الدالة الجديدة التي كتبناها في البروفايدر
+                  await Provider.of<BookingProvider>(
+                    context,
+                    listen: false,
+                  ).submitReview(
+                    bookingId: booking.id,
+                    rating: rating,
+                    comment: review,
+                    token: authProvider.token!,
+                  );
+
+                  // نجاح العملية يتم معالجته داخل RateApartmentScreen بإظهار SnackBar
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
             ),
       ),

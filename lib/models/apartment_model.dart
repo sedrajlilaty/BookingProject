@@ -1,4 +1,7 @@
-// في ملف جديد apartment_model.dart
+// apartment_model.dart
+
+import 'package:flutter_application_8/network/urls.dart';
+
 class Apartment {
   final String id;
   final String name;
@@ -11,7 +14,7 @@ class Apartment {
   final double area;
   final double price;
   final String description;
-  final List<String> images;
+  final List<String> images; // هذه ستحتوي على الروابط الكاملة المصححة
   final bool isBooked;
   final DateTime createdAt;
 
@@ -33,13 +36,40 @@ class Apartment {
   });
 
   factory Apartment.fromJson(Map<String, dynamic> json) {
-    // دالة داخلية مساعدة لتحويل أي قيمة (حتى لو Map) إلى String
-    String safeString(dynamic value) {
-      if (value == null) return '';
-      if (value is Map || value is List) return value.toString();
-      return value.toString();
+    // دالة داخلية للتعامل مع النصوص الفارغة
+    String safeString(dynamic value) => value?.toString() ?? '';
+
+    // دالة تصحيح رابط الصورة واستبدال الـ IP
+    String fixImageUrl(String path) {
+      if (path.isEmpty) return '';
+
+      // استبدال العناوين المحلية بـ IP الجهاز
+      String fixed = path
+          .replaceAll('127.0.0.1', '192.168.1.106')
+          .replaceAll('localhost', '192.168.1.106')
+          .replaceAll('192.168.137.101', '192.168.1.106');
+
+      // إضافة النطاق (Domain) إذا كان المسار لا يبدأ بـ http
+      if (!fixed.startsWith('http')) {
+        return '${Urls.domain}/storage/$fixed';
+      }
+      return fixed;
     }
 
+    // 1. معالجة الصور أولاً وتخزينها في قائمة مستقلة
+    List<String> parsedImages = [];
+    if (json['images'] is List) {
+      parsedImages = List<String>.from(
+        (json['images'] as List).map((item) {
+          if (item is Map && item.containsKey('image')) {
+            return fixImageUrl(item['image'].toString());
+          }
+          return fixImageUrl(item.toString());
+        }),
+      );
+    }
+
+    // 2. إرجاع كائن Apartment بعد تجهيز كافة البيانات
     return Apartment(
       id: safeString(json['id']),
       name: safeString(json['name']),
@@ -48,46 +78,15 @@ class Apartment {
       city: safeString(json['city']),
       detailedLocation: json['detailed_location']?.toString(),
       description: safeString(json['description']),
-
-      // الأرقام: تحويل آمن جداً
       rooms: int.tryParse(json['rooms']?.toString() ?? '0') ?? 0,
       bathrooms: int.tryParse(json['bathrooms']?.toString() ?? '0') ?? 0,
       area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-
-      // الصور
-      images:
-          json['images'] is List
-              ? List<String>.from(json['images'].map((item) => item.toString()))
-              : [],
-
-      isBooked:
-          json['is_booked'] == 1 ||
-          json['is_booked'] == true ||
-          json['is_booked'].toString() == "true",
-
+      images: parsedImages, // استخدام القائمة الجاهزة
+      isBooked: json['is_booked'] == 1 || json['is_booked'] == true,
       createdAt:
           DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
     );
-  }
-  // يمكنك إضافة toJson/fromJson إذا كنت سترسل البيانات للخادم
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'type': type,
-      'governorate': governorate,
-      'city': city,
-      'detailedLocation': detailedLocation,
-      'rooms': rooms,
-      'bathrooms': bathrooms,
-      'area': area,
-      'price': price,
-      'description': description,
-      'images': images,
-      'isBooked': isBooked,
-      'createdAt': createdAt.toIso8601String(),
-    };
   }
 }

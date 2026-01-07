@@ -8,12 +8,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 
-// ملاحظة: تأكد من أن ملف bookingDone.dart يحتوي على متغير bool isPendingApproval
+// Note: Ensure that the bookingDone.dart file contains the bool variable isPendingApproval
 import 'package:flutter_application_8/screens/tanent/bookingDone.dart';
 
 class FullBookingPage extends StatefulWidget {
   final double pricePerDay;
-  final int apartmentId; // تم التعديل إلى int لحل مشكلة النوع
+  final int apartmentId; // Modified to int to resolve type issue
   final String apartmentName;
   final String apartmentImage;
   final String apartmentLocation;
@@ -32,16 +32,22 @@ class FullBookingPage extends StatefulWidget {
 }
 
 class _FullBookingPageState extends State<FullBookingPage> {
-  String selectedDuration = "أسبوع";
-  String selectedPayment = "نقدًا";
+  String selectedDuration = "Week";
+  String selectedPayment = "Cash";
   DateTime startDate = DateTime.now();
   DateTime endDate = DateTime.now().add(const Duration(days: 7));
   late double pricePerDay;
   double totalPrice = 0;
   int numberOfMonths = 1;
 
-  final durationOptions = ["أسبوع", "شهر", "عدة أشهر", "15 يوم", "سنة"];
-  final paymentMethods = ["نقدًا", "بطاقة ائتمان", "محفظة إلكترونية"];
+  final durationOptions = [
+    "Week",
+    "Month",
+    "Several Months",
+    "15 Days",
+    "Year",
+  ];
+  final paymentMethods = ["Cash", "Credit Card", "E-Wallet"];
 
   @override
   void initState() {
@@ -52,15 +58,15 @@ class _FullBookingPageState extends State<FullBookingPage> {
 
   void calculateEndDate() {
     switch (selectedDuration) {
-      case "أسبوع":
+      case "Week":
         endDate = startDate.add(const Duration(days: 7));
         totalPrice = pricePerDay * 7;
         break;
-      case "شهر":
+      case "Month":
         endDate = DateTime(startDate.year, startDate.month + 1, startDate.day);
         totalPrice = pricePerDay * 30;
         break;
-      case "عدة أشهر":
+      case "Several Months":
         endDate = DateTime(
           startDate.year,
           startDate.month + numberOfMonths,
@@ -68,11 +74,11 @@ class _FullBookingPageState extends State<FullBookingPage> {
         );
         totalPrice = pricePerDay * 30 * numberOfMonths;
         break;
-      case "15 يوم":
+      case "15 Days":
         endDate = startDate.add(const Duration(days: 15));
         totalPrice = pricePerDay * 15;
         break;
-      case "سنة":
+      case "Year":
         endDate = DateTime(startDate.year + 1, startDate.month, startDate.day);
         totalPrice = pricePerDay * 365;
         break;
@@ -110,26 +116,26 @@ class _FullBookingPageState extends State<FullBookingPage> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text("اختر عدد الأشهر"),
+            title: const Text("Select Number of Months"),
             content: TextField(
               controller: controller,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                hintText: "عدد الأشهر",
+                hintText: "Number of Months",
                 border: OutlineInputBorder(),
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
+                child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () {
                   final value = int.tryParse(controller.text) ?? 1;
                   Navigator.pop(context, value);
                 },
-                child: const Text('تأكيد'),
+                child: const Text('Confirm'),
               ),
             ],
           ),
@@ -138,13 +144,13 @@ class _FullBookingPageState extends State<FullBookingPage> {
     if (months != null && months > 0) {
       setState(() {
         numberOfMonths = months;
-        selectedDuration = "عدة أشهر";
+        selectedDuration = "Several Months";
         calculateEndDate();
       });
     }
   }
 
-  // 1. أضفنا async للدالة لنتمكن من استخدام await
+  // 1. Added async to the function to be able to use await
   Future<void> _addBooking(BuildContext context) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final bookingProvider = Provider.of<BookingProvider>(
@@ -152,11 +158,11 @@ class _FullBookingPageState extends State<FullBookingPage> {
       listen: false,
     );
 
-    // التأكد من تسجيل الدخول
+    // Ensure login
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('يجب تسجيل الدخول أولاً'),
+          content: Text('You must log in first'),
           backgroundColor: Colors.red,
         ),
       );
@@ -167,28 +173,28 @@ class _FullBookingPageState extends State<FullBookingPage> {
     final now = DateTime.now();
     final durationInDays = endDate.difference(startDate).inDays;
 
-    // إنشاء معرف الحجز المحلي للعرض فقط
+    // Create local booking ID for display only
     final String bookingId =
         'B${now.millisecondsSinceEpoch}${_getUserPrefix(user.id.toString())}';
 
-    // 2. تجهيز البيانات المطلوبة للسيرفر بدقة
+    // 2. Prepare the data required for the server accurately
     final Map<String, dynamic> newBooking = {
-      'apartment_id': widget.apartmentId, // إرسال الـ ID كـ int
+      'apartment_id': widget.apartmentId, // Send ID as int
       'start_date':
-          startDate.toIso8601String().split('T')[0], // تنسيق YYYY-MM-DD
+          startDate.toIso8601String().split('T')[0], // Format YYYY-MM-DD
       'end_date': endDate.toIso8601String().split('T')[0],
     };
 
     debugPrint("Token being sent: ${authProvider.token}");
 
-    // 3. تنفيذ الحجز وانتظار النتيجة (Success or Failure)
+    // 3. Execute booking and await result (Success or Failure)
     bool success = await bookingProvider.createBookingOnServer(
       newBooking,
       authProvider.token!,
     );
 
     if (success) {
-      // 4. في حالة النجاح فقط، ننتقل لصفحة النجاح
+      // 4. Only in case of success, navigate to the success page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -206,17 +212,17 @@ class _FullBookingPageState extends State<FullBookingPage> {
         ),
       );
     } else {
-      // 5. في حالة الفشل (مثلاً خطأ 409 - العقار محجوز مسبقاً)
+      // 5. In case of failure (e.g., error 409 - apartment already booked)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'عذراً، هذه التواريخ محجوزة بالفعل لهذه الشقة. يرجى اختيار تاريخ آخر.',
+            'Sorry, these dates are already booked for this apartment. Please choose another date.',
             style: TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: Colors.red,
         ),
       );
-      // يبقى المستخدم في الصفحة الحالية لتعديل التاريخ
+      // User stays on the current page to modify the date
     }
   }
 
@@ -242,7 +248,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: const Text(
-              'الحجز',
+              'Booking',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -262,7 +268,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // بطاقة معلومات الشقة
+                  // Apartment information card
                   Card(
                     color: cardColor,
                     elevation: 3,
@@ -285,7 +291,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'السعر اليومي: \$${pricePerDay.toStringAsFixed(2)}',
+                            'Daily Price: \$${pricePerDay.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 16,
                               color: accent,
@@ -298,12 +304,12 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  _buildLabel("مدة الحجز"),
+                  _buildLabel("Booking Duration"),
                   _buildDropdown(
                     durationOptions,
                     selectedDuration,
                     (String? newValue) async {
-                      if (newValue == "عدة أشهر") {
+                      if (newValue == "Several Months") {
                         await selectNumberOfMonths(context);
                       }
                       setState(() {
@@ -317,7 +323,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
 
                   const SizedBox(height: 20),
-                  _buildLabel("تاريخ بداية الحجز"),
+                  _buildLabel("Booking Start Date"),
                   _buildDateTile(
                     dateFormat.format(startDate),
                     Icons.calendar_today,
@@ -328,7 +334,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
 
                   const SizedBox(height: 20),
-                  _buildLabel("تاريخ نهاية الحجز (تلقائي)"),
+                  _buildLabel("Booking End Date (Automatic)"),
                   _buildDateTile(
                     dateFormat.format(endDate),
                     Icons.event_available,
@@ -339,7 +345,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
 
                   const SizedBox(height: 20),
-                  _buildLabel("طريقة الدفع"),
+                  _buildLabel("Payment Method"),
                   _buildDropdown(
                     paymentMethods,
                     selectedPayment,
@@ -353,7 +359,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
 
                   const SizedBox(height: 25),
 
-                  // ملخص السعر
+                  // Price summary
                   Card(
                     color: cardColor,
                     child: Padding(
@@ -361,7 +367,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                       child: Column(
                         children: [
                           Text(
-                            "ملخص الطلب",
+                            "Order Summary",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -370,12 +376,12 @@ class _FullBookingPageState extends State<FullBookingPage> {
                           ),
                           const Divider(),
                           _buildPriceRow(
-                            "مدة الإقامة",
-                            "${endDate.difference(startDate).inDays} يوم",
+                            "Stay Duration",
+                            "${endDate.difference(startDate).inDays} days",
                             textColor,
                           ),
                           _buildPriceRow(
-                            "الإجمالي",
+                            "Total",
                             "\$${totalPrice.toStringAsFixed(2)}",
                             accent,
                             isTotal: true,
@@ -386,7 +392,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                   ),
 
                   const SizedBox(height: 20),
-                  // تنبيه بانتظار الموافقة
+                  // Pending approval notice
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -399,7 +405,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "ملاحظة: سيتم إرسال طلبك للمالك للموافقة عليه قبل تأكيد الحجز النهائي.",
+                            "Note: Your request will be sent to the owner for approval before final booking confirmation.",
                             style: TextStyle(
                               fontSize: 12,
                               color:
@@ -415,7 +421,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
 
                   const SizedBox(height: 30),
 
-                  // زر التأكيد
+                  // Confirm button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -428,7 +434,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
                       ),
                       onPressed: () => _addBooking(context),
                       child: const Text(
-                        'إرسال طلب الحجز للمالك',
+                        'Send Booking Request to Owner',
                         style: TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
@@ -443,7 +449,7 @@ class _FullBookingPageState extends State<FullBookingPage> {
     );
   }
 
-  // ودجات مساعدة لتقليل تكرار الكود
+  // Helper widgets to reduce code duplication
   Widget _buildLabel(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Text(

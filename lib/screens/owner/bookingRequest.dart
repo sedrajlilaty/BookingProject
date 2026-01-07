@@ -16,7 +16,7 @@ class _BookingRequestState extends State<BookingRequest> {
   @override
   void initState() {
     super.initState();
-    // جلب طلبات المالك عند فتح الصفحة
+    // Fetch owner requests when opening the page
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.token != null) {
@@ -28,7 +28,7 @@ class _BookingRequestState extends State<BookingRequest> {
     });
   }
 
-  // دالة موحدة للتعامل مع قرارات المالك (قبول/رفض) سواء للحجز أو التعديل
+  // Unified function to handle owner decisions (approve/reject) for both booking and modification
   Future<void> handleAction(dynamic bookingId, String action) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final bookingProvider = Provider.of<BookingProvider>(
@@ -42,7 +42,11 @@ class _BookingRequestState extends State<BookingRequest> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(action == 'approve' ? 'تمت العملية بنجاح' : 'تم الرفض'),
+        content: Text(
+          action == 'approve'
+              ? 'Operation completed successfully'
+              : 'Request rejected',
+        ),
         backgroundColor: action == 'approve' ? Colors.green : Colors.red,
       ),
     );
@@ -52,7 +56,7 @@ class _BookingRequestState extends State<BookingRequest> {
   Widget build(BuildContext context) {
     final bookingProvider = Provider.of<BookingProvider>(context);
 
-    // تصفية القائمة لتشمل طلبات الحجز الجديدة (pending) وطلبات التعديل (pendingUpdate)
+    // Filter list to include new booking requests (pending) and modification requests (pendingUpdate)
     final allRequests =
         bookingProvider.bookings
             .where(
@@ -66,7 +70,7 @@ class _BookingRequestState extends State<BookingRequest> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
-          'طلبات الحجز والتعديل',
+          'Booking and Modification Requests',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -84,7 +88,7 @@ class _BookingRequestState extends State<BookingRequest> {
           bookingProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : allRequests.isEmpty
-              ? const Center(child: Text("لا توجد طلبات معلقة حالياً"))
+              ? const Center(child: Text("No pending requests at the moment"))
               : RefreshIndicator(
                 onRefresh: () async {
                   final auth = Provider.of<AuthProvider>(
@@ -106,7 +110,7 @@ class _BookingRequestState extends State<BookingRequest> {
   }
 
   Widget _buildRequestCard(Booking item) {
-    // التحقق مما إذا كان الطلب هو طلب تعديل
+    // Check if the request is a modification request
     bool isUpdateReq = item.status == BookingStatus.pendingUpdate;
 
     return Card(
@@ -122,7 +126,7 @@ class _BookingRequestState extends State<BookingRequest> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "رقم الطلب: #${item.id}",
+                  "Request #: #${item.id}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -132,7 +136,7 @@ class _BookingRequestState extends State<BookingRequest> {
               ],
             ),
 
-            // تنبيه إضافي في حال كان الطلب "تعديل"
+            // Additional alert if the request is "modification"
             if (isUpdateReq)
               Container(
                 margin: const EdgeInsets.only(top: 10),
@@ -147,7 +151,7 @@ class _BookingRequestState extends State<BookingRequest> {
                     Icon(Icons.edit_calendar, color: Colors.orange, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      "المستأجر يطلب تعديل المواعيد",
+                      "Tenant requests date modification",
                       style: TextStyle(
                         color: Colors.orange,
                         fontWeight: FontWeight.bold,
@@ -160,17 +164,17 @@ class _BookingRequestState extends State<BookingRequest> {
 
             const Divider(height: 25),
             Text(
-              "اسم الشقة: ${item.apartmentName}",
+              "Apartment Name: ${item.apartmentName}",
               style: TextStyle(color: Colors.grey[700]),
             ),
             const SizedBox(height: 5),
             Text(
-              "التواريخ المطلوبة: ${item.startDate.day}/${item.startDate.month} إلى ${item.endDate.day}/${item.endDate.month}",
+              "Requested Dates: ${item.startDate.day}/${item.startDate.month} to ${item.endDate.day}/${item.endDate.month}",
               style: TextStyle(color: Colors.grey[600]),
             ),
             const SizedBox(height: 5),
             Text(
-              "السعر الإجمالي المحدث: ${item.totalPrice} ر.س",
+              "Updated Total Price: ${item.totalPrice} SAR",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: accentColor,
@@ -178,7 +182,7 @@ class _BookingRequestState extends State<BookingRequest> {
             ),
             const SizedBox(height: 15),
 
-            // أزرار التحكم
+            // Control buttons
             Row(
               children: [
                 Expanded(
@@ -190,7 +194,9 @@ class _BookingRequestState extends State<BookingRequest> {
                     ),
                     onPressed: () => handleAction(item.id, 'approve'),
                     icon: const Icon(Icons.check),
-                    label: Text(isUpdateReq ? "قبول التعديل" : "قبول الحجز"),
+                    label: Text(
+                      isUpdateReq ? "Approve Modification" : "Approve Booking",
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -205,9 +211,11 @@ class _BookingRequestState extends State<BookingRequest> {
                         () => handleAction(
                           item.id,
                           'reject',
-                        ), // تأكد من مطابقة السبلنغ مع السيرفر 'cancle'
+                        ), // Ensure spelling matches server 'cancel'
                     icon: const Icon(Icons.close),
-                    label: Text(isUpdateReq ? "رفض التعديل" : "رفض الحجز"),
+                    label: Text(
+                      isUpdateReq ? "Reject Modification" : "Reject Booking",
+                    ),
                   ),
                 ),
               ],
@@ -226,7 +234,7 @@ class _BookingRequestState extends State<BookingRequest> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        isUpdate ? "طلب جديد " : " طلب جديد",
+        isUpdate ? "New Modification" : "New Request",
         style: TextStyle(
           color: isUpdate ? Colors.deepOrange : Colors.orange,
           fontSize: 12,

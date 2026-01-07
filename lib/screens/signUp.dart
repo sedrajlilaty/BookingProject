@@ -87,7 +87,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       child: DropdownButtonFormField<String>(
         initialValue: _userType,
         decoration: InputDecoration(
-          hintText: 'اختر نوع الحساب',
+          hintText: 'Select account type',
           hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),
           prefixIcon: Icon(
             Icons.person_pin,
@@ -113,7 +113,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  value == 'owner' ? 'owner' : 'tenant',
+                  value == 'owner' ? 'Owner' : 'Tenant',
                   style: const TextStyle(color: darkTextColor),
                   textAlign: TextAlign.right,
                 ),
@@ -185,7 +185,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('حدث خطأ أثناء اختيار الصورة');
+      _showErrorSnackBar('An error occurred while selecting the image');
     }
   }
 
@@ -209,7 +209,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         });
       }
     } catch (e) {
-      _showErrorSnackBar('حدث خطأ أثناء التقاط الصورة');
+      _showErrorSnackBar('An error occurred while taking the photo');
     }
   }
 
@@ -244,7 +244,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Icons.photo_library,
                     color: darkTextColor,
                   ),
-                  title: const Text('اختيار من المعرض'),
+                  title: const Text('Choose from gallery'),
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(isIdImage);
@@ -252,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.camera_alt, color: darkTextColor),
-                  title: const Text('التقاط صورة'),
+                  title: const Text('Take a photo'),
                   onTap: () {
                     Navigator.pop(context);
                     _takePhoto(isIdImage);
@@ -261,7 +261,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.close, color: Colors.red),
-                  title: const Text('إلغاء'),
+                  title: const Text('Cancel'),
                   onTap: () => Navigator.pop(context),
                 ),
               ],
@@ -274,40 +274,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   String? _validateForm() {
     if (_firstNameController.text.trim().isEmpty) {
-      return 'الرجاء إدخال الاسم الأول';
+      return 'Please enter first name';
     }
     if (_lastNameController.text.trim().isEmpty) {
-      return 'الرجاء إدخال اسم العائلة';
+      return 'Please enter last name';
     }
     if (_userType == null) {
-      return 'الرجاء اختيار نوع الحساب';
+      return 'Please select account type';
     }
     if (_phoneController.text.trim().isEmpty) {
-      return 'الرجاء إدخال رقم الهاتف';
+      return 'Please enter phone number';
     }
     if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) {
-      return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
+      return 'Phone number is incorrect (must start with 09 and consist of 10 digits)';
     }
     if (_passwordController.text.isEmpty) {
-      return 'الرجاء إدخال كلمة المرور';
+      return 'Please enter password';
     }
     if (_passwordController.text.length < 8) {
-      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+      return 'Password must be at least 8 characters';
     }
     if (_confirmPasswordController.text.isEmpty) {
-      return 'الرجاء تأكيد كلمة المرور';
+      return 'Please confirm password';
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      return 'كلمات المرور غير متطابقة';
+      return 'Passwords do not match';
     }
     if (_dateController.text.isEmpty) {
-      return 'الرجاء اختيار تاريخ الميلاد';
+      return 'Please select birth date';
     }
     if (_idImageFile == null) {
-      return 'الرجاء تحميل صورة الهوية الوطنية';
+      return 'Please upload national ID image';
     }
     if (_profileImageFile == null) {
-      return 'الرجاء تحميل صورة شخصية';
+      return 'Please upload profile picture';
     }
     return null;
   }
@@ -378,7 +378,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 : Colors.red,
                       ),
                       label: Text(
-                        'حذف',
+                        'Delete',
                         style: TextStyle(
                           color:
                               _isLoading
@@ -401,7 +401,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 : accentColor,
                       ),
                       label: Text(
-                        'تغيير',
+                        'Change',
                         style: TextStyle(
                           color:
                               _isLoading
@@ -428,7 +428,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         _isLoading ? accentColor.withOpacity(0.5) : accentColor,
                   ),
                   label: Text(
-                    'اختر صورة',
+                    'Choose image',
                     style: TextStyle(
                       color:
                           _isLoading
@@ -459,7 +459,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      'يُفضل صورة واضحة وبجودة عالية',
+                      'Preferably a clear, high-quality image',
                       style: TextStyle(
                         color: darkTextColor.withOpacity(0.6),
                         fontSize: 12,
@@ -489,18 +489,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     authProvider.setLoading(true);
 
     try {
-      print('🎯 بدء عملية التسجيل...');
+      print('🎯 Starting registration process...');
 
-      // ⚠️ **الجزء المهم: تحويل تنسيق التاريخ**
-      print('📅 التاريخ المدخل: ${_dateController.text}');
+      // ⚠️ **Important part: Convert date format**
+      print('📅 Entered date: ${_dateController.text}');
 
-      // تحويل من YYYY/MM/DD إلى YYYY-MM-DD
+      // Convert from YYYY/MM/DD to YYYY-MM-DD
       String laravelBirthdate = _dateController.text.replaceAll('/', '-');
 
-      // 🔍 التحقق من التنسيق
+      // 🔍 Verify format
       final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
       if (!dateRegex.hasMatch(laravelBirthdate)) {
-        // محاولة تصحيح التنسيق إذا كان مفرداً
+        // Try to fix format if singular
         List<String> parts = _dateController.text.split('/');
         if (parts.length == 3) {
           String year = parts[0];
@@ -510,7 +510,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       }
 
-      print('📅 التاريخ للخادم: $laravelBirthdate');
+      print('📅 Date for server: $laravelBirthdate');
 
       final response = await Signupserves.Signup(
         context,
@@ -519,20 +519,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _phoneController.text.trim(),
         _passwordController.text,
         _confirmPasswordController.text,
-        laravelBirthdate, // ⬅️ استخدم المتغير المحول
+        laravelBirthdate, // ⬅️ Use converted variable
         _userType!,
         _idImageFile!,
         _profileImageFile!,
       );
 
       if (response != null) {
-        print('📥 استجابة الخادم: ${response.statusCode}');
+        print('📥 Server response: ${response.statusCode}');
 
         if (_userType != 'tenant' && _userType != 'owner') {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'نوع الحساب غير صحيح. الرجاء اختيار مالك أو مستأجر',
+                'Incorrect account type. Please choose owner or tenant',
               ),
               backgroundColor: Colors.red,
             ),
@@ -541,46 +541,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
         if (response.statusCode == 201) {
           final responseData = response.data;
-          print('📦 بيانات الاستجابة: $responseData');
+          print('📦 Response data: $responseData');
 
-          // 🔍 استخراج البيانات من الاستجابة
-          // ⚠️ Laravel قد يرجع 'User' بدل 'user'
+          // 🔍 Extract data from response
+          // ⚠️ Laravel may return 'User' instead of 'user'
           final userData = responseData['User'] ?? responseData['user'];
           final token = responseData['Token'] ?? responseData['token'];
 
           if (userData == null) {
-            throw Exception('لا توجد بيانات مستخدم في الاستجابة');
+            throw Exception('No user data in response');
           }
 
-          print('👤 بيانات المستخدم: $userData');
-          print('🔐 التوكن: $token');
+          print('👤 User data: $userData');
+          print('🔐 Token: $token');
 
-          // ⚠️ Laravel قد يستخدم أسماء حقول مختلفة
-          // التحقق من أسماء الحقول التي يرجعها Laravel
-          print('🔍 تحليل هيكل الاستجابة:');
+          // ⚠️ Laravel may use different field names
+          // Check field names returned by Laravel
+          print('🔍 Analyzing response structure:');
           responseData.forEach((key, value) {
             print('$key: $value');
           });
 
-          // 💾 حفظ بيانات المستخدم مباشرة بعد التسجيل
+          // 💾 Save user data directly after registration
           await authProvider.login(
             userId: userData['id']?.toString() ?? '',
             firstName: userData['name'] ?? _firstNameController.text.trim(),
             lastName: userData['last_name'] ?? _lastNameController.text.trim(),
             phone: userData['phone'] ?? _phoneController.text.trim(),
-            email: userData['email'] ?? '', // Laravel قد لا يرجع email
+            email: userData['email'] ?? '', // Laravel may not return email
             userType: userData['account_type'] ?? _userType!,
             birthDate: userData['birthdate'] ?? laravelBirthdate,
-            personalImage:
-                userData['personal_image'], // ⚠️ قد يكون مسار وليس URL
-            idImageUrl:
-                userData['national_id_image'], // ⚠️ قد يكون مسار وليس URL
+            personalImage: userData['personal_image'], // ⚠️ May be path not URL
+            idImageUrl: userData['national_id_image'], // ⚠️ May be path not URL
             token: token ?? '',
           );
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('تم إنشاء الحساب بنجاح كـ $_userType'),
+              content: Text('Account created successfully as $_userType'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 3),
             ),
@@ -591,10 +589,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             MaterialPageRoute(builder: (_) => const WelcomeScreen2()),
           );
         } else if (response.statusCode == 422) {
-          // ⚠️ خطأ تحقق من Laravel
+          // ⚠️ Laravel validation error
           final errors = response.data?['errors'];
           if (errors != null) {
-            String errorMessage = 'خطأ في البيانات:\n';
+            String errorMessage = 'Data error:\n';
             errors.forEach((field, messages) {
               errorMessage += '• $field: ${messages.join(', ')}\n';
             });
@@ -609,7 +607,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('خطأ في البيانات المرسلة'),
+                content: Text('Error in sent data'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -617,7 +615,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('خطأ في الخادم: ${response.statusCode}'),
+              content: Text('Server error: ${response.statusCode}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -625,16 +623,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل الاتصال بالخادم'),
+            content: Text('Failed to connect to server'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      print('❌ خطأ كامل: $e');
+      print('❌ Full error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('حدث خطأ أثناء إنشاء الحساب: ${e.toString()}'),
+          content: Text(
+            'An error occurred while creating account: ${e.toString()}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -667,13 +667,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'جاري التسجيل...',
+                    'Registering...',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ],
               )
               : const Text(
-                'إنشاء حساب جديد',
+                'Create New Account',
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
     );
@@ -690,162 +690,183 @@ class _SignUpScreenState extends State<SignUpScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: primaryBackgroundColor,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    height: screenHeight * 0.35,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 40,
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton.icon(
-                              onPressed:
-                                  _isLoading
-                                      ? null
-                                      : () {
-                                        Navigator.pop(context);
-                                      },
-                              icon: Icon(
-                                Icons.arrow_forward_ios,
-                                color:
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF005F73),
+                Color(0xFF005F73),
+                Color(0xFFF1F3F5),
+                Color(0xFF005F73),
+                Color(0xFF005F73),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Container(
+                      height: screenHeight * 0.35,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 40,
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton.icon(
+                                onPressed:
                                     _isLoading
-                                        ? Colors.white.withOpacity(0.5)
-                                        : Colors.white,
-                                size: 18,
-                              ),
-                              label: Text(
-                                'العودة لتسجيل الدخول',
-                                style: TextStyle(
+                                        ? null
+                                        : () {
+                                          Navigator.pop(context);
+                                        },
+
+                                label: Text(
+                                  'Back to Login',
+                                  style: TextStyle(
+                                    color:
+                                        _isLoading
+                                            ? cardBackgroundColor.withOpacity(
+                                              0.5,
+                                            )
+                                            : cardBackgroundColor,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                icon: Icon(
+                                  Icons.arrow_forward_ios,
                                   color:
                                       _isLoading
-                                          ? accentColor.withOpacity(0.5)
-                                          : accentColor,
-                                  fontSize: 16,
+                                          ? Colors.white.withOpacity(0.5)
+                                          : Colors.white,
+                                  size: 18,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(
-                              Icons.home_work,
-                              size: 150,
-                              color:
-                                  _isLoading
-                                      ? accentColor.withOpacity(0.7)
-                                      : accentColor,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: cardBackgroundColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
+                            ],
+                          ),
+                          const Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Icon(
+                                Icons.home_work,
+                                size: 150,
+                                color:
+                                    _isLoading
+                                        ? cardBackgroundColor.withOpacity(0.7)
+                                        : cardBackgroundColor,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                       ),
                     ),
-                    padding: const EdgeInsets.all(30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'أدخل بياناتك',
-                          style: TextStyle(
-                            color: darkTextColor,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: cardBackgroundColor,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(30),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Enter Your Information',
+                            style: TextStyle(
+                              color: darkTextColor,
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.right,
                           ),
-                          textAlign: TextAlign.right,
-                        ),
-                        const SizedBox(height: 30),
-                        _buildInputField(
-                          hintText: 'الاسم الأول',
-                          icon: Icons.person,
-                          controller: _firstNameController,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          hintText: 'اسم العائلة',
-                          icon: Icons.person_outline,
-                          controller: _lastNameController,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildUserTypeDropdown(),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          hintText: 'رقم الهاتف (09XXXXXXXX)',
-                          icon: Icons.phone,
-                          keyboardType: TextInputType.phone,
-                          controller: _phoneController,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          hintText: 'كلمة المرور (8 أحرف على الأقل)',
-                          icon: Icons.lock,
-                          isPassword: true,
-                          controller: _passwordController,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          hintText: 'تأكيد كلمة المرور',
-                          icon: Icons.lock,
-                          isPassword: true,
-                          controller: _confirmPasswordController,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildInputField(
-                          controller: _dateController,
-                          hintText: 'تاريخ الميلاد (YYYY/MM/DD)',
-                          icon: Icons.calendar_today,
-                          readOnly: true,
-                          onTap: _isLoading ? null : () => _selectDate(context),
-                        ),
-                        const SizedBox(height: 20),
-                        _buildImageUploadArea(
-                          'صورة الهوية الوطنية (أمامية)',
-                          Icons.credit_card,
-                          true,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildImageUploadArea(
-                          'صورة شخصية (للملف الشخصي)',
-                          Icons.camera_alt,
-                          false,
-                        ),
-                        const SizedBox(height: 30),
-                        _buildSubmitButton(context),
-                      ],
+                          const SizedBox(height: 30),
+                          _buildInputField(
+                            hintText: 'First Name',
+                            icon: Icons.person,
+                            controller: _firstNameController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'Last Name',
+                            icon: Icons.person_outline,
+                            controller: _lastNameController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildUserTypeDropdown(),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'Phone Number (09XXXXXXXX)',
+                            icon: Icons.phone,
+                            keyboardType: TextInputType.phone,
+                            controller: _phoneController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'Password (at least 8 characters)',
+                            icon: Icons.lock,
+                            isPassword: true,
+                            controller: _passwordController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            hintText: 'Confirm Password',
+                            icon: Icons.lock,
+                            isPassword: true,
+                            controller: _confirmPasswordController,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildInputField(
+                            controller: _dateController,
+                            hintText: 'Birth Date (YYYY/MM/DD)',
+                            icon: Icons.calendar_today,
+                            readOnly: true,
+                            onTap:
+                                _isLoading ? null : () => _selectDate(context),
+                          ),
+                          const SizedBox(height: 20),
+                          _buildImageUploadArea(
+                            'National ID Image (Front)',
+                            Icons.credit_card,
+                            true,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildImageUploadArea(
+                            'Profile Picture',
+                            Icons.camera_alt,
+                            false,
+                          ),
+                          const SizedBox(height: 30),
+                          _buildSubmitButton(context),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                  ),
+                  ],
                 ),
               ),
-          ],
+              if (_isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -5,11 +5,11 @@ import 'package:flutter_application_8/models/booking_model.dart';
 import 'package:flutter_application_8/providers/appartementProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart'; // أضف هذا لاستخدام البروفايدر
+import 'package:provider/provider.dart'; // Added this to use Provider
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
-import '../../providers/booking_provider.dart'; // تأكد من المسار
-import '../../providers/authoProvider.dart'; // تأكد من المسار
+import '../../providers/booking_provider.dart'; // Ensure the path
+import '../../providers/authoProvider.dart'; // Ensure the path
 
 class EditBookingScreen extends StatefulWidget {
   final Booking booking;
@@ -30,9 +30,10 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   late DateTime endDate;
   late String selectedPayment;
   late double totalPrice;
-  bool _isSaving = false; // لحالة التحميل عند الحفظ
+  bool _isSaving = false; // For loading state when saving
   Apartment? apartmentDetails;
   bool _isLoadingDetails = true;
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +56,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
         setState(() {
           apartmentDetails = details;
           _isLoadingDetails = false;
-          _calculateTotal(); // إعادة الحساب بناءً على السعر المجلوب إن وجد
+          _calculateTotal(); // Recalculate based on fetched price if available
         });
       }
     } catch (e) {
@@ -64,7 +65,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   }
 
   void _calculateTotal() {
-    // حساب الفرق الفعلي بالأيام، وإذا كان أقل من يوم يحسب كـ 1
+    // Calculate actual difference in days, if less than 1 day count as 1
     int days = endDate.difference(startDate).inDays;
     if (days <= 0) days = 1;
     setState(() {
@@ -74,7 +75,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
     });
   }
 
-  // دالة موحدة لاختيار التاريخ (بداية أو نهاية)
+  // Unified function for date selection (start or end)
   Future<void> _selectDate(
     BuildContext context,
     bool isStart,
@@ -99,7 +100,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
       setState(() {
         if (isStart) {
           startDate = picked;
-          // إذا أصبح تاريخ البدء بعد النهاية، يتم تعديل النهاية تلقائياً
+          // If start date becomes after end date, automatically adjust end date
           if (startDate.isAfter(endDate) ||
               startDate.isAtSameMomentAs(endDate)) {
             endDate = startDate.add(const Duration(days: 1));
@@ -115,15 +116,14 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   Future<void> _saveChanges() async {
     setState(() => _isSaving = true);
 
-    // تجهيز البيانات
-    // في صفحة EditBookingScreen
+    // Prepare data
+    // In EditBookingScreen page
     final Map<String, dynamic> updateData = {
-      "status": "pending_update", // إرسال الحالة أولاً
-      "start_date": DateFormat(
-        'yyyy-MM-dd',
-      ).format(startDate), // التاريخ المقترح
+      "status": "pending_update", // Send status first
+      "start_date": DateFormat('yyyy-MM-dd').format(startDate), // Proposed date
       "end_date": DateFormat('yyyy-MM-dd').format(endDate),
     };
+
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final bookingProv = Provider.of<BookingProvider>(context, listen: false);
@@ -135,7 +135,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
       );
 
       if (success) {
-        // تحديث الكائن المحلي مع وضع حالة الانتظار
+        // Update local object with pending status
         final updatedBooking = widget.booking.copyWith(
           startDate: startDate,
           endDate: endDate,
@@ -148,26 +148,25 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
         if (mounted) {
           Navigator.pop(context);
-          // إظهار رسالة تفيد بأن التعديل يحتاج لموافقة
+          // Show message that modification needs approval
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'تم إرسال طلب التعديل بنجاح، بانتظار موافقة المؤجر',
+                'Modification request sent successfully, awaiting landlord approval',
               ),
-              backgroundColor: Colors.orange, // لون تنبيهي للانتظار
+              backgroundColor: Colors.orange, // Alert color for waiting
               duration: Duration(seconds: 4),
             ),
           );
         }
       } else {
-        throw Exception("فشل التحديث");
+        throw Exception("Update failed");
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('حدث خطأ أثناء الاتصال بالسيرفر'),
-
+            content: Text('An error occurred while connecting to the server'),
             backgroundColor: Colors.red,
           ),
         );
@@ -194,7 +193,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: Text(
-              "Editing Page",
+              "Edit Booking",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -214,13 +213,13 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // كارد معلومات الشقة الثابتة
+                // Fixed apartment information card
                 _buildApartmentInfo(cardColor, accent),
 
                 const SizedBox(height: 25),
 
-                // حقل تاريخ البداية (قابل للتعديل)
-                _buildLabel("تاريخ بداية الحجز"),
+                // Start date field (editable)
+                _buildLabel("Booking Start Date"),
                 _buildDateSelector(
                   date: startDate,
                   format: dateFormat,
@@ -232,8 +231,8 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
                 const SizedBox(height: 20),
 
-                // حقل تاريخ النهاية (أصبح الآن قابلاً للتعديل)
-                _buildLabel("تاريخ نهاية الحجز"),
+                // End date field (now editable)
+                _buildLabel("Booking End Date"),
                 _buildDateSelector(
                   date: endDate,
                   format: dateFormat,
@@ -245,21 +244,17 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
                 const SizedBox(height: 20),
 
-                _buildLabel("طريقة الدفع"),
+                _buildLabel("Payment Method"),
                 DropdownButtonFormField<String>(
-                  value:
-                      selectedPayment, // ملاحظة: استخدم value وليس initialValue
+                  value: selectedPayment, // Note: use value not initialValue
                   decoration: _inputDecoration(cardColor, accent),
                   items: const [
-                    DropdownMenuItem(value: 'cash', child: Text('نقدًا')),
+                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
                     DropdownMenuItem(
                       value: 'credit_card',
-                      child: Text('بطاقة ائتمان'),
+                      child: Text('Credit Card'),
                     ),
-                    DropdownMenuItem(
-                      value: 'wallet',
-                      child: Text('محفظة إلكترونية'),
-                    ),
+                    DropdownMenuItem(value: 'wallet', child: Text('E-Wallet')),
                   ],
                   onChanged: (value) {
                     if (value != null) setState(() => selectedPayment = value);
@@ -268,7 +263,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
                 const SizedBox(height: 30),
 
-                // ملخص السعر المحدث تلقائياً
+                // Automatically updated price summary
                 _buildPriceSummary(cardColor, textColor, accent),
 
                 const SizedBox(height: 30),
@@ -284,7 +279,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                               color: Colors.white,
                             )
                             : const Text(
-                              'حفظ التعديلات وإرسال للسيرفر',
+                              'Save Changes and Send to Server',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
@@ -300,7 +295,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
     );
   }
 
-  // --- Widgets مساعدة لتقليل تكرار الكود ---
+  // --- Helper widgets to reduce code repetition ---
 
   Widget _buildLabel(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8.0),
@@ -357,7 +352,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // اسم الشقة المجلوب
+            // Fetched apartment name
             Text(
               apartmentDetails?.name ?? widget.booking.apartmentName,
               style: TextStyle(
@@ -368,7 +363,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            // عرض الموقع إذا توفر
+            // Show location if available
             if (apartmentDetails != null)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -386,13 +381,10 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildInfoColumn(
-                  "سعر الليلة",
+                  "Night Price",
                   "\$${apartmentDetails?.price ?? widget.booking.pricePerDay}",
                 ),
-                _buildInfoColumn(
-                  "المساحة",
-                  "${apartmentDetails?.area ?? '—'} م²",
-                ),
+                _buildInfoColumn("Area", "${apartmentDetails?.area ?? '—'} m²"),
               ],
             ),
           ],
@@ -424,19 +416,23 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
         child: Column(
           children: [
             const Text(
-              'ملخص الحساب',
+              'Price Summary',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const Divider(),
             _buildRow(
-              'سعر الليلة',
+              'Night Price',
               '\$${apartmentDetails?.price ?? widget.booking.pricePerDay}',
               textColor: textColor,
             ),
-            _buildRow('عدد الليالي', '$nights ليلة', textColor: textColor),
+            _buildRow(
+              'Number of Nights',
+              '$nights nights',
+              textColor: textColor,
+            ),
             const Divider(),
             _buildRow(
-              'الإجمالي الجديد',
+              'New Total',
               '\$${totalPrice.toStringAsFixed(2)}',
               isTotal: true,
               accent: accent,

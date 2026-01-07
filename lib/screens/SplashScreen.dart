@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
       builder: (context, state) {
         final bool isDarkMode = state is DarkState;
 
-        // ألوان حسب الثيم
+        // Colors based on theme
         final backgroundColor =
             isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
         final cardColor = isDarkMode ? Colors.grey[800]! : cardBackgroundColor;
@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
             backgroundColor: backgroundColor,
             body: Stack(
               children: [
-                // الخلفية مع gradient
+                // Background with gradient
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
                 ),
-                // المركز: أيقونة التطبيق
+                // Center: App icon
                 Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                       ),
                       const SizedBox(height: 60),
-                      // المؤشرات الدائرية
+                      // Circular indicators
                       SizedBox(
                         width: 60,
                         height: 60,
@@ -157,7 +157,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'جاري التحميل...',
+                        'Loading...',
                         style: TextStyle(
                           color: textColor.withOpacity(0.6),
                           fontSize: 14,
@@ -166,7 +166,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ],
                   ),
                 ),
-                // أيقونات في الأسفل كخلفية
+                // Icons at the bottom as background
                 Positioned(
                   bottom: 30,
                   left: 30,

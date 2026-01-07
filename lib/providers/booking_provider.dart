@@ -155,4 +155,82 @@ class BookingProvider extends ChangeNotifier {
         .where((b) => b.userId.toString() == userId.toString())
         .toList();
   }
+
+  Future<void> cancelUserBooking(dynamic id, String token) async {
+    final dio = Dio();
+
+    // الرابط الصحيح بناءً على Postman (رابط المستأجر)
+    final url = '${Urls.baseUrl}/bookings/$id/cancel';
+
+    try {
+      final response = await dio.post(
+        url,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // تحديث الحالة في القائمة المحلية
+        final index = _bookings.indexWhere(
+          (b) => b.id.toString() == id.toString(),
+        );
+        if (index != -1) {
+          // إذا لم ترد استخدام copyWith، تأكد من إزالة كلمة final من حقل status في الموديل
+          _bookings[index] = _bookings[index].copyWith(
+            status: BookingStatus.cancelled,
+          );
+          notifyListeners();
+        }
+      }
+    } on DioException catch (e) {
+      print("Error: ${e.response?.data}");
+      throw Exception(e.response?.data['message'] ?? "Failed to cancel");
+    }
+  }
+
+  Future<void> submitReview({
+    required dynamic bookingId,
+    required double rating,
+    required String comment,
+    required String token,
+  }) async {
+    final dio = Dio();
+    // الرابط بناءً على الـ IP الصحيح وتجربة Postman
+    final url = '${Urls.domain}/api/bookings/$bookingId/rate';
+
+    try {
+      final response = await dio.post(
+        url,
+        data: {
+          'rating': rating.toInt(), // إرسال التقييم كعدد صحيح
+          'comment': comment, // إذا كان السيرفر يستقبل تعليقاً أيضاً
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // تحديث الحالة محلياً لكي لا يظهر زر التقييم مرة أخرى
+        final index = _bookings.indexWhere(
+          (b) => b.id.toString() == bookingId.toString(),
+        );
+        if (index != -1) {
+          // نستخدم copyWith لتحديث حقل التقييم (تأكد من وجود الحقل في الموديل)
+          _bookings[index] = _bookings[index].copyWith(hasRated: true);
+          notifyListeners();
+        }
+      }
+    } on DioException catch (e) {
+      print("Rating Error: ${e.response?.data}");
+      throw Exception(e.response?.data['message'] ?? "Failed to submit rating");
+    }
+  }
 }

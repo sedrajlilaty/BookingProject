@@ -31,19 +31,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   final _cityController = TextEditingController();
 
   final List<String> _governorates = [
-    'الرياض',
-    'مكة المكرمة',
-    'المدينة المنورة',
-    'الشرقية',
-    'القصيم',
-    'عسير',
-    'تبوك',
-    'حائل',
-    'الحدود الشمالية',
-    'جازان',
-    'نجران',
-    'الباحة',
-    'الجوف',
+    'Damascus',
+    'Aleppo',
+    'Homs',
+    'Tartous',
+    'Dubai',
+    'London',
+    'Paris',
   ];
 
   List<String> _cities = [];
@@ -51,7 +45,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   String? _selectedCity;
 
   String? _apartmentType;
-  final List<String> _apartmentTypes = ['شقة', 'استوديو', 'فيلا', 'apartment'];
+  final List<String> _apartmentTypes = ['farm', 'stidio', 'villa', 'apartment'];
 
   final List<XFile> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
@@ -94,12 +88,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         _selectedGovernorate == null ||
         _selectedCity == null ||
         _selectedImages.isEmpty) {
-      String errorMessage = 'الرجاء تعبئة جميع الحقول الإلزامية:\n';
-      if (_apartmentType == null) errorMessage += '• نوع الشقة\n';
-      if (_nameController.text.isEmpty) errorMessage += '• اسم الشقة\n';
-      if (_selectedGovernorate == null) errorMessage += '• المحافظة\n';
-      if (_selectedCity == null) errorMessage += '• المدينة\n';
-      if (_selectedImages.isEmpty) errorMessage += '• إضافة صور للشقة\n';
+      String errorMessage = 'you must full all field\n';
+      if (_apartmentType == null) errorMessage += '•appartement type \n';
+      if (_nameController.text.isEmpty) errorMessage += '•  appartement name\n';
+      if (_selectedGovernorate == null) errorMessage += '• government\n';
+      if (_selectedCity == null) errorMessage += '• city\n';
+      if (_selectedImages.isEmpty)
+        errorMessage += '•إadd photo for appartement\n';
       if (_priceController.text.isEmpty) errorMessage += '• السعر\n';
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -204,7 +199,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         margin: const EdgeInsets.symmetric(horizontal: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? accentColor : chipColor,
           borderRadius: BorderRadius.circular(16),
@@ -240,7 +235,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
       children: [
         const SizedBox(height: 10),
         Text(
-          'الصور المضافة (${_selectedImages.length})',
+          ' photos (${_selectedImages.length})',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -262,7 +257,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                 Icon(Icons.photo_library, size: 50, color: Colors.grey[400]),
                 const SizedBox(height: 10),
                 Text(
-                  'لم يتم إضافة صور',
+                  ' there is no photo yet',
                   style: TextStyle(color: Colors.grey[500]),
                 ),
               ],
@@ -326,12 +321,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
 
   void _loadCities() {
     setState(() {
-      _cities = [
-        'المدينة الرئيسية',
-        'المدينة الفرعية 1',
-        'المدينة الفرعية 2',
-        'المدينة الفرعية 3',
-      ];
+      _cities = ['Central park', 'Alwadi', 'Mujtahed', 'Alnaser'];
     });
   }
 
@@ -353,7 +343,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             backgroundColor: backgroundColor,
             appBar: AppBar(
               title: const Text(
-                'إضافة شقة',
+                'add appartement',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -382,7 +372,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                   } else if (state is AppartmentCubitError) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("حدث خطأ ما "),
+                        content: Text("there is an error"),
                         backgroundColor: Colors.red,
                         duration: const Duration(seconds: 3),
                       ),
@@ -418,7 +408,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     Icon(Icons.category, color: accentColor),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'نوع الشقة',
+                                      'appartement type',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -463,7 +453,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'صور الشقة',
+                                      'appartement photos',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -492,7 +482,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     Icon(Icons.apartment, color: accentColor),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'تفاصيل الشقة',
+                                      'Details',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -505,7 +495,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 TextField(
                                   controller: cubit.nameController,
                                   decoration: _inputDecoration(
-                                    'اسم الشقة *',
+                                    'Appartement name*',
                                     Icons.home,
                                     fieldColor,
                                     borderColor,
@@ -517,7 +507,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 DropdownButtonFormField<String>(
                                   initialValue: _selectedGovernorate,
                                   decoration: _inputDecoration(
-                                    'اختر المحافظة *',
+                                    'Select Governorate *',
                                     Icons.location_city,
                                     fieldColor,
                                     borderColor,
@@ -547,7 +537,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 DropdownButtonFormField<String>(
                                   initialValue: _selectedCity,
                                   decoration: _inputDecoration(
-                                    'اختر المدينة *',
+                                    'Select City *',
                                     Icons.location_on,
                                     fieldColor,
                                     borderColor,
@@ -578,7 +568,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 TextField(
                                   controller: cubit.locationController,
                                   decoration: _inputDecoration(
-                                    'الموقع التفصيلي',
+                                    'Detailed Location',
                                     Icons.location_pin,
                                     fieldColor,
                                     borderColor,
@@ -594,7 +584,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.roomsController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          'عدد الغرف',
+                                          ' rooms number',
                                           Icons.bed,
                                           fieldColor,
                                           borderColor,
@@ -609,7 +599,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.bathroomsController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          'عدد الحمامات',
+                                          ' bathrooms number',
                                           Icons.bathtub,
                                           fieldColor,
                                           borderColor,
@@ -626,7 +616,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                   keyboardType: TextInputType.multiline,
                                   maxLines: 3,
                                   decoration: _inputDecoration(
-                                    'وصف الشقة',
+                                    'Description',
                                     Icons.description,
                                     fieldColor,
                                     borderColor,
@@ -642,7 +632,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.areaController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          'المساحة',
+                                          ' Area (sq.m) *',
                                           Icons.square_foot,
                                           fieldColor,
                                           borderColor,
@@ -657,7 +647,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.priceController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          'السعر  *',
+                                          'price  *',
                                           Icons.price_change,
                                           fieldColor,
                                           borderColor,
@@ -695,7 +685,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'إضافة الشقة',
+                                                  'Add Appartment',
                                                   style: TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.bold,
