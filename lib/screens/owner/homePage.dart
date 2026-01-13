@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/providers/notificationProvider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_application_8/screens/buildEndDrower.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:provider/provider.dart';
 
 import '../../Notifaction.dart';
 import '../../Theme/theme_cubit.dart';
@@ -22,7 +24,7 @@ class ApartmentBookingScreen extends StatefulWidget {
 
 class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCity = 'All Cities';
+  String _selectedgovernorate = 'All Cities';
   String _selectedPriceRange = 'Any Price';
   String _selectedAreaRange = 'Any Area';
   String _selectedRoomsRange = 'Any Rooms';
@@ -36,10 +38,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     'New York',
     'Los Angeles',
     'Chicago',
-    'Miami',
-    'Dubai',
-    'London',
-    'Paris',
+    'Aleppo',
+    'Homs',
+    'Tartous',
+    'Damascus',
   ];
 
   final List<String> _priceRanges = [
@@ -77,9 +79,10 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
 
     return apartments.where((apartment) {
       // فلترة المدينة
-      bool cityMatch =
-          _selectedCity == 'All Cities' || apartment.city == _selectedCity;
-      
+      bool governorateMatch =
+          _selectedgovernorate == 'All Cities' ||
+          apartment.governorate == _selectedgovernorate;
+
       // فلترة السعر
       bool priceMatch = true;
       switch (_selectedPriceRange) {
@@ -145,29 +148,30 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             _searchController.text.toLowerCase(),
           );
 
-      return cityMatch && priceMatch && areaMatch && roomsMatch && searchMatch;
+      return governorateMatch &&
+          priceMatch &&
+          areaMatch &&
+          roomsMatch &&
+          searchMatch;
     }).toList();
   }
 
-  bool _doesApartmentMatchSearch(
-    ApartmentModel apartment,
-    String searchText,
-  ) {
+  bool _doesApartmentMatchSearch(ApartmentModel apartment, String searchText) {
     if (searchText.isEmpty) return true;
 
     final name = apartment.name.toLowerCase();
-    final city = apartment.city.toLowerCase();
-    final governorate = apartment.governorate.toLowerCase() ?? '';
+    final governorate = apartment.governorate.toLowerCase();
+    final city = apartment.city.toLowerCase() ?? '';
     final description = apartment.description.toLowerCase() ?? '';
 
     final searchWords = searchText.split(' ');
 
     for (final word in searchWords) {
-      if (word.isNotEmpty && 
-          (name.contains(word) || 
-           city.contains(word) || 
-           governorate.contains(word) ||
-           description.contains(word))) {
+      if (word.isNotEmpty &&
+          (name.contains(word) ||
+              governorate.contains(word) ||
+              governorate.contains(word) ||
+              description.contains(word))) {
         return true;
       }
     }
@@ -177,7 +181,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
 
   void _resetFilters() {
     setState(() {
-      _selectedCity = 'All Cities';
+      _selectedgovernorate = 'All Cities';
       _selectedPriceRange = 'Any Price';
       _selectedAreaRange = 'Any Area';
       _selectedRoomsRange = 'Any Rooms';
@@ -245,27 +249,42 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             ),
 
             // ➡️ اليمين
+            // في قسم actions اليمين داخل الـ AppBar
             actions: [
-              const SizedBox(width: 48), // 🔑 حجز مساحة مساوية لليسار
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsPage(),
+              const SizedBox(width: 48),
+              // 🔔 أيقونة الإشعارات مع العداد
+              Consumer<NotificationProvider>(
+                builder: (context, notiProvider, child) {
+                  return Badge(
+                    label: Text(
+                      notiProvider.unreadCount.toString(),
+                      style: const TextStyle(color: accentColor, fontSize: 10),
+                    ),
+                    // يظهر العداد فقط إذا كان هناك إشعارات غير مقروءة
+                    isLabelVisible: notiProvider.unreadCount > 0,
+                    backgroundColor: cardBackgroundColor,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.notifications_none,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsPage(),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-              ),
+              const SizedBox(width: 16),
             ],
           ),
 
-          endDrawer: EndDrawer(),
           body: BlocProvider(
             create:
                 widget.isOwner
@@ -277,9 +296,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               },
               builder: (context, state) {
                 var cubit = AppartmentCubit.get(context);
-                final apartments = widget.isOwner
-                    ? cubit.myappartments
-                    : cubit.appartments;
+                final apartments =
+                    widget.isOwner ? cubit.myappartments : cubit.appartments;
                 final filteredApartments = _filterApartments(apartments);
 
                 return SafeArea(
@@ -300,10 +318,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                         const SizedBox(height: 24),
                         state is AppartmentLoading
                             ? const Center(child: CircularProgressIndicator())
-                            : _buildApartmentsGrid(
-                              isDark,
-                              filteredApartments,
-                            ),
+                            : _buildApartmentsGrid(isDark, filteredApartments),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -409,13 +424,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
   Widget _buildFilterIndicators(bool isDark) {
     final List<Widget> indicators = [];
 
-    if (_selectedCity != 'All Cities') {
+    if (_selectedgovernorate != 'All Cities') {
       indicators.add(
         _buildFilterChip(
-          '${_isEnglish ? 'City' : 'المدينة'}: $_selectedCity',
+          '${_isEnglish ? 'governorate' : 'المدينة'}: $_selectedgovernorate',
           isDark,
           () {
-            setState(() => _selectedCity = 'All Cities');
+            setState(() => _selectedgovernorate = 'All Cities');
           },
         ),
       );
@@ -516,7 +531,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                     decoration: InputDecoration(
                       hintText:
                           _isEnglish
-                              ? 'Search by name, city, governorate...'
+                              ? 'Search by name, governorate, governorate...'
                               : 'ابحث بالاسم، المدينة، المحافظة...',
                       border: InputBorder.none,
                     ),
@@ -577,7 +592,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String tempSelectedCity = _selectedCity;
+        String tempSelectedgovernorate = _selectedgovernorate;
         String tempSelectedPriceRange = _selectedPriceRange;
         String tempSelectedAreaRange = _selectedAreaRange;
         String tempSelectedRoomsRange = _selectedRoomsRange;
@@ -602,13 +617,13 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildFilterSection(
-                          _isEnglish ? 'City' : 'المدينة',
-                          tempSelectedCity,
+                          _isEnglish ? 'governorate' : 'المدينة',
+                          tempSelectedgovernorate,
                           _cities,
                           isDark,
                           (value) {
                             setStateDialog(() {
-                              tempSelectedCity = value;
+                              tempSelectedgovernorate = value;
                             });
                           },
                         ),
@@ -655,7 +670,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                     TextButton(
                       onPressed: () {
                         setStateDialog(() {
-                          tempSelectedCity = 'All Cities';
+                          tempSelectedgovernorate = 'All Cities';
                           tempSelectedPriceRange = 'Any Price';
                           tempSelectedAreaRange = 'Any Area';
                           tempSelectedRoomsRange = 'Any Rooms';
@@ -679,7 +694,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _selectedCity = tempSelectedCity;
+                          _selectedgovernorate = tempSelectedgovernorate;
                           _selectedPriceRange = tempSelectedPriceRange;
                           _selectedAreaRange = tempSelectedAreaRange;
                           _selectedRoomsRange = tempSelectedRoomsRange;
@@ -808,7 +823,8 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ApartmentDetailsPage(apartment: apartments[index]),
+                builder:
+                    (_) => ApartmentDetailsPage(apartment: apartments[index]),
               ),
             );
           },
@@ -825,6 +841,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
               children: [
                 Container(
                   height: 100,
+                  width: double.infinity, // لضمان ملء العرض المتاح
                   decoration: BoxDecoration(
                     color: Colors.blueGrey[100],
                     borderRadius: const BorderRadius.only(
@@ -832,12 +849,52 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                       topRight: Radius.circular(8),
                     ),
                   ),
-                  child: Center(
-                    child: Icon(
-                      Icons.home,
-                      color: Colors.blueGrey[400],
-                      size: 40,
+
+                  child: ClipRRect(
+                    // لضمان أن الصورة تأخذ نفس حواف الـ Container
+                    //final String imagePath = apartment.images[index].image;
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
                     ),
+                    child:
+                        apartment.images.isNotEmpty
+                            ? Image.network(
+                              apartment
+                                  .images[0]
+                                  .image, // عرض أول صورة في القائمة
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                // في حال فشل تحميل الصورة، نعرض الأيقونة الافتراضية
+                                return Center(
+                                  child: Icon(
+                                    Icons.home,
+                                    color: Colors.blueGrey[400],
+                                    size: 40,
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              },
+                            )
+                            : Center(
+                              // في حال كانت قائمة الصور فارغة أصلاً
+                              child: Icon(
+                                Icons.home,
+                                color: Colors.blueGrey[400],
+                                size: 40,
+                              ),
+                            ),
                   ),
                 ),
                 Padding(
@@ -865,7 +922,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              apartment.city,
+                              apartment.governorate,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.grey[600],

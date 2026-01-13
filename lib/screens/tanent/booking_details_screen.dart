@@ -4,7 +4,7 @@ import 'package:flutter_application_8/models/booking_model.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../Theme/theme_cubit.dart';
-import '../../Theme/theme_state.dart';// تأكد من مسار ThemeCubit
+import '../../Theme/theme_state.dart'; // تأكد من مسار ThemeCubit
 
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;
@@ -22,17 +22,23 @@ class BookingDetailsScreen extends StatelessWidget {
         bool isDark = state is DarkState;
 
         // ألوان حسب الثيم
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : darkTextColor;
-        Color secondaryTextColor = isDark ? Colors.grey[300]! : Colors.grey[600]!;
+        Color secondaryTextColor =
+            isDark ? Colors.grey[300]! : Colors.grey[600]!;
 
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: const Text(
-              'تفاصيل الحجز',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              ' booking derails',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             backgroundColor: accentColor,
             centerTitle: true,
@@ -70,11 +76,18 @@ class BookingDetailsScreen extends StatelessWidget {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(booking.status).withOpacity(0.1),
+                                color: _getStatusColor(
+                                  booking.status,
+                                ).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: _getStatusColor(booking.status)),
+                                border: Border.all(
+                                  color: _getStatusColor(booking.status),
+                                ),
                               ),
                               child: Text(
                                 _getStatusText(booking.status),
@@ -89,7 +102,10 @@ class BookingDetailsScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           booking.apartmentLocation,
-                          style: TextStyle(fontSize: 14, color: secondaryTextColor),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: secondaryTextColor,
+                          ),
                         ),
                       ],
                     ),
@@ -99,39 +115,92 @@ class BookingDetailsScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // معلومات الحجز
-                Text('معلومات الحجز',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                Text(
+                  " booking's information",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _buildInfoRow('رقم الحجز', booking.id, textColor, secondaryTextColor),
-                _buildInfoRow('تاريخ الحجز', dateFormat.format(booking.bookingDate), textColor, secondaryTextColor),
-                _buildInfoRow('وقت الحجز', timeFormat.format(booking.bookingDate), textColor, secondaryTextColor),
+                _buildInfoRow(
+                  ' booking id',
+                  booking.id,
+                  textColor,
+                  secondaryTextColor,
+                ),
+                _buildInfoRow(
+                  "booking's date",
+                  dateFormat.format(booking.bookingDate),
+                  textColor,
+                  secondaryTextColor,
+                ),
+                _buildInfoRow(
+                  ' booking time',
+                  timeFormat.format(booking.bookingDate),
+                  textColor,
+                  secondaryTextColor,
+                ),
 
                 const SizedBox(height: 20),
 
                 // التواريخ
-                Text('تواريخ الإقامة',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                Text(
+                  ' date of stay',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildDateCard('بداية الحجز', booking.startDate, isDark),
+                    _buildDateCard(' start date', booking.startDate, isDark),
                     const Icon(Icons.arrow_forward, color: Colors.grey),
-                    _buildDateCard('نهاية الحجز', booking.endDate, isDark),
+                    _buildDateCard(' end date', booking.endDate, isDark),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _buildInfoRow('مدة الإقامة', '$duration يوم', textColor, secondaryTextColor),
+                _buildInfoRow(
+                  'day of stay',
+                  '$duration يوم',
+                  textColor,
+                  secondaryTextColor,
+                ),
 
                 const SizedBox(height: 20),
 
                 // المعلومات المالية
-                Text('المعلومات المالية',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                Text(
+                  'المعلومات المالية',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _buildInfoRow('السعر اليومي', '\$${booking.pricePerDay.toStringAsFixed(2)}', textColor, secondaryTextColor),
-                _buildInfoRow('إجمالي السعر', '\$${booking.totalPrice.toStringAsFixed(2)}', textColor, secondaryTextColor),
-                _buildInfoRow('طريقة الدفع', booking.paymentMethod, textColor, secondaryTextColor),
+                _buildInfoRow(
+                  ' pirce for month',
+                  '\$${booking.pricePerDay.toStringAsFixed(2)}',
+                  textColor,
+                  secondaryTextColor,
+                ),
+                _buildInfoRow(
+                  'إجمالي السعر',
+                  '\$${booking.totalPrice.toStringAsFixed(2)}',
+                  textColor,
+                  secondaryTextColor,
+                ),
+                _buildInfoRow(
+                  ' payment method',
+                  booking.paymentMethod,
+                  textColor,
+                  secondaryTextColor,
+                ),
 
                 const SizedBox(height: 20),
 
@@ -140,8 +209,14 @@ class BookingDetailsScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('تقييمك للشقة',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
+                      Text(
+                        ' your rating',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Card(
                         color: isDark ? Colors.grey[700] : Colors.amber[50],
@@ -163,16 +238,22 @@ class BookingDetailsScreen extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     '${booking.userRating}/5',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ],
                               ),
-                              if (booking.userReview != null && booking.userReview!.isNotEmpty)
+                              if (booking.userReview != null &&
+                                  booking.userReview!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
                                   child: Text(
                                     booking.userReview!,
-                                    style: TextStyle(fontSize: 14, color: textColor),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: textColor,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -192,7 +273,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.edit),
-                          label: const Text('تعديل الحجز'),
+                          label: const Text(' edit booking'),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -206,7 +287,7 @@ class BookingDetailsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           icon: const Icon(Icons.cancel),
-                          label: const Text('إلغاء الحجز'),
+                          label: const Text(' cancel booking'),
                           onPressed: () {
                             Navigator.pop(context);
                           },
@@ -226,14 +307,29 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, Color textColor, Color secondaryTextColor) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    Color textColor,
+    Color secondaryTextColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: secondaryTextColor)),
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textColor)),
+          Text(
+            label,
+            style: TextStyle(fontSize: 14, color: secondaryTextColor),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
         ],
       ),
     );
@@ -248,10 +344,21 @@ class BookingDetailsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Column(
             children: [
-              Text(title, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[300]! : Colors.blue)),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.grey[300]! : Colors.blue,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(dateFormat.format(date),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                dateFormat.format(date),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -269,19 +376,65 @@ class BookingDetailsScreen extends StatelessWidget {
         return Colors.red;
       case BookingStatus.completed:
         return Colors.blue;
+      case BookingStatus.pendingUpdate: // الحالة الجديدة
+        return Colors.deepOrange;
     }
+  }
+
+  // تحديث ويدجت الشارة (Badge) لتوضيح الانتظار
+  Widget _buildStatusBadge(BookingStatus status) {
+    Color color = _getStatusColor(status);
+    String text;
+
+    switch (status) {
+      case BookingStatus.confirmed:
+        text = "confirmed";
+        break;
+      case BookingStatus.cancelled:
+        text = "cancelled";
+        break;
+      case BookingStatus.completed:
+        text = "completed";
+        break;
+      case BookingStatus.pendingUpdate:
+        text = "pending update";
+        break;
+      default:
+        text = "unknown";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   String _getStatusText(BookingStatus status) {
     switch (status) {
       case BookingStatus.confirmed:
-        return 'مؤكد';
+        return 'confirmed';
       case BookingStatus.pending:
-        return 'قيد المراجعة';
+        return ' pending';
       case BookingStatus.cancelled:
-        return 'ملغى';
+        return 'canceled';
       case BookingStatus.completed:
-        return 'مكتمل';
+        return 'completed';
+      case BookingStatus.pendingUpdate: // إضافة الحالة الجديدة هنا
+        return '   pending update';
+      default:
+        return '  unknown';
     }
   }
 }

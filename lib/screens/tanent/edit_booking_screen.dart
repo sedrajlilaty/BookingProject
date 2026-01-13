@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/models/apartment_model.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
+import 'package:flutter_application_8/providers/appartementProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart'; // Added this to use Provider
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
+import '../../providers/booking_provider.dart'; // Ensure the path
+import '../../providers/authoProvider.dart'; // Ensure the path
 
 class EditBookingScreen extends StatefulWidget {
   final Booking booking;
@@ -25,6 +30,9 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   late DateTime endDate;
   late String selectedPayment;
   late double totalPrice;
+  bool _isSaving = false; // For loading state when saving
+  Apartment? apartmentDetails;
+  bool _isLoadingDetails = true;
 
   @override
   void initState() {
@@ -33,55 +41,139 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
     endDate = widget.booking.endDate;
     selectedPayment = widget.booking.paymentMethod;
     _calculateTotal();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchApartmentDetails();
+    });
+  }
+
+  Future<void> _fetchApartmentDetails() async {
+    try {
+      final aptProv = Provider.of<ApartmentProvider>(context, listen: false);
+      final details = await aptProv.fetchApartmentById(
+        widget.booking.apartmentId,
+      );
+      if (mounted) {
+        setState(() {
+          apartmentDetails = details;
+          _isLoadingDetails = false;
+          _calculateTotal(); // Recalculate based on fetched price if available
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingDetails = false);
+    }
   }
 
   void _calculateTotal() {
-    final days = endDate.difference(startDate).inDays;
-    totalPrice = widget.booking.pricePerDay * days;
+    // Calculate actual difference in days, if less than 1 day count as 1
+    int days = endDate.difference(startDate).inDays;
+    if (days <= 0) days = 1;
+    setState(() {
+      double pricePerDay =
+          apartmentDetails?.price ?? widget.booking.pricePerDay;
+      totalPrice = pricePerDay * days;
+    });
   }
 
-  Future<void> _selectStartDate(BuildContext context, Color accent) async {
+  // Unified function for date selection (start or end)
+  Future<void> _selectDate(
+    BuildContext context,
+    bool isStart,
+    Color accent,
+  ) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: startDate,
-      firstDate: DateTime.now(),
+      initialDate: isStart ? startDate : endDate,
+      firstDate:
+          isStart ? DateTime.now() : startDate.add(const Duration(days: 1)),
       lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: accent),
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(
+              context,
+            ).copyWith(colorScheme: ColorScheme.light(primary: accent)),
+            child: child!,
           ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
       setState(() {
-        startDate = picked;
-        endDate = picked.add(Duration(days: widget.booking.durationInDays));
+        if (isStart) {
+          startDate = picked;
+          // If start date becomes after end date, automatically adjust end date
+          if (startDate.isAfter(endDate) ||
+              startDate.isAtSameMomentAs(endDate)) {
+            endDate = startDate.add(const Duration(days: 1));
+          }
+        } else {
+          endDate = picked;
+        }
         _calculateTotal();
       });
     }
   }
 
-  void _saveChanges() {
-    final updatedBooking = widget.booking.copyWith(
-      startDate: startDate,
-      endDate: endDate,
-      totalPrice: totalPrice,
-      paymentMethod: selectedPayment,
-    );
+  Future<void> _saveChanges() async {
+    setState(() => _isSaving = true);
 
-    widget.onBookingUpdated(updatedBooking);
-    Navigator.pop(context);
+    // Prepare data
+    // In EditBookingScreen page
+    final Map<String, dynamic> updateData = {
+      "status": "pending_update", // Send status first
+      "start_date": DateFormat('yyyy-MM-dd').format(startDate), // Proposed date
+      "end_date": DateFormat('yyyy-MM-dd').format(endDate),
+    };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تحديث الحجز بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final bookingProv = Provider.of<BookingProvider>(context, listen: false);
+
+      bool success = await bookingProv.updateBooking(
+        widget.booking.id,
+        updateData,
+        auth.token!,
+      );
+
+      if (success) {
+        // Update local object with pending status
+        final updatedBooking = widget.booking.copyWith(
+          startDate: startDate,
+          endDate: endDate,
+          totalPrice: totalPrice,
+          paymentMethod: selectedPayment,
+          status: BookingStatus.pendingUpdate,
+        );
+
+        widget.onBookingUpdated(updatedBooking);
+
+        if (mounted) {
+          Navigator.pop(context);
+          // Show message that modification needs approval
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Modification request sent successfully, awaiting landlord approval',
+              ),
+              backgroundColor: Colors.orange, // Alert color for waiting
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        throw Exception("Update failed");
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occurred while connecting to the server'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -91,234 +183,111 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
-
-        // الألوان حسب الثيم
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : darkTextColor;
         Color accent = accentColor;
 
-        return Theme(
-          data: ThemeData(
-            primaryColor: accent,
-            scaffoldBackgroundColor: backgroundColor,
-            cardColor: cardColor,
-            textTheme: TextTheme(bodyMedium: TextStyle(color: textColor)),
-            appBarTheme: AppBarTheme(
-              backgroundColor: accent,
-              elevation: 4,
-              centerTitle: true,
-              titleTextStyle: const TextStyle(
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            title: Text(
+              "Edit Booking",
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-              ),
             ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: cardColor.withOpacity(0.15),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: accent),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: accent, width: 2),
-              ),
+            backgroundColor: accentColor,
+            centerTitle: true,
+            elevation: 4,
+            automaticallyImplyLeading: false,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             ),
           ),
-          child: Scaffold(
-            backgroundColor: backgroundColor,
-            appBar: AppBar(
-              title: const Text('تعديل الحجز'),
-              automaticallyImplyLeading: false,
-            ),
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // معلومات الشقة
-                  Card(
-                    color: cardColor,
-                    elevation: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 18,
-                        horizontal: 120,
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            widget.booking.apartmentName,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: accent,
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Fixed apartment information card
+                _buildApartmentInfo(cardColor, accent),
+
+                const SizedBox(height: 25),
+
+                // Start date field (editable)
+                _buildLabel("Booking Start Date"),
+                _buildDateSelector(
+                  date: startDate,
+                  format: dateFormat,
+                  color: cardColor,
+                  accent: accent,
+                  textColor: textColor,
+                  onTap: () => _selectDate(context, true, accent),
+                ),
+
+                const SizedBox(height: 20),
+
+                // End date field (now editable)
+                _buildLabel("Booking End Date"),
+                _buildDateSelector(
+                  date: endDate,
+                  format: dateFormat,
+                  color: cardColor,
+                  accent: accent,
+                  textColor: textColor,
+                  onTap: () => _selectDate(context, false, accent),
+                ),
+
+                const SizedBox(height: 20),
+
+                _buildLabel("Payment Method"),
+                DropdownButtonFormField<String>(
+                  value: selectedPayment, // Note: use value not initialValue
+                  decoration: _inputDecoration(cardColor, accent),
+                  items: const [
+                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                    DropdownMenuItem(
+                      value: 'credit_card',
+                      child: Text('Credit Card'),
+                    ),
+                    DropdownMenuItem(value: 'wallet', child: Text('E-Wallet')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) setState(() => selectedPayment = value);
+                  },
+                ),
+
+                const SizedBox(height: 30),
+
+                // Automatically updated price summary
+                _buildPriceSummary(cardColor, textColor, accent),
+
+                const SizedBox(height: 30),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _saveChanges,
+                    style: ElevatedButton.styleFrom(backgroundColor: accent),
+                    child:
+                        _isSaving
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              'Save Changes and Send to Server',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'السعر اليومي: \$${widget.booking.pricePerDay.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: accent,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  // تاريخ البداية
-                  const Text(
-                    'تاريخ بداية الحجز',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () => _selectStartDate(context, accent),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: cardColor.withOpacity(0.15),
-                        border: Border.all(color: accent, width: 1.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(dateFormat.format(startDate),
-                              style: TextStyle(color: textColor)),
-                          Icon(Icons.calendar_today, color: accent),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // تاريخ النهاية
-                  const Text(
-                    'تاريخ نهاية الحجز',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: cardColor.withOpacity(0.15),
-                      border: Border.all(color: accent, width: 1.5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(dateFormat.format(endDate),
-                            style: TextStyle(color: textColor)),
-                        Icon(Icons.event_available, color: accent),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // طريقة الدفع
-                  const Text(
-                    'طريقة الدفع',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedPayment,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: cardColor.withOpacity(0.15),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: accent, width: 3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'نقدًا', child: Text('نقدًا')),
-                      DropdownMenuItem(
-                          value: 'بطاقة ائتمان', child: Text('بطاقة ائتمان')),
-                      DropdownMenuItem(
-                          value: 'محفظة إلكترونية',
-                          child: Text('محفظة إلكترونية')),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => selectedPayment = value);
-                      }
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ملخص السعر
-                  Card(
-                    color: cardColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Text(
-                            'ملخص السعر',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: accent,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildRow('عدد الأيام',
-                              '${endDate.difference(startDate).inDays} يوم', textColor: textColor),
-                          const Divider(),
-                          _buildRow(
-                              'الإجمالي', '\$${totalPrice.toStringAsFixed(2)}',
-                              isTotal: true, accent: accent),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // زر حفظ
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _saveChanges,
-                      child: const Text(
-                        'تحديث الحجز',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
@@ -326,24 +295,190 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
     );
   }
 
-  Widget _buildRow(String label, String value,
-      {bool isTotal = false, Color? accent, Color? textColor}) {
+  // --- Helper widgets to reduce code repetition ---
+
+  Widget _buildLabel(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8.0),
+    child: Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    ),
+  );
+
+  Widget _buildDateSelector({
+    required DateTime date,
+    required DateFormat format,
+    required Color color,
+    required Color accent,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.15),
+          border: Border.all(color: accent, width: 1.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(format.format(date), style: TextStyle(color: textColor)),
+            Icon(Icons.calendar_month, color: accent),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApartmentInfo(Color cardColor, Color accent) {
+    if (_isLoadingDetails) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: CircularProgressIndicator(color: accent),
+        ),
+      );
+    }
+
+    return Card(
+      color: cardColor,
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // Fetched apartment name
+            Text(
+              apartmentDetails?.name ?? widget.booking.apartmentName,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: accent,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            // Show location if available
+            if (apartmentDetails != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${apartmentDetails!.city}, ${apartmentDetails!.governorate}",
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            const Divider(height: 25),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInfoColumn(
+                  "Night Price",
+                  "\$${apartmentDetails?.price ?? widget.booking.pricePerDay}",
+                ),
+                _buildInfoColumn("Area", "${apartmentDetails?.area ?? '—'} m²"),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoColumn(String label, String value) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceSummary(Color cardColor, Color textColor, Color accent) {
+    int nights = endDate.difference(startDate).inDays;
+    if (nights <= 0) nights = 1;
+
+    return Card(
+      color: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              'Price Summary',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            _buildRow(
+              'Night Price',
+              '\$${apartmentDetails?.price ?? widget.booking.pricePerDay}',
+              textColor: textColor,
+            ),
+            _buildRow(
+              'Number of Nights',
+              '$nights nights',
+              textColor: textColor,
+            ),
+            const Divider(),
+            _buildRow(
+              'New Total',
+              '\$${totalPrice.toStringAsFixed(2)}',
+              isTotal: true,
+              accent: accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(Color cardColor, Color accent) =>
+      InputDecoration(
+        filled: true,
+        fillColor: cardColor.withOpacity(0.15),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: accent),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: accent, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      );
+
+  Widget _buildRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+    Color? accent,
+    Color? textColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(
-                fontSize: isTotal ? 16 : 14,
-                color: textColor ?? Colors.grey[600],
-              )),
+          Text(
+            label,
+            style: TextStyle(fontSize: isTotal ? 16 : 14, color: textColor),
+          ),
           Text(
             value,
             style: TextStyle(
               fontSize: isTotal ? 18 : 14,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? accent ?? accentColor : textColor ?? Colors.black,
+              color: isTotal ? accent : textColor,
             ),
           ),
         ],

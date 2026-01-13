@@ -25,7 +25,7 @@ class BookingDone extends StatelessWidget {
     required this.checkInDate,
     required this.checkOutDate,
     this.apartmentLocation = '',
-    this.paymentMethod = 'نقدًا',
+    this.paymentMethod = 'Cash',
     this.durationInDays = 1,
   });
 
@@ -37,7 +37,8 @@ class BookingDone extends StatelessWidget {
       builder: (context, state) {
         bool isDark = state is DarkState;
 
-        Color backgroundColor = isDark ? Colors.grey[900]! : primaryBackgroundColor;
+        Color backgroundColor =
+            isDark ? Colors.grey[900]! : primaryBackgroundColor;
         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
         Color textColor = isDark ? Colors.white : Colors.black;
         Color accent = accentColor;
@@ -46,7 +47,7 @@ class BookingDone extends StatelessWidget {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: const Text(
-              'تاكيد الحجز',
+              'Booking Confirmation',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -73,15 +74,11 @@ class BookingDone extends StatelessWidget {
                     color: accent,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 80,
-                    color: cardColor,
-                  ),
+                  child: Icon(Icons.check_circle, size: 80, color: cardColor),
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'تم تأكيد الحجز بنجاح!',
+                  'Booking Request Sent - Awaiting Owner Approval',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -91,7 +88,7 @@ class BookingDone extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'رقم الحجز: $bookingId',
+                  'Booking ID: $bookingId',
                   style: TextStyle(
                     fontSize: 16,
                     color: textColor.withOpacity(0.7),
@@ -108,7 +105,7 @@ class BookingDone extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'ماذا بعد؟',
+                          'What\'s Next?',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: accent,
@@ -116,10 +113,30 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        _buildTipItem(Icons.notifications, 'ستتلقى تأكيداً عبر البريد الإلكتروني', accent, textColor),
-                        _buildTipItem(Icons.phone, 'سيتم التواصل معك من قبل المالك', accent, textColor),
-                        _buildTipItem(Icons.calendar_today, 'يمكنك مراجعة حجوزاتك في أي وقت', accent, textColor),
-                        _buildTipItem(Icons.edit, 'يمكنك تعديل الحجز خلال 24 ساعة', accent, textColor),
+                        _buildTipItem(
+                          Icons.notifications,
+                          'You will receive a confirmation via email',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.phone,
+                          'The owner will contact you',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.calendar_today,
+                          'You can review your bookings anytime',
+                          accent,
+                          textColor,
+                        ),
+                        _buildTipItem(
+                          Icons.edit,
+                          'You can modify the booking within 24 hours',
+                          accent,
+                          textColor,
+                        ),
                       ],
                     ),
                   ),
@@ -133,7 +150,9 @@ class BookingDone extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => MyBookingsScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => MyBookingsScreen(),
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -144,7 +163,7 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         child: const Text(
-                          'عرض حجوزاتي',
+                          'View My Bookings',
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
@@ -156,7 +175,11 @@ class BookingDone extends StatelessWidget {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => ApartmentBookingScreen(isOwner: false)),
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      ApartmentBookingScreen(isOwner: false),
+                            ),
                           );
                         },
                         style: OutlinedButton.styleFrom(
@@ -167,7 +190,7 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'العودة للرئيسية',
+                          'Return to Home',
                           style: TextStyle(fontSize: 16, color: accent),
                         ),
                       ),
@@ -183,7 +206,7 @@ class BookingDone extends StatelessWidget {
                           Icon(Icons.share, size: 20, color: accent),
                           const SizedBox(width: 8),
                           Text(
-                            'مشاركة تفاصيل الحجز',
+                            'Share Booking Details',
                             style: TextStyle(color: accent),
                           ),
                         ],
@@ -199,7 +222,12 @@ class BookingDone extends StatelessWidget {
     );
   }
 
-  Widget _buildTipItem(IconData icon, String text, Color accent, Color textColor) {
+  Widget _buildTipItem(
+    IconData icon,
+    String text,
+    Color accent,
+    Color textColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -208,10 +236,7 @@ class BookingDone extends StatelessWidget {
           Icon(icon, size: 18, color: accent),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              text,
-              style: TextStyle(fontSize: 14, color: textColor),
-            ),
+            child: Text(text, style: TextStyle(fontSize: 14, color: textColor)),
           ),
         ],
       ),
@@ -220,38 +245,41 @@ class BookingDone extends StatelessWidget {
 
   void _shareBookingDetails(BuildContext context) {
     final details = '''
-تم تأكيد حجزك بنجاح!
+Your booking has been successfully confirmed!
 
-رقم الحجز: $bookingId
-اسم الشقة: $apartmentName
-تاريخ الوصول: ${DateFormat('yyyy-MM-dd').format(checkInDate)}
-تاريخ المغادرة: ${DateFormat('yyyy-MM-dd').format(checkOutDate)}
-المبلغ الإجمالي: \$${totalPrice.toStringAsFixed(2)}
+Booking ID: $bookingId
+Apartment Name: $apartmentName
+Check-in Date: ${DateFormat('yyyy-MM-dd').format(checkInDate)}
+Check-out Date: ${DateFormat('yyyy-MM-dd').format(checkOutDate)}
+Total Amount: \$${totalPrice.toStringAsFixed(2)}
 
-شكراً لاستخدامك تطبيقنا!
+Thank you for using our app!
 ''';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تفاصيل الحجز'),
-        content: SingleChildScrollView(child: Text(details)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('حسناً'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Booking Details'),
+            content: SingleChildScrollView(child: Text(details)),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Details copied to clipboard'),
+                    ),
+                  );
+                },
+                child: const Text('Copy Details'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم نسخ التفاصيل للحافظة')),
-              );
-            },
-            child: const Text('نسخ التفاصيل'),
-          ),
-        ],
-      ),
     );
   }
 }

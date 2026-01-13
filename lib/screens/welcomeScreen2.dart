@@ -18,23 +18,24 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
   int _currentPage = 0;
   final List<WelcomeCardData> _welcomeCards = [
     WelcomeCardData(
-      title: 'أهلاً بك في تطبيق عقار',
-      subtitle: 'منصة متكاملة لتأجير واستئجار الشقق السكنية',
+      title: 'Welcome to Aqar App',
+      subtitle: 'A comprehensive platform for renting and leasing apartments',
       icon: Icons.apartment,
     ),
     WelcomeCardData(
-      title: 'ابحث عن شقتك المثالية',
-      subtitle: 'آلاف الشقق المتاحة في مختلف المناطق',
+      title: 'Find Your Perfect Apartment',
+      subtitle: 'Thousands of apartments available in various areas',
       icon: Icons.search,
     ),
     WelcomeCardData(
-      title: 'حجز آمن وسهل',
-      subtitle: 'عملية حجز موثوقة مع دفع إلكتروني آمن',
+      title: 'Secure and Easy Booking',
+      subtitle: 'Reliable booking process with secure electronic payment',
       icon: Icons.security,
     ),
     WelcomeCardData(
-      title: 'إدارة ممتلكاتك',
-      subtitle: 'لأصحاب الشقق: قدم عرضك وأدر حجوزاتك',
+      title: 'Manage Your Properties',
+      subtitle:
+          'For apartment owners: List your property and manage your bookings',
       icon: Icons.manage_accounts,
     ),
   ];
@@ -66,10 +67,12 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
         final bool isDarkMode = state is DarkState;
 
         // ألوان حسب الثيم
-        final backgroundColor = isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
+        final backgroundColor =
+            isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
         final cardColor = isDarkMode ? Colors.grey[800]! : cardBackgroundColor;
         final textColor = isDarkMode ? Colors.white : darkTextColor;
-        final secondaryTextColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
+        final secondaryTextColor =
+            isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
         final buttonTextColor = Colors.white;
         final iconColor = accentColor;
 
@@ -86,7 +89,10 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                     borderRadius: BorderRadius.circular(100),
                     boxShadow: [
                       BoxShadow(
-                        color: isDarkMode ? Colors.black26 : Colors.grey.withOpacity(0.1),
+                        color:
+                            isDarkMode
+                                ? Colors.black26
+                                : Colors.grey.withOpacity(0.1),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -128,13 +134,17 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     _welcomeCards.length,
-                        (index) => _buildPageIndicator(index == _currentPage, iconColor),
+                    (index) =>
+                        _buildPageIndicator(index == _currentPage, iconColor),
                   ),
                 ),
                 const SizedBox(height: 40),
                 // زر تسجيل الدخول
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30.0,
+                    vertical: 10.0,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -142,7 +152,9 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -154,15 +166,21 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                         elevation: 5,
                       ),
                       child: const Text(
-                        'تسجيل الدخول',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ' Log in',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 // زر إنشاء حساب جديد
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30.0,
+                    vertical: 10.0,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -170,7 +188,9 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpScreen(),
+                          ),
                         );
                       },
                       style: OutlinedButton.styleFrom(
@@ -180,8 +200,12 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                         ),
                       ),
                       child: Text(
-                        'إنشاء حساب جديد',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: accentColor),
+                        'Create new account',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: accentColor,
+                        ),
                       ),
                     ),
                   ),
@@ -214,7 +238,11 @@ class WelcomeCardData {
   final String subtitle;
   final IconData icon;
 
-  WelcomeCardData({required this.title, required this.subtitle, required this.icon});
+  WelcomeCardData({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
 }
 
 class WelcomeCard extends StatelessWidget {
@@ -266,13 +294,21 @@ class WelcomeCard extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
               const SizedBox(height: 15),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: secondaryTextColor, height: 1.5),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: secondaryTextColor,
+                  height: 1.5,
+                ),
               ),
             ],
           ),

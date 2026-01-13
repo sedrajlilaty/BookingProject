@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
@@ -18,34 +17,34 @@ class LoginScreen extends StatefulWidget {
 }
 
 Future<void> saveToken(String token) async {
-  // أضف هذه الثوابت في الأعلى
+  // Add these constants at the top
   const String kToken = 'auth_token';
   const String kIsLoggedIn = 'is_logged_in';
 
   try {
     final prefs = await SharedPreferences.getInstance();
 
-    // حفظ التوكن
+    // Save token
     await prefs.setString(kToken, token);
 
-    // حفظ حالة تسجيل الدخول
+    // Save login status
     await prefs.setBool(kIsLoggedIn, true);
 
-    // ✅ حفظ الوقت لتتبع صلاحية التوكن
+    // ✅ Save time to track token validity
     await prefs.setString('token_saved_at', DateTime.now().toIso8601String());
 
-    print('✅ تم حفظ التوكن بنجاح: ${token.substring(0, 20)}...');
-    print('📅 وقت الحفظ: ${DateTime.now()}');
+    print('✅ Token saved successfully: ${token.substring(0, 20)}...');
+    print('📅 Save time: ${DateTime.now()}');
 
-    // التحقق من الحفظ
+    // Verify save
     final savedToken = prefs.getString(kToken);
     if (savedToken == token) {
-      print('✅ التحقق: التوكن محفوظ بشكل صحيح');
+      print('✅ Verification: Token saved correctly');
     } else {
-      print('❌ التحقق: هناك مشكلة في حفظ التوكن');
+      print('❌ Verification: There is a problem saving the token');
     }
   } catch (e) {
-    print('❌ خطأ في حفظ التوكن: $e');
+    print('❌ Error saving token: $e');
     rethrow;
   }
 }
@@ -60,21 +59,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String? _validateForm() {
     if (_phoneController.text.trim().isEmpty) {
-      return 'الرجاء إدخال رقم الهاتف';
+      return 'Please enter phone number';
     }
     if (!_phoneRegExp.hasMatch(_phoneController.text.trim())) {
-      return 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 09 ويتكون من 10 أرقام)';
+      return 'Phone number is incorrect (must start with 09 and consist of 10 digits)';
     }
 
     if (_passwordController.text.isEmpty) {
-      return 'الرجاء إدخال كلمة المرور';
+      return 'Please enter password';
     }
     if (_passwordController.text.length < 8) {
-      return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+      return 'Password must be at least 8 characters';
     }
 
     if (_userType == null) {
-      return 'الرجاء اختيار نوع الحساب';
+      return 'Please select account type';
     }
 
     return null;
@@ -100,11 +99,11 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      print('📞 جاري تسجيل الدخول...');
-      print('📱 رقم الهاتف: ${_phoneController.text}');
-      print('🔑 نوع الحساب: $_userType');
+      print('📞 Logging in...');
+      print('📱 Phone number: ${_phoneController.text}');
+      print('🔑 Account type: $_userType');
 
-      // استدعاء خدمة تسجيل الدخول
+      // Call login service
       final response = await LoginServes.logIn(
         context,
         _phoneController.text,
@@ -112,57 +111,57 @@ class _LoginScreenState extends State<LoginScreen> {
         _userType!,
       );
 
-      print('✅ حالة الاستجابة: ${response?.statusCode}');
-      print('📥 استجابة الخادم: ${response?.data}');
+      print('✅ Response status: ${response?.statusCode}');
+      print('📥 Server response: ${response?.data}');
 
       if (response == null) {
-        throw Exception('فشل الاتصال بالخادم');
+        throw Exception('Failed to connect to server');
       }
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('فشل تسجيل الدخول: ${response.statusCode}');
+        throw Exception('Login failed: ${response.statusCode}');
       }
 
       final data = response.data as Map<String, dynamic>;
-      print('✅ البيانات المستلمة: $data');
+      print('✅ Received data: $data');
 
       final message = data['message'] as String?;
       final userData = data['user'] as Map<String, dynamic>?;
       final token = data['token'] as String?;
 
-      // ⚠️ **التحقق من البيانات الأساسية**
+      // ⚠️ **Verify basic data**
       if (token == null || token.isEmpty) {
         print('❌ token is null or empty');
-        throw Exception('لا يوجد رمز مصادقة في الاستجابة');
+        throw Exception('No authentication token in response');
       }
 
       if (userData == null) {
         print('❌ userData is null');
-        throw Exception('لا توجد بيانات مستخدم في الاستجابة');
+        throw Exception('No user data in response');
       }
 
-      print('🔐 التوكن المستلم: ${token.substring(0, 20)}...');
-      print('👤 بيانات المستخدم: $userData');
+      print('🔐 Token received: ${token.substring(0, 20)}...');
+      print('👤 User data: $userData');
 
-      // ✅ **1. حفظ التوكن باستخدام saveToken**
+      // ✅ **1. Save token using saveToken**
       await saveToken(token);
 
-      // ✅ **2. تحديث AuthProvider**
+      // ✅ **2. Update AuthProvider**
       String baseUrl = 'http://192.168.137.101:8000';
       String? profileImageUrl;
       String? idImageUrl;
 
       if (userData['personal_image'] != null) {
         profileImageUrl = '$baseUrl/storage/${userData['personal_image']}';
-        print('🖼️ رابط الصورة الشخصية: $profileImageUrl');
+        print('🖼️ Profile image URL: $profileImageUrl');
       }
 
       if (userData['national_id_image'] != null) {
         idImageUrl = '$baseUrl/storage/${userData['national_id_image']}';
-        print('🆔 رابط صورة الهوية: $idImageUrl');
+        print('🆔 ID image URL: $idImageUrl');
       }
 
-      // استخراج البيانات
+      // Extract data
       await authProvider.login(
         userId: userData['id']?.toString() ?? '0',
         firstName: userData['name']?.toString() ?? '',
@@ -173,35 +172,35 @@ class _LoginScreenState extends State<LoginScreen> {
             '${_phoneController.text}@temp.com',
         userType: userData['account_type']?.toString() ?? _userType!,
         birthDate: userData['birthdate']?.toString() ?? '',
-        profileImageUrl: profileImageUrl,
+        personalImage: profileImageUrl,
         idImageUrl: idImageUrl,
         token: token,
       );
 
-      // ✅ **3. عرض رسالة النجاح**
+      // ✅ **3. Show success message**
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message ?? 'تم تسجيل الدخول بنجاح'),
+          content: Text(message ?? 'Login successful'),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 2),
         ),
       );
 
-      // ✅ **4. التنقل بعد تأكيد الحفظ**
-      // انتظر قليلاً للتأكد من حفظ البيانات
+      // ✅ **4. Navigate after confirming save**
+      // Wait a bit to ensure data is saved
       await Future.delayed(const Duration(milliseconds: 500));
 
-      // التحقق من حفظ التوكن
+      // Verify token save
       final prefs = await SharedPreferences.getInstance();
       final savedToken = prefs.getString(kToken);
 
       if (savedToken == token) {
-        print('✅ التحقق النهائي: التوكن محفوظ وجاهز للاستخدام');
+        print('✅ Final verification: Token saved and ready for use');
 
         final accountType = userData['account_type']?.toString() ?? _userType!;
-        print('🎯 نوع الحساب للتنقل: $accountType');
+        print('🎯 Account type for navigation: $accountType');
 
-        // التنقل
+        // Navigation
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -211,29 +210,29 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        throw Exception('فشل في حفظ التوكن بشكل دائم');
+        throw Exception('Failed to save token permanently');
       }
     } on FormatException catch (e) {
-      print('❌ خطأ في تنسيق البيانات: $e');
+      print('❌ Data format error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('خطأ في تنسيق البيانات: $e'),
+          content: Text('Data format error: $e'),
           backgroundColor: Colors.red,
         ),
       );
     } on Exception catch (e) {
-      print('❌ خطأ عام: $e');
+      print('❌ General error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('خطأ في تسجيل الدخول: ${e.toString()}'),
+          content: Text('Login error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
     } catch (e) {
-      print('❌ خطأ غير متوقع: $e');
+      print('❌ Unexpected error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('حدث خطأ غير متوقع: ${e.toString()}'),
+          content: Text('Unexpected error occurred: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -252,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: DropdownButtonFormField<String>(
         initialValue: _userType,
         decoration: InputDecoration(
-          hintText: 'اختر نوع الحساب',
+          hintText: 'Select account type',
           hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),
           prefixIcon: Icon(
             Icons.person_pin,
@@ -278,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  value == 'owner' ? 'owner' : 'tenant',
+                  value == 'owner' ? 'Owner' : 'Tenant',
                   style: const TextStyle(color: darkTextColor),
                   textAlign: TextAlign.right,
                 ),
@@ -370,13 +369,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'جاري تسجيل الدخول...',
+                    'Logging in...',
                     style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ],
               )
               : const Text(
-                'تسجيل الدخول',
+                'Login',
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
     );
@@ -394,114 +393,109 @@ class _LoginScreenState extends State<LoginScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: primaryBackgroundColor,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: screenHeight,
-                  minWidth: screenWidth,
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      height: screenHeight * 0.35,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 40,
-                      ),
-                      alignment: Alignment.bottomRight,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFFF1F3F5),
-                            Color(0xFF005F73),
-                            Color(0xFF005F73),
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF005F73),
+                Color(0xFF005F73),
+                Color(0xFF005F73),
+                Color(0xFFF1F3F5),
+
+                Color(0xFFF1F3F5),
+                Color(0xFFF1F3F5),
+                Color(0xFF005F73),
+                Color(0xFF005F73),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: screenHeight,
+                    minWidth: screenWidth,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: screenHeight * 0.35,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 40,
+                        ),
+                        alignment: Alignment.bottomRight,
+                        decoration: const BoxDecoration(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: const [
+                            Icon(
+                              Icons.home_work,
+                              size: 150,
+                              color: cardBackgroundColor,
+                            ),
+                            SizedBox(height: 10),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: const [
-                          Icon(Icons.home_work, size: 150, color: Colors.white),
-                          SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      constraints: BoxConstraints(
-                        minHeight: screenHeight * 0.65,
-                      ),
-                      decoration: const BoxDecoration(
-                        color: cardBackgroundColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
+                      Container(
+                        constraints: BoxConstraints(
+                          minHeight: screenHeight * 0.65,
                         ),
-                      ),
-                      padding: const EdgeInsets.all(30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'تسجيل الدخول',
-                            style: TextStyle(
-                              color: darkTextColor,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.right,
+                        decoration: const BoxDecoration(
+                          color: cardBackgroundColor,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(40),
+                            topRight: Radius.circular(40),
                           ),
-                          const SizedBox(height: 30),
-                          _buildUserTypeDropdown(),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'رقم الهاتف (09XXXXXXXX)',
-                            icon: Icons.phone,
-                            controller: _phoneController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'كلمة المرور (8 أحرف على الأقل)',
-                            icon: Icons.lock,
-                            isPassword: true,
-                            controller: _passwordController,
-                          ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton(
-                              onPressed:
-                                  _isLoading
-                                      ? null
-                                      : () {
-                                        print('Forgot Password?');
-                                      },
-                              child: Text(
-                                'نسيت كلمة المرور؟',
-                                style: TextStyle(
-                                  color:
-                                      _isLoading
-                                          ? darkTextColor.withOpacity(0.3)
-                                          : darkTextColor.withOpacity(0.7),
-                                ),
+                        ),
+                        padding: const EdgeInsets.all(30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Login',
+                              style: TextStyle(
+                                color: darkTextColor,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.right,
                             ),
-                          ),
-                          const SizedBox(height: 30),
-                          _buildLoginButton(context),
-                          const SizedBox(height: 25),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 30),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'ليس لديك حساب؟',
+                            const SizedBox(height: 30),
+                            _buildUserTypeDropdown(),
+                            const SizedBox(height: 20),
+                            _buildInputField(
+                              hintText: 'Phone number (09XXXXXXXX)',
+                              icon: Icons.phone,
+                              controller: _phoneController,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildInputField(
+                              hintText: 'Password (at least 8 characters)',
+                              icon: Icons.lock,
+                              isPassword: true,
+                              controller: _passwordController,
+                            ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton(
+                                onPressed:
+                                    _isLoading
+                                        ? null
+                                        : () {
+                                          print('Forgot Password?');
+                                        },
+                                child: Text(
+                                  'Forgot Password?',
                                   style: TextStyle(
                                     color:
                                         _isLoading
@@ -509,51 +503,71 @@ class _LoginScreenState extends State<LoginScreen> {
                                             : darkTextColor.withOpacity(0.7),
                                   ),
                                 ),
-                                TextButton(
-                                  onPressed:
-                                      _isLoading
-                                          ? null
-                                          : () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder:
-                                                    (context) =>
-                                                        const SignUpScreen(),
-                                              ),
-                                            );
-                                          },
-                                  child: Text(
-                                    'إنشاء حساب',
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            _buildLoginButton(context),
+                            const SizedBox(height: 25),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 30),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Don\'t have an account?',
                                     style: TextStyle(
                                       color:
                                           _isLoading
-                                              ? accentColor.withOpacity(0.5)
-                                              : accentColor,
-                                      fontWeight: FontWeight.bold,
+                                              ? darkTextColor.withOpacity(0.3)
+                                              : darkTextColor.withOpacity(0.7),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  TextButton(
+                                    onPressed:
+                                        _isLoading
+                                            ? null
+                                            : () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder:
+                                                      (context) =>
+                                                          const SignUpScreen(),
+                                                ),
+                                              );
+                                            },
+                                    child: Text(
+                                      'Create Account',
+                                      style: TextStyle(
+                                        color:
+                                            _isLoading
+                                                ? accentColor.withOpacity(0.5)
+                                                : accentColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                    ],
                   ),
                 ),
               ),
-          ],
+              if (_isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

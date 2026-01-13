@@ -1,4 +1,7 @@
-// في ملف جديد apartment_model.dart
+// apartment_model.dart
+
+import 'package:flutter_application_8/network/urls.dart';
+
 class Apartment {
   final String id;
   final String name;
@@ -11,7 +14,7 @@ class Apartment {
   final double area;
   final double price;
   final String description;
-  final List<String> images;
+  final List<String> images; // هذه ستحتوي على الروابط الكاملة المصححة
   final bool isBooked;
   final DateTime createdAt;
 
@@ -32,23 +35,59 @@ class Apartment {
     required this.createdAt,
   });
 
-  // يمكنك إضافة toJson/fromJson إذا كنت سترسل البيانات للخادم
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'type': type,
-      'governorate': governorate,
-      'city': city,
-      'detailedLocation': detailedLocation,
-      'rooms': rooms,
-      'bathrooms': bathrooms,
-      'area': area,
-      'price': price,
-      'description': description,
-      'images': images,
-      'isBooked': isBooked,
-      'createdAt': createdAt.toIso8601String(),
-    };
+  factory Apartment.fromJson(Map<String, dynamic> json) {
+    // دالة داخلية للتعامل مع النصوص الفارغة
+    String safeString(dynamic value) => value?.toString() ?? '';
+
+    // دالة تصحيح رابط الصورة واستبدال الـ IP
+    String fixImageUrl(String path) {
+      if (path.isEmpty) return '';
+
+      // 1. استخراج اسم الصورة فقط (مثلاً: image.jpg)
+      // هذه الحركة تتجاهل كل الروابط القديمة والـ IPs الخاطئة القادمة من السيرفر
+      String fileName = path.split('/').last;
+
+      // 2. بناء الرابط يدوياً بالـ IP الجديد الذي يعمل عندك الآن
+      final String finalUrl =
+          "http://192.168.1.104:8000/storage/apartments/$fileName";
+
+      // هذا السطر للتأكد في الـ Debug Console أن العنوان تغير
+      print("✅ Fixed URL: $finalUrl");
+
+      return finalUrl;
+    }
+
+    // 1. معالجة الصور أولاً وتخزينها في قائمة مستقلة
+    List<String> parsedImages = [];
+    if (json['images'] is List) {
+      parsedImages = List<String>.from(
+        (json['images'] as List).map((item) {
+          if (item is Map && item.containsKey('image')) {
+            return fixImageUrl(item['image'].toString());
+          }
+          return fixImageUrl(item.toString());
+        }),
+      );
+    }
+
+    // 2. إرجاع كائن Apartment بعد تجهيز كافة البيانات
+    return Apartment(
+      id: safeString(json['id']),
+      name: safeString(json['name']),
+      type: safeString(json['type']),
+      governorate: safeString(json['governorate']),
+      city: safeString(json['city']),
+      detailedLocation: json['detailed_location']?.toString(),
+      description: safeString(json['description']),
+      rooms: int.tryParse(json['rooms']?.toString() ?? '0') ?? 0,
+      bathrooms: int.tryParse(json['bathrooms']?.toString() ?? '0') ?? 0,
+      area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      images: parsedImages, // استخدام القائمة الجاهزة
+      isBooked: json['is_booked'] == 1 || json['is_booked'] == true,
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+    );
   }
 }

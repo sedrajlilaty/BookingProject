@@ -30,35 +30,17 @@ class AuthProvider extends ChangeNotifier {
       final userJson = _prefs.getString('user_data');
       final token = _prefs.getString('auth_token');
 
-      if (token != null) {
-        CacheHelper.saveData(key: 'token', value: token);
-      }
-
       if (userJson != null && token != null) {
-        try {
-          final userMap = jsonDecode(userJson) as Map<String, dynamic>;
+        final userMap = jsonDecode(userJson) as Map<String, dynamic>;
 
-          _user = User(
-            id: userMap['id']?.toString() ?? '',
-            firstName: userMap['firstName']?.toString() ?? '',
-            lastName: userMap['lastName']?.toString() ?? '',
-            phone: userMap['phone']?.toString() ?? '',
-            email: userMap['email']?.toString() ?? '',
-            userType: userMap['userType']?.toString() ?? '',
-            birthDate: userMap['birthDate']?.toString() ?? '',
-            profileImageUrl: userMap['profileImageUrl']?.toString(),
-            idImageUrl: userMap['idImageUrl']?.toString(),
-            token: token,
-          );
+        // ✅ التعديل: استخدم factory constructor لكي يتم تصحيح الـ IP تلقائياً
+        _user = User.fromJson(userMap);
 
-          _token = token;
-          notifyListeners();
-        } catch (e) {
-          await logout();
-        }
+        _token = token;
+        notifyListeners();
       }
     } catch (e) {
-      // Silent fail - no user data is normal for first launch
+      debugPrint("خطأ في تحميل البيانات المحلية: $e");
     }
   }
 
@@ -71,7 +53,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String userType,
     required String birthDate,
-    String? profileImageUrl,
+    String? personalImage,
     String? idImageUrl,
     required String token,
   }) async {
@@ -84,17 +66,17 @@ class AuthProvider extends ChangeNotifier {
         userEmail = '$phone@temp.com';
       }
 
-      String? fullProfileImageUrl = profileImageUrl;
+      String? fullProfileImageUrl = personalImage;
       String? fullIdImageUrl = idImageUrl;
 
-      if (profileImageUrl != null && !profileImageUrl.startsWith('http')) {
+      if (personalImage != null && !personalImage.startsWith('http')) {
         String baseUrl = Urls.domain;
-        fullProfileImageUrl = '$baseUrl/storage/$profileImageUrl';
+        fullProfileImageUrl = '$personalImage';
       }
 
       if (idImageUrl != null && !idImageUrl.startsWith('http')) {
         String baseUrl = Urls.domain;
-        fullIdImageUrl = '$baseUrl/storage/$idImageUrl';
+        fullIdImageUrl = '$idImageUrl';
       }
 
       final user = User(
@@ -105,7 +87,7 @@ class AuthProvider extends ChangeNotifier {
         email: userEmail,
         userType: userType,
         birthDate: birthDate,
-        profileImageUrl: fullProfileImageUrl,
+        personalImage: fullProfileImageUrl,
         idImageUrl: fullIdImageUrl,
         token: token,
       );

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
+import 'package:flutter_application_8/providers/authoProvider.dart';
+import 'package:flutter_application_8/providers/booking_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 
@@ -26,43 +29,58 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
   bool _isSubmitting = false;
 
   final List<String> _ratingPoints = [
-    'سيء جداً',
-    'سيء',
-    'متوسط',
-    'جيد',
-    'ممتاز',
+    'Very Bad',
+    'Bad',
+    'Average',
+    'Good',
+    'Excellent',
   ];
-
   void _submitRating() async {
-    if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء اختيار تقييم بالنجوم'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    if (_rating == 0) return;
 
     if (_formKey.currentState!.validate()) {
       setState(() => _isSubmitting = true);
-      await Future.delayed(const Duration(seconds: 1));
-      widget.onRatingSubmitted(_rating, _reviewController.text);
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('شكراً لتقييمك! تم حفظ التقييم بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      setState(() => _isSubmitting = false);
-    }
-  }
 
-  @override
-  void dispose() {
-    _reviewController.dispose();
-    super.dispose();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final bookingProvider = Provider.of<BookingProvider>(
+        context,
+        listen: false,
+      );
+
+      try {
+        // 1. إرسال التقييم للسيرفر
+        await bookingProvider.submitReview(
+          bookingId: widget.booking.id,
+          rating: _rating,
+          comment: _reviewController.text,
+          token: authProvider.token!,
+        );
+
+        // 2. تحديث قائمة الحجوزات فوراً لكي يتغير الزر في الخلفية
+        await bookingProvider.fetchUserBookings(authProvider.token!);
+
+        if (!mounted) return;
+
+        // 3. عرض رسالة النجاح *قبل* إغلاق الشاشة لضمان وجود سياق (Context) صالح
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم حفظ التقييم بنجاح!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // 4. الآن نغلق الشاشة ونعود للقائمة المحدثة
+        Navigator.pop(context);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isSubmitting = false);
+
+        // في حالة الخطأ، نعرض الرسالة دون إغلاق الشاشة لكي يعرف المستخدم ما حدث
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -82,15 +100,21 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
             backgroundColor: backgroundColor,
             appBar: AppBar(
               title: const Text(
-                'تقييم الشقة',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                'Rate Apartment',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               backgroundColor: accentColor,
               centerTitle: true,
               elevation: 4,
               automaticallyImplyLeading: true,
               shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(20),
+                ),
               ),
             ),
             body: SingleChildScrollView(
@@ -104,8 +128,12 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
 
                     Center(
                       child: Text(
-                        'كيف تقيم تجربتك في هذه الشقة؟',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                        'How do you rate your experience in this apartment?',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -117,7 +145,9 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
                             children: List.generate(5, (index) {
                               return IconButton(
                                 icon: Icon(
-                                  index < _rating.round() ? Icons.star : Icons.star_border,
+                                  index < _rating.round()
+                                      ? Icons.star
+                                      : Icons.star_border,
                                   color: starColor,
                                   size: 50,
                                 ),
@@ -129,8 +159,14 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _rating > 0 ? _ratingPoints[_rating.round() - 1] : '',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: starColor),
+                            _rating > 0
+                                ? _ratingPoints[_rating.round() - 1]
+                                : '',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: starColor,
+                            ),
                           ),
                           Text(
                             '${_rating.toStringAsFixed(1)} / 5',
@@ -146,20 +182,32 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _submitRating,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _rating > 0 ? accentColor : Colors.grey,
+                          backgroundColor:
+                              _rating > 0 ? accentColor : Colors.grey,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: _isSubmitting
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('تقييم الشقة', style: TextStyle(fontSize: 18, color: Colors.white)),
+                        child:
+                            _isSubmitting
+                                ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                                : const Text(
+                                  'Rate Apartment',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white,
+                                  ),
+                                ),
                       ),
                     ),
                     const SizedBox(height: 20),
 
                     Center(
                       child: Text(
-                        'تقييمك يساعد المستأجرين الآخرين على اتخاذ قرار أفضل',
+                        'Your rating helps other tenants make better decisions',
                         style: TextStyle(color: subTextColor, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),

@@ -11,15 +11,23 @@ class DoneAdd extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'Adding Appartement',
-          style: theme.textTheme.titleLarge?.copyWith(
+          "Adding Confirmed!",
+          style: const TextStyle(
+            fontSize: 20,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: primaryBackgroundColor,
-        elevation: 0,
+        backgroundColor: accentColor,
+        centerTitle: true,
+        elevation: 4,
+        automaticallyImplyLeading: false,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
       body: Center(
         child: Padding(

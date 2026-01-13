@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/network/Helper/cach_helper.dart';
+import 'package:flutter_application_8/providers/appartementProvider.dart';
+import 'package:flutter_application_8/providers/notificationProvider.dart';
 import 'package:flutter_application_8/screens/SplashScreen.dart';
 import 'package:sizer/sizer.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +23,8 @@ import 'main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  timeago.setLocaleMessages('ar', timeago.ArMessages());
+  timeago.setLocaleMessages('ar_short', timeago.ArShortMessages());
   // تهيئة SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -39,6 +43,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider(prefs)),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
+        ChangeNotifierProvider(create: (_) => ApartmentProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -72,18 +78,16 @@ class MyApp extends StatelessWidget {
                     GlobalWidgetsLocalizations.delegate,
                     GlobalCupertinoLocalizations.delegate,
                   ],
-                  supportedLocales: const [
-                    Locale('en'),
-                    Locale('ar'),
-                  ],
-                  themeMode: themeState is DarkState ? ThemeMode.dark : ThemeMode.light,
+                  supportedLocales: const [Locale('en'), Locale('ar')],
+                  themeMode:
+                      themeState is DarkState
+                          ? ThemeMode.dark
+                          : ThemeMode.light,
                   theme: ThemeData(
                     primarySwatch: Colors.blue,
                     brightness: Brightness.light,
                   ),
-                  darkTheme: ThemeData(
-                    brightness: Brightness.dark,
-                  ),
+                  darkTheme: ThemeData(brightness: Brightness.dark),
                   home: Consumer<AuthProvider>(
                     builder: (context, authProvider, _) {
                       if (authProvider.isLoading) {

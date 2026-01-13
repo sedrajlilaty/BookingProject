@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/services/favorateSErves.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,20 +27,25 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   @override
   void initState() {
     super.initState();
+    log(widget.apartment.images.first.image);
+    _checkFavoriteStatus();
     // التحقق إذا كانت الشقة موجودة في المفضلة
     /* isFavorite = FavoritesScreen.favoriteApartments.any(
       (apt) => apt['name'] == widget.apartment.name,
     );*/
   }
 
+  Future<void> _checkFavoriteStatus() async {
+    bool status = await FavoriteService().isFavorite(widget.apartment.id);
+    setState(() {
+      _isAlreadyFavorite = status;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final apartment = widget.apartment;
-    final List<String> images = [
-      'assets/images/apartment1_1.jpg',
-      'assets/images/apartment1_2.jpg',
-      'assets/images/apartment1_3.jpg',
-    ];
+
     //final images = apartment.images
 
     return BlocBuilder<ThemeCubit, ThemeState>(
@@ -55,6 +62,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
           body: Column(
             children: [
               // ================= IMAGES =================
+              // داخل ApartmentDetailsPage في كود الـ Scaffold
               SizedBox(
                 height: 350,
                 child: Stack(
@@ -66,14 +74,40 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         setState(() => _currentPage = index);
                       },
                       itemBuilder: (context, index) {
-                        return Image.asset(
-                          apartment.images[index].image,
+                        final String imagePath = apartment.images[index].image;
+                        return Image.network(
+                          imagePath,
+
                           fit: BoxFit.cover,
+
                           width: double.infinity,
+                          // مؤشر تحميل أثناء جلب الصورة من السيرفر
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                          // في حال فشل الرابط (مثلاً 404 أو خطأ شبكة)
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[300],
+                              width: double.infinity,
+                              child: const Icon(
+                                Icons.broken_image,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
-                    // زر الرجوع
+
+                    // زر الرجوع (الموجود في كودك الأصلي)
                     Positioned(
                       top: 40,
                       left: 20,
@@ -85,6 +119,8 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         ),
                       ),
                     ),
+
+                    // زر المفضلة (الموجود في كودك الأصلي)
                     Positioned(
                       top: 40,
                       right: 20,
@@ -93,57 +129,53 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                             isLoading
                                 ? null
                                 : () async {
-                                  // 1. استدعاء خدمة السيرفر
                                   final favoriteService = FavoriteService();
 
                                   setState(() {
-                                    isLoading =
-                                        true; // تفعيل مؤشر التحميل لمنع الضغط المتكرر
+                                    isLoading = true; // تفعيل مؤشر التحميل
                                   });
 
-                                  // 2. إرسال طلب (Toggle) للسيرفر (إضافة أو حذف بناءً على الحالة الحالية)
+                                  // إرسال الطلب للسيرفر
                                   bool success = await favoriteService
                                       .toggleFavorite(apartment.id);
 
                                   if (success) {
-                                    setState(() {
-                                      // 3. تحديث حالة القلب في الواجهة فقط عند نجاح طلب السيرفر
-                                      isFavorite = !isFavorite;
+                                    if (!mounted)
+                                      return; // حماية لضمان وجود السياق
 
-                                      /* ملاحظة: تم حذف التعامل مع القائمة المحلية FavoritesScreen.favoriteApartments 
-                لأن الكود الخاص بك الآن يجلب البيانات مباشرة من السيرفر عبر FutureBuilder 
-                في صفحة المفضلة، مما يمنع تعارض البيانات ويحل مشكلة الـ Error.
-                */
+                                    setState(() {
+                                      // تحديث الحالة: إذا كانت true تصبح false والعكس
+                                      isFavorite = !isFavorite;
                                     });
 
-                                    // رسالة تأكيد للمستخدم بناءً على الحالة الجديدة
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           isFavorite
                                               ? "تمت الإضافة للمفضلة"
                                               : "تمت الإزالة من المفضلة",
+                                          style: const TextStyle(
+                                            fontFamily: 'Cairo',
+                                          ),
                                         ),
+                                        backgroundColor:
+                                            isFavorite
+                                                ? Colors.redAccent
+                                                : Colors.grey,
                                         duration: const Duration(seconds: 1),
-                                      ),
-                                    );
-                                  } else {
-                                    // في حال فشل الاتصال بالسيرفر أو انتهاء صلاحية التوكن
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "عذراً، تعذر تحديث المفضلة.. تأكد من الاتصال",
-                                        ),
                                       ),
                                     );
                                   }
 
-                                  setState(() {
-                                    isLoading = false; // إيقاف مؤشر التحميل
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  }
                                 },
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
+                          // تلوين الحواف أو خلفية بسيطة لإبراز التغيير
                           child:
                               isLoading
                                   ? const SizedBox(
@@ -154,41 +186,47 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     ),
                                   )
                                   : Icon(
+                                    // 1. تغيير شكل الأيقونة بناءً على الحالة
                                     isFavorite
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    color: accentColor,
+                                    // 2. تلوين القلب باللون الأحمر إذا كان في المفضلة
+                                    color:
+                                        isFavorite ? Colors.red : Colors.grey,
+                                    size: 28,
                                   ),
                         ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 16,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          images.length,
-                          (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentPage == index ? 10 : 8,
-                            height: _currentPage == index ? 10 : 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color:
-                                  _currentPage == index
-                                      ? Colors.white
-                                      : Colors.white54,
+
+                    // نقاط التنقل (Dots Indicator)
+                    if (apartment.images.length > 1)
+                      Positioned(
+                        bottom: 16,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            apartment.images.length,
+                            (index) => Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentPage == index ? 10 : 8,
+                              height: _currentPage == index ? 10 : 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    _currentPage == index
+                                        ? Colors.white
+                                        : Colors.white54,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
-
               // ================= DETAILS =================
               Expanded(
                 child: Container(
@@ -211,21 +249,22 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                             color: accentColor,
                           ),
                         ),
+                        /*const SizedBox(height: 10),
+                        Text(
+                          'An amazing appartement in ${apartment.city}  with excellent details.',
+                          style: TextStyle(color: textColor.withOpacity(0.7)),
+                        ),*/
                         const SizedBox(height: 10),
                         Text(
-                          'شقة رائعة تقع في ${apartment.city} بمواصفات ممتازة.',
-                          style: TextStyle(color: textColor.withOpacity(0.7)),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          apartment.type,
+                          "Type: ${apartment.type}",
+
                           style: TextStyle(
                             color: textColor.withOpacity(0.7),
                             fontSize: 14,
                           ),
                         ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
 
                         /// الوصف
                         Text(
@@ -233,62 +272,63 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                           style: TextStyle(color: textColor.withOpacity(0.7)),
                         ),
 
-                        const SizedBox(height: 24),
-
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
+                        Text(
+                          "Details :",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: accentColor,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
 
                         /// التفاصيل
                         _info(
                           Icons.meeting_room,
-                          '${apartment.rooms} غرف',
+                          '${apartment.rooms} rooms',
                           textColor,
                         ),
                         _info(
                           Icons.bathtub,
-                          '${apartment.bathrooms} حمامات',
+                          '${apartment.bathrooms} bathrooms',
                           textColor,
                         ),
                         _info(Icons.map, apartment.location, textColor),
                         _info(
-                          Icons.location_city,
+                          Icons.location_on,
                           '${apartment.governorate} - ${apartment.city}',
                           textColor,
                         ),
 
-                        _info(Icons.location_on, apartment.city, textColor),
                         _info(
                           Icons.crop_square,
-                          '${apartment.area} متر مربع',
+                          '${apartment.area} m2',
                           textColor,
                         ),
                         _info(
                           Icons.attach_money,
-                          '${apartment.price} \$ / شهر',
+                          '${apartment.price} \$ / month',
                           textColor,
                         ),
-                        const SizedBox(height: 30),
-                        const SizedBox(height: 24),
 
                         /// التواريخ
                         _info(
                           Icons.calendar_today,
-                          'تاريخ الإضافة: ${formatDate(apartment.createdAt)}',
-                          textColor,
-                        ),
-                        _info(
-                          Icons.update,
-                          'آخر تعديل: ${formatDate(apartment.updatedAt)}',
+                          ' Date of adding: ${formatDate(apartment.createdAt)}',
                           textColor,
                         ),
 
-                        const SizedBox(height: 30),
                         Card(
                           color: accentColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 10,
+                            ),
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -296,10 +336,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                   backgroundColor: Colors.white,
                                   foregroundColor: accentColor,
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 14,
+                                    vertical: 5,
+                                    horizontal: 5,
                                   ),
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
+                                  // إظهار نافذة اختيار التاريخ أو الانتقال لصفحة الحجز الكاملة
+                                  // بعد أن يختار المستخدم التواريخ في صفحة FullBookingPage، يتم تنفيذ الطلب:
+
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -308,21 +352,26 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                             pricePerDay:
                                                 apartment.price.toDouble(),
                                             apartmentId:
-                                                apartment.id.toString(),
-                                            apartmentName:
-                                                apartment.name
-                                                    .toString(), // اسم الشقة
+                                                apartment
+                                                    .id, // نمرر الـ ID كرقم
+                                            apartmentName: apartment.name,
                                             apartmentImage:
-                                                apartment.images[0]
-                                                    .toString(), // رابط الصورة
+                                                apartment.images.isNotEmpty
+                                                    ? apartment.images[0].image
+                                                    : '',
                                             apartmentLocation:
-                                                apartment.location
-                                                    .toString(), // الموقع
+                                                apartment.location,
                                           ),
                                     ),
                                   );
                                 },
-                                child: const Text('حجز الآن'),
+                                child: const Text(
+                                  ' Book Now',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -363,7 +412,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   //     }
   //   });
   // }
-
+  bool _isAlreadyFavorite = false;
   // ================= INFO ROW =================
   Widget _info(IconData icon, String text, Color textColor) {
     return Padding(
