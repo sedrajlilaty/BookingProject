@@ -35,6 +35,14 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
+  Set<int> _locallyRatedBookings = {};
+
+  void markAsRated(int bookingId) {
+    _locallyRatedBookings.add(bookingId);
+    notifyListeners();
+  }
+
+  bool isRated(int bookingId) => _locallyRatedBookings.contains(bookingId);
   // 2. جلب حجوزات المستخدم (المستأجر - User)
   Future<void> fetchUserBookings(String token) async {
     _isLoading = true;
@@ -210,16 +218,12 @@ class BookingProvider extends ChangeNotifier {
     required String token,
   }) async {
     final dio = Dio();
-    // الرابط بناءً على الـ IP الصحيح وتجربة Postman
     final url = '${Urls.domain}/api/bookings/$bookingId/rate';
 
     try {
       final response = await dio.post(
         url,
-        data: {
-          'rating': rating.toInt(), // إرسال التقييم كعدد صحيح
-          'comment': comment, // إذا كان السيرفر يستقبل تعليقاً أيضاً
-        },
+        data: {'rating': rating.toInt(), 'comment': comment},
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -228,23 +232,46 @@ class BookingProvider extends ChangeNotifier {
         ),
       );
 
-      if (response.statusCode == 200) {
-        // تحديث الحالة محلياً لكي لا يظهر زر التقييم مرة أخرى
-        final index = _bookings.indexWhere(
-          (b) => b.id.toString() == bookingId.toString(),
-        );
-        if (index != -1) {
-          // نستخدم copyWith لتحديث حقل التقييم (تأكد من وجود الحقل في الموديل)
-          _bookings[index] = _bookings[index].copyWith(hasRated: true);
-          notifyListeners();
-        }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _updateLocalBookingStatus(
+          bookingId,
+        ); // دالة مساعدة لتحديث الحالة محلياً
       }
     } on DioException catch (e) {
       print("Rating Error: ${e.response?.data}");
-      throw Exception(e.response?.data['message'] ?? "Failed to submit rating");
+
+      // --- الحل هنا ---
+      // إذا كان السيرفر يخبرنا أن التقييم موجود مسبقاً (غالباً StatusCode 422 أو 400)
+      // أو إذا كانت الرسالة تحتوي على كلمة "already rated"
+      final errorMessage = e.response?.data['message']?.toString() ?? "";
+
+      if (errorMessage.contains("already rated") ||
+          e.response?.statusCode == 422) {
+        // حتى لو فشل الطلب لأنه مكرر، نعتبره "تم التقييم" لكي يتغير الزر في الواجهة
+        _updateLocalBookingStatus(bookingId);
+
+        // لا ترمي خطأ هنا لكي لا تظهر SnackBar حمراء للمستخدم، بل اعتبرها نجاحاً "منطقياً"
+        return;
+      }
+
+      throw Exception(
+        errorMessage.isEmpty ? "Failed to submit rating" : errorMessage,
+      );
     }
   }
 
+  // دالة مساعدة لتجنب تكرار الكود وتحديث القائمة
+  void _updateLocalBookingStatus(dynamic bookingId) {
+    final index = _bookings.indexWhere(
+      (b) => b.id.toString() == bookingId.toString(),
+    );
+    if (index != -1) {
+      _bookings[index] = _bookings[index].copyWith(hasRated: true);
+      // إذا كنت تستخدم الـ Set الذي اقترحناه سابقاً:
+      markAsRated(int.parse(bookingId.toString()));
+      notifyListeners();
+    }
+  }
   // أضف هذه المتغيرات لحفظ بيانات التقييم القادمة من السيرفر
 
   // متغير لحفظ بيانات التقييم بشكل مؤقت عند طلبها

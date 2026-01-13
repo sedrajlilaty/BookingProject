@@ -24,22 +24,52 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   int _currentPage = 0;
   bool isFavorite = false;
   bool isLoading = false;
+  bool isFavoriteLocal = false;
   @override
   void initState() {
     super.initState();
     log(widget.apartment.images.first.image);
     _checkFavoriteStatus();
-    // التحقق إذا كانت الشقة موجودة في المفضلة
-    /* isFavorite = FavoritesScreen.favoriteApartments.any(
-      (apt) => apt['name'] == widget.apartment.name,
-    );*/
+    isFavoriteLocal = widget.apartment.isFavorited;
+    //widget.apartment.isFavorited = !widget.apartment.isFavorited;
   }
 
-  Future<void> _checkFavoriteStatus() async {
-    bool status = await FavoriteService().isFavorite(widget.apartment.id);
+  void _toggleFavorite() async {
     setState(() {
-      _isAlreadyFavorite = status;
+      widget.apartment.isFavorited = !widget.apartment.isFavorited;
     });
+
+    try {
+      // هنا تستدعي الـ Provider الخاص بك لإرسال الطلب للسيرفر
+      // await Provider.of<FavoriteProvider>(context, listen: false).toggleFavorite(widget.apartment.id);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.apartment.isFavorited
+                ? "Added to Favorites"
+                : "Removed from Favorites",
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      // إذا فشل الطلب، نعيد الحالة كما كانت
+      setState(() {
+        widget.apartment.isFavorited = !widget.apartment.isFavorited;
+      });
+    }
+  }
+
+  void _checkFavoriteStatus() async {
+    final favoriteService = FavoriteService();
+    bool status = await favoriteService.isFavorite(widget.apartment.id);
+    if (mounted) {
+      setState(() {
+        isFavoriteLocal = status;
+        widget.apartment.isFavorited = status; // مزامنة الموديل
+      });
+    }
   }
 
   @override
@@ -56,7 +86,9 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
             isDark ? Colors.grey[900]! : Colors.brown.shade50;
         Color cardColor = isDark ? Colors.grey[800]! : Colors.white;
         Color textColor = isDark ? Colors.white : Colors.black87;
-
+        print(
+          "UI DEBUG: Apartment ${widget.apartment.name} isFavorited = ${widget.apartment.isFavorited}",
+        );
         return Scaffold(
           backgroundColor: backgroundColor,
           body: Column(
@@ -125,57 +157,48 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                       top: 40,
                       right: 20,
                       child: InkWell(
+                        // داخل InkWell -> onTap
                         onTap:
                             isLoading
                                 ? null
                                 : () async {
+                                  setState(() => isLoading = true);
+
                                   final favoriteService = FavoriteService();
-
-                                  setState(() {
-                                    isLoading = true; // تفعيل مؤشر التحميل
-                                  });
-
-                                  // إرسال الطلب للسيرفر
                                   bool success = await favoriteService
-                                      .toggleFavorite(apartment.id);
+                                      .toggleFavorite(widget.apartment.id);
+
+                                  if (!mounted)
+                                    return; // 💡 السطر الأهم لمنع الخطأ الذي ظهر في الصورة
 
                                   if (success) {
-                                    if (!mounted)
-                                      return; // حماية لضمان وجود السياق
-
                                     setState(() {
-                                      // تحديث الحالة: إذا كانت true تصبح false والعكس
-                                      isFavorite = !isFavorite;
+                                      isFavoriteLocal = !isFavoriteLocal;
+                                      widget.apartment.isFavorited =
+                                          isFavoriteLocal;
+                                      isLoading = false;
                                     });
 
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          isFavorite
+                                          isFavoriteLocal
                                               ? "تمت الإضافة للمفضلة"
-                                              : "تمت الإزالة من المفضلة",
-                                          style: const TextStyle(
-                                            fontFamily: 'Cairo',
-                                          ),
+                                              : "تم الحذف من المفضلة",
                                         ),
                                         backgroundColor:
-                                            isFavorite
+                                            isFavoriteLocal
                                                 ? Colors.redAccent
                                                 : Colors.grey,
-                                        duration: const Duration(seconds: 1),
                                       ),
                                     );
-                                  }
-
-                                  if (mounted) {
-                                    setState(() {
-                                      isLoading = false;
-                                    });
+                                  } else {
+                                    setState(() => isLoading = false);
                                   }
                                 },
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
-                          // تلوين الحواف أو خلفية بسيطة لإبراز التغيير
+                          // إضافة ظل خفيف للزر
                           child:
                               isLoading
                                   ? const SizedBox(
@@ -183,17 +206,21 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.redAccent,
+                                      ),
                                     ),
                                   )
                                   : Icon(
-                                    // 1. تغيير شكل الأيقونة بناءً على الحالة
-                                    isFavorite
+                                    // الاعتماد على الحالة الموجودة في الموديل apartment.isFavorited
+                                    apartment.isFavorited
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    // 2. تلوين القلب باللون الأحمر إذا كان في المفضلة
                                     color:
-                                        isFavorite ? Colors.red : Colors.grey,
-                                    size: 28,
+                                        apartment.isFavorited
+                                            ? Colors.red
+                                            : Colors.grey[400],
+                                    size: 26,
                                   ),
                         ),
                       ),

@@ -17,7 +17,7 @@ class Apartment {
   final List<String> images; // هذه ستحتوي على الروابط الكاملة المصححة
   final bool isBooked;
   final DateTime createdAt;
-
+  bool isFavorited;
   Apartment({
     required this.id,
     required this.name,
@@ -33,31 +33,37 @@ class Apartment {
     required this.images,
     this.isBooked = false,
     required this.createdAt,
+    this.isFavorited = false,
   });
 
   factory Apartment.fromJson(Map<String, dynamic> json) {
-    // دالة داخلية للتعامل مع النصوص الفارغة
+    final bool favoriteStatus =
+        json['is_favorited'] == true || json['is_favorited'] == 1;
+
+    // سطر الطباعة للتأكد من بيانات السيرفر
+    print(
+      "📡 Server Data for Apartment ${json['id']}: is_favorited = ${json['is_favorited']} (Parsed as: $favoriteStatus)",
+    );
     String safeString(dynamic value) => value?.toString() ?? '';
 
-    // دالة تصحيح رابط الصورة واستبدال الـ IP
     String fixImageUrl(String path) {
       if (path.isEmpty) return '';
 
-      // 1. استخراج اسم الصورة فقط (مثلاً: image.jpg)
-      // هذه الحركة تتجاهل كل الروابط القديمة والـ IPs الخاطئة القادمة من السيرفر
+      // 1. استخراج اسم الملف فقط
       String fileName = path.split('/').last;
 
-      // 2. بناء الرابط يدوياً بالـ IP الجديد الذي يعمل عندك الآن
-      final String finalUrl =
-          "http://192.168.1.104:8000/storage/apartments/$fileName";
+      // 2. بناء الرابط الصحيح: بدون كلمة /api/ وبدون تكرار storage
+      // تأكد أن الـ IP هو فعلاً 192.168.137.91 وهو الـ IP الخاص بجهاز الكمبيوتر حالياً
+      final String baseUrl = Urls.domain;
+      final String finalUrl = "$baseUrl/storage/apartments/$fileName";
 
-      // هذا السطر للتأكد في الـ Debug Console أن العنوان تغير
-      print("✅ Fixed URL: $finalUrl");
+      // هذا السطر للتأكد - ستلاحظ الآن اختفاء كلمة /api/
+      print("🎯 Corrected URL: $finalUrl");
 
       return finalUrl;
     }
 
-    // 1. معالجة الصور أولاً وتخزينها في قائمة مستقلة
+    // معالجة الصور بنفس المنطق السابق
     List<String> parsedImages = [];
     if (json['images'] is List) {
       parsedImages = List<String>.from(
@@ -70,7 +76,6 @@ class Apartment {
       );
     }
 
-    // 2. إرجاع كائن Apartment بعد تجهيز كافة البيانات
     return Apartment(
       id: safeString(json['id']),
       name: safeString(json['name']),
@@ -83,7 +88,8 @@ class Apartment {
       bathrooms: int.tryParse(json['bathrooms']?.toString() ?? '0') ?? 0,
       area: double.tryParse(json['area']?.toString() ?? '0') ?? 0.0,
       price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
-      images: parsedImages, // استخدام القائمة الجاهزة
+      images: parsedImages,
+      isFavorited: json['is_favorited'] == true || json['is_favorited'] == 1,
       isBooked: json['is_booked'] == 1 || json['is_booked'] == true,
       createdAt:
           DateTime.tryParse(json['created_at']?.toString() ?? '') ??

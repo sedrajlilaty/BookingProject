@@ -143,6 +143,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     bool isDark,
     int index,
   ) {
+    final model = ApartmentModel.fromJson(
+      apartment,
+    ); // تحويل الـ Map لموديل فوراً
+    final imageUrl =
+        model.images.isNotEmpty
+            ? model.images[0].image
+            : 'https://via.placeholder.com/150';
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
@@ -187,10 +194,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
                   ),
+
                   child: Image.network(
-                    apartment['image'] ??
-                        apartment['images']?[0]?['image'] ??
-                        'https://via.placeholder.com/150',
+                    imageUrl,
                     height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,

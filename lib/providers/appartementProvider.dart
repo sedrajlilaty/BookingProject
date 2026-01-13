@@ -48,4 +48,20 @@ class ApartmentProvider with ChangeNotifier {
     }
     return null;
   }
+  // داخل ملف appartementProvider.dart
+
+  Map<int, Apartment> _cachedApartments = {};
+  Map<int, Apartment> get cachedApartments => _cachedApartments;
+
+  Future<void> fetchMultipleApartments(List<int> ids) async {
+    for (var id in ids) {
+      if (!_cachedApartments.containsKey(id)) {
+        final apartment = await fetchApartmentById(id); // دالتك القديمة
+        if (apartment != null) {
+          _cachedApartments[id] = apartment;
+        }
+      }
+    }
+    notifyListeners();
+  }
 }
