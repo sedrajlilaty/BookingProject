@@ -28,10 +28,18 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   void initState() {
     super.initState();
     log(widget.apartment.images.first.image);
+    _checkFavoriteStatus();
     // التحقق إذا كانت الشقة موجودة في المفضلة
     /* isFavorite = FavoritesScreen.favoriteApartments.any(
       (apt) => apt['name'] == widget.apartment.name,
     );*/
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    bool status = await FavoriteService().isFavorite(widget.apartment.id);
+    setState(() {
+      _isAlreadyFavorite = status;
+    });
   }
 
   @override
@@ -69,7 +77,9 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         final String imagePath = apartment.images[index].image;
                         return Image.network(
                           imagePath,
+
                           fit: BoxFit.cover,
+
                           width: double.infinity,
                           // مؤشر تحميل أثناء جلب الصورة من السيرفر
                           loadingBuilder: (context, child, loadingProgress) {
@@ -119,57 +129,53 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                             isLoading
                                 ? null
                                 : () async {
-                                  // 1. استدعاء خدمة السيرفر
                                   final favoriteService = FavoriteService();
 
                                   setState(() {
-                                    isLoading =
-                                        true; // تفعيل مؤشر التحميل لمنع الضغط المتكرر
+                                    isLoading = true; // تفعيل مؤشر التحميل
                                   });
 
-                                  // 2. إرسال طلب (Toggle) للسيرفر (إضافة أو حذف بناءً على الحالة الحالية)
+                                  // إرسال الطلب للسيرفر
                                   bool success = await favoriteService
                                       .toggleFavorite(apartment.id);
 
                                   if (success) {
-                                    setState(() {
-                                      // 3. تحديث حالة القلب في الواجهة فقط عند نجاح طلب السيرفر
-                                      isFavorite = !isFavorite;
+                                    if (!mounted)
+                                      return; // حماية لضمان وجود السياق
 
-                                      /* ملاحظة: تم حذف التعامل مع القائمة المحلية FavoritesScreen.favoriteApartments 
-                لأن الكود الخاص بك الآن يجلب البيانات مباشرة من السيرفر عبر FutureBuilder 
-                في صفحة المفضلة، مما يمنع تعارض البيانات ويحل مشكلة الـ Error.
-                */
+                                    setState(() {
+                                      // تحديث الحالة: إذا كانت true تصبح false والعكس
+                                      isFavorite = !isFavorite;
                                     });
 
-                                    // رسالة تأكيد للمستخدم بناءً على الحالة الجديدة
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
                                           isFavorite
                                               ? "تمت الإضافة للمفضلة"
                                               : "تمت الإزالة من المفضلة",
+                                          style: const TextStyle(
+                                            fontFamily: 'Cairo',
+                                          ),
                                         ),
+                                        backgroundColor:
+                                            isFavorite
+                                                ? Colors.redAccent
+                                                : Colors.grey,
                                         duration: const Duration(seconds: 1),
-                                      ),
-                                    );
-                                  } else {
-                                    // في حال فشل الاتصال بالسيرفر أو انتهاء صلاحية التوكن
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "عذراً، تعذر تحديث المفضلة.. تأكد من الاتصال",
-                                        ),
                                       ),
                                     );
                                   }
 
-                                  setState(() {
-                                    isLoading = false; // إيقاف مؤشر التحميل
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  }
                                 },
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
+                          // تلوين الحواف أو خلفية بسيطة لإبراز التغيير
                           child:
                               isLoading
                                   ? const SizedBox(
@@ -180,10 +186,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     ),
                                   )
                                   : Icon(
+                                    // 1. تغيير شكل الأيقونة بناءً على الحالة
                                     isFavorite
                                         ? Icons.favorite
                                         : Icons.favorite_border,
-                                    color: accentColor,
+                                    // 2. تلوين القلب باللون الأحمر إذا كان في المفضلة
+                                    color:
+                                        isFavorite ? Colors.red : Colors.grey,
+                                    size: 28,
                                   ),
                         ),
                       ),
@@ -402,7 +412,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
   //     }
   //   });
   // }
-
+  bool _isAlreadyFavorite = false;
   // ================= INFO ROW =================
   Widget _info(IconData icon, String text, Color textColor) {
     return Padding(

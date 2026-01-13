@@ -301,6 +301,9 @@ class AppartmentCubit extends Cubit<AppartmentState> {
     }
   }
 
+  final Dio _dio = Dio();
+  // أضف هذا داخل كلاس FavoriteService
+
   // دالة للتحقق من صحة الصور
   Future<bool> _isValidImageFile(File file) async {
     try {
@@ -396,6 +399,32 @@ class AppartmentCubit extends Cubit<AppartmentState> {
       } else {
         emit(AppartmentCubitError(message: unknownError()));
       }
+    }
+  }
+
+  Future<List<dynamic>> getAllFavorites() async {
+    try {
+      // الحصول على التوكن (تأكد من طريقة تخزينك له، هنا مثال باستخدام SharedPreferences)
+      // String? token = await getStoredToken();
+      String? authToken = await _getAuthToken();
+      final response = await _dio.get(
+        '${Urls.domain}/api/favorites',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $authToken',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // السيرفر عادة يعيد قائمة من الشقق
+        return response.data['data'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print("❌ Error fetching favorites: $e");
+      return [];
     }
   }
 }

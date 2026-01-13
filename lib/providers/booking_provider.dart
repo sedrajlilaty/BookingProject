@@ -82,7 +82,17 @@ class BookingProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      debugPrint("خطأ في إنشاء حجز جديد: $e");
+      if (e is DioException) {
+        // طباعة تفاصيل الخطأ القادم من Laravel
+        debugPrint("❌ سبب رفض السيرفر (400): ${e.response?.data}");
+
+        // إذا كان هناك رسالة خطأ محددة في الـ JSON القادم من السيرفر
+        if (e.response?.data != null && e.response?.data['message'] != null) {
+          debugPrint("📝 رسالة الخطأ: ${e.response?.data['message']}");
+        }
+      } else {
+        debugPrint("خطأ غير متوقع: $e");
+      }
       return false;
     }
   }
@@ -231,6 +241,29 @@ class BookingProvider extends ChangeNotifier {
     } on DioException catch (e) {
       print("Rating Error: ${e.response?.data}");
       throw Exception(e.response?.data['message'] ?? "Failed to submit rating");
+    }
+  }
+
+  // أضف هذه المتغيرات لحفظ بيانات التقييم القادمة من السيرفر
+
+  // متغير لحفظ بيانات التقييم بشكل مؤقت عند طلبها
+  Map<String, dynamic>? currentApartmentRating;
+
+  Future<void> getApartmentRating(dynamic apartmentId) async {
+    final dio = Dio();
+    // الرابط بناءً على الـ IP الخاص بك والمسار في Postman
+    final url = '${Urls.baseUrl}/apartments/$apartmentId/rating';
+
+    try {
+      final response = await dio.get(url);
+      if (response.statusCode == 200) {
+        // السيرفر يرسل البيانات داخل حقل "data"
+        currentApartmentRating = response.data['data'];
+        notifyListeners();
+      }
+    } catch (e) {
+      print("Error fetching rating: $e");
+      throw Exception("فشل جلب بيانات التقييم من السيرفر");
     }
   }
 }

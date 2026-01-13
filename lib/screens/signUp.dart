@@ -632,9 +632,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       print('❌ Full error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'An error occurred while creating account: ${e.toString()}',
-          ),
+          content: Text('waiting for admin'),
           backgroundColor: Colors.red,
         ),
       );

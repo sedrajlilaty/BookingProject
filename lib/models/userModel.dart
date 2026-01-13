@@ -49,13 +49,13 @@ class User {
       // 2. استبدال أي IP قديم أو محلي بالـ IP الذي تستخدمه حالياً
       // سيحول 192.168.137.101 إلى 192.168.1.106
       fixedPath = rawPath
-          .replaceAll('192.168.137.101', '192.168.1.106')
-          .replaceAll('127.0.0.1', '192.168.1.106')
-          .replaceAll('localhost', '192.168.1.106');
+          .replaceAll('192.168.137.101', '192.168.1.104')
+          .replaceAll('127.0.0.1', '192.168.1.104')
+          .replaceAll('localhost', '192.168.1.104');
 
       // تأكد أن الرابط يبدأ بـ http
       if (!fixedPath.startsWith('http')) {
-        fixedPath = 'http://192.168.1.106:8000/storage/$fixedPath';
+        fixedPath = 'http://192.168.1.104:8000/storage/$fixedPath';
       }
     }
 

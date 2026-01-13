@@ -347,7 +347,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           ),
 
                         // 4. حالة الحجز المكتمل (Completed)
-                        if (booking.status == BookingStatus.completed)
+                        if (booking.status == BookingStatus.completed
+                        //  ||
+                        //     booking.status == BookingStatus.confirmed
+                        )
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () => _rateApartment(booking),
@@ -557,14 +560,40 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  void _rateApartment(Booking booking) {
+  void _rateApartment(Booking booking) async {
+    final bookingProvider = Provider.of<BookingProvider>(
+      context,
+      listen: false,
+    );
+
+    // إذا كان المستخدم قد قيم مسبقاً، نجلب التقييم من السيرفر ونعرضه
     if (booking.hasRated) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("لقد قمت بتقييم هذا الحجز مسبقاً")),
+      // إظهار مؤشر تحميل بسيط
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
+
+      try {
+        // جلب بيانات التقييم من السيرفر باستخدام apartmentId
+        await bookingProvider.getApartmentRating(booking.apartmentId);
+
+        Navigator.pop(context); // إغلاق مؤشر التحميل
+
+        // الانتقال لصفحة عرض التقييم (سنفترض وجود سكرين بهذا الاسم)
+        // أو يمكنك استخدام نفس صفحة التقييم مع تمرير مود العرض فقط
+        _showRatingDetailsSheet(bookingProvider.currentApartmentRating);
+      } catch (e) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("فشل جلب بيانات التقييم: $e")));
+      }
       return;
     }
 
+    // المنطق الأصلي في حال لم يتم التقييم بعد (فتح واجهة التقييم)
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -576,21 +605,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   context,
                   listen: false,
                 );
-
                 try {
-                  // استدعاء الدالة الجديدة التي كتبناها في البروفايدر
-                  await Provider.of<BookingProvider>(
-                    context,
-                    listen: false,
-                  ).submitReview(
+                  await bookingProvider.submitReview(
                     bookingId: booking.id,
                     rating: rating,
                     comment: review,
                     token: authProvider.token!,
                   );
-
-                  // نجاح العملية يتم معالجته داخل RateApartmentScreen بإظهار SnackBar
+                  // بعد النجاح، نحدث الحجوزات ليتغير الزر إلى "Show Rating"
+                  bookingProvider.fetchUserBookings(authProvider.token!);
                 } catch (e) {
+                  // يجب أن يكون السطر هنا بالداخل
+                  if (!mounted) return;
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(e.toString()),
@@ -601,6 +628,65 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               },
             ),
       ),
+    );
+  }
+
+  void _showRatingDetailsSheet(Map<String, dynamic>? data) {
+    if (data == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Apartment Rating",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Divider(),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.star, color: Colors.amber, size: 40),
+                  const SizedBox(width: 10),
+                  Text(
+                    "${data['average_rating']}", // القيمة القادمة من السيرفر
+                    style: const TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    " / 5",
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Total Reviews: ${data['total_reviews']}",
+                style: const TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(backgroundColor: accentColor),
+                child: const Text(
+                  "Close",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

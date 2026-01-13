@@ -265,4 +265,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
+
+  Future<bool> isFavorite(int apartmentId) async {
+    try {
+      List<dynamic> favorites = await _favoriteService.getAllFavorites();
+      // نتحقق إذا كان معرف الشقة موجود في القائمة المسترجعة من السيرفر
+      return favorites.any((item) => item['id'] == apartmentId);
+    } catch (e) {
+      return false;
+    }
+  }
 }

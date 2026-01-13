@@ -43,17 +43,18 @@ class Apartment {
     String fixImageUrl(String path) {
       if (path.isEmpty) return '';
 
-      // استبدال العناوين المحلية بـ IP الجهاز
-      String fixed = path
-          .replaceAll('127.0.0.1', '192.168.1.106')
-          .replaceAll('localhost', '192.168.1.106')
-          .replaceAll('192.168.137.101', '192.168.1.106');
+      // 1. استخراج اسم الصورة فقط (مثلاً: image.jpg)
+      // هذه الحركة تتجاهل كل الروابط القديمة والـ IPs الخاطئة القادمة من السيرفر
+      String fileName = path.split('/').last;
 
-      // إضافة النطاق (Domain) إذا كان المسار لا يبدأ بـ http
-      if (!fixed.startsWith('http')) {
-        return '${Urls.domain}/storage/$fixed';
-      }
-      return fixed;
+      // 2. بناء الرابط يدوياً بالـ IP الجديد الذي يعمل عندك الآن
+      final String finalUrl =
+          "http://192.168.1.104:8000/storage/apartments/$fileName";
+
+      // هذا السطر للتأكد في الـ Debug Console أن العنوان تغير
+      print("✅ Fixed URL: $finalUrl");
+
+      return finalUrl;
     }
 
     // 1. معالجة الصور أولاً وتخزينها في قائمة مستقلة

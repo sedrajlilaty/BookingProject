@@ -166,7 +166,7 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                         elevation: 5,
                       ),
                       child: const Text(
-                        'تسجيل الدخول',
+                        ' Log in',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -200,7 +200,7 @@ class _WelcomeScreenState extends State<WelcomeScreen2> {
                         ),
                       ),
                       child: Text(
-                        'إنشاء حساب جديد',
+                        'Create new account',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
