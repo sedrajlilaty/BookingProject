@@ -94,8 +94,8 @@ class ApartmentImage {
       String fileName = originalPath.split('/').last;
 
       // 2. بناء الرابط الجديد بالـ IP الصحيح ومسار الـ Storage
-      // ملاحظة: تأكد من الـ IP 192.168.137.91 أو استخدم AppUrls.baseUrl
-      fixedUrl = "http://192.168.1.104:8000/storage/apartments/$fileName";
+      // ملاحظة: تأكد من الـ IP 192.168.137.102 أو استخدم AppUrls.baseUrl
+      fixedUrl = "http://192.168.137.102:8000/storage/apartments/$fileName";
 
       print("🎯 Image Fixed in ApartmentImage: $fixedUrl");
     }

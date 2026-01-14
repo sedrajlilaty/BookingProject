@@ -19,28 +19,39 @@ class AddApartmentScreen extends StatefulWidget {
 }
 
 class _AddApartmentScreenState extends State<AddApartmentScreen> {
-  final _titleController = TextEditingController();
-  final _roomsController = TextEditingController();
-  final _bathroomsController = TextEditingController();
-  final _areaController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _discController = TextEditingController();
-  final _nameController = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _roomsController = TextEditingController();
+  final TextEditingController _bathroomsController = TextEditingController();
+  final TextEditingController _areaController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _discController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _governorateController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
 
-  final _governorateController = TextEditingController();
-  final _cityController = TextEditingController();
-
+  // قائمة المحافظات المطابقة للفلترة
   final List<String> _governorates = [
-    'Damascus',
     'Aleppo',
+    'Damascus',
     'Homs',
     'Tartous',
-    'Dubai',
-    'London',
-    'Paris',
+    'Latakia',
+    'Hama',
+    'Idlib',
   ];
 
-  List<String> _cities = [];
+  // خريطة المدن لكل محافظة (مطابقة للفلترة)
+  final Map<String, List<String>> _citiesByGovernorate = {
+    'Aleppo': ['Aleppo City', 'Al-Safira', 'Manbij', 'Al-Bab'],
+    'Damascus': ['Damascus City', 'Almujtahed', 'Alnaser'],
+    'Homs': ['Homs City', 'Tadmur', 'Al-Qusayr', 'Alwadi'],
+    'Tartous': ['Tartous City', 'Baniyas', 'Safita', 'Drekish'],
+    'Latakia': ['Latakia City', 'Jableh', 'Qardaha'],
+    'Hama': ['Hama City', 'Salamiyah', 'Masyaf'],
+    'Idlib': ['Idlib City', 'Ariha', 'Jisr al-Shughur'],
+  };
+
+  List<String> _availableCities = [];
   String? _selectedGovernorate;
   String? _selectedCity;
 
@@ -88,14 +99,14 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         _selectedGovernorate == null ||
         _selectedCity == null ||
         _selectedImages.isEmpty) {
-      String errorMessage = 'you must full all field\n';
-      if (_apartmentType == null) errorMessage += '•appartement type \n';
-      if (_nameController.text.isEmpty) errorMessage += '•  appartement name\n';
-      if (_selectedGovernorate == null) errorMessage += '• government\n';
-      if (_selectedCity == null) errorMessage += '• city\n';
+      String errorMessage = 'you must fill all fields\n';
+      if (_apartmentType == null) errorMessage += '• Apartment type\n';
+      if (_nameController.text.isEmpty) errorMessage += '• Apartment name\n';
+      if (_selectedGovernorate == null) errorMessage += '• Governorate\n';
+      if (_selectedCity == null) errorMessage += '• City\n';
       if (_selectedImages.isEmpty)
-        errorMessage += '•إadd photo for appartement\n';
-      if (_priceController.text.isEmpty) errorMessage += '• السعر\n';
+        errorMessage += '• Add photos for apartment\n';
+      if (_priceController.text.isEmpty) errorMessage += '• Price\n';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -193,7 +204,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
         setState(() {
           _apartmentType = text;
         });
-        onTap(text); // هون بترجع القيمة
+        onTap(text);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
@@ -235,7 +246,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
       children: [
         const SizedBox(height: 10),
         Text(
-          ' photos (${_selectedImages.length})',
+          'Photos (${_selectedImages.length})',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -257,7 +268,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                 Icon(Icons.photo_library, size: 50, color: Colors.grey[400]),
                 const SizedBox(height: 10),
                 Text(
-                  ' there is no photo yet',
+                  'No photos yet',
                   style: TextStyle(color: Colors.grey[500]),
                 ),
               ],
@@ -316,12 +327,18 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCities();
+    // تحميل المدن بناءً على المحافظة المحددة (إذا كانت موجودة)
+    if (_selectedGovernorate != null) {
+      _loadCitiesForGovernorate(_selectedGovernorate!);
+    } else {
+      _availableCities = [];
+    }
   }
 
-  void _loadCities() {
+  void _loadCitiesForGovernorate(String governorate) {
     setState(() {
-      _cities = ['Central park', 'Alwadi', 'Mujtahed', 'Alnaser'];
+      _availableCities = _citiesByGovernorate[governorate] ?? [];
+      _selectedCity = null; // إعادة تعيين المدينة عند تغيير المحافظة
     });
   }
 
@@ -343,7 +360,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
             backgroundColor: backgroundColor,
             appBar: AppBar(
               title: const Text(
-                'add appartement',
+                'Add Apartment',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -372,7 +389,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                   } else if (state is AppartmentCubitError) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("there is an error"),
+                        content: Text("There was an error"),
                         backgroundColor: Colors.red,
                         duration: const Duration(seconds: 3),
                       ),
@@ -408,7 +425,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     Icon(Icons.category, color: accentColor),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'appartement type',
+                                      'Apartment Type',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -453,7 +470,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'appartement photos',
+                                      'Apartment Photos',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -467,7 +484,6 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                   images: cubit.images,
                                   appartmentCubit: cubit,
                                 ),
-
                                 const SizedBox(height: 25),
                                 const SizedBox(height: 15),
                                 Align(
@@ -495,7 +511,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                 TextField(
                                   controller: cubit.nameController,
                                   decoration: _inputDecoration(
-                                    'Appartement name*',
+                                    'Apartment Name *',
                                     Icons.home,
                                     fieldColor,
                                     borderColor,
@@ -504,8 +520,10 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                   style: TextStyle(color: textColor),
                                 ),
                                 const SizedBox(height: 16),
+
+                                // Governorate Dropdown
                                 DropdownButtonFormField<String>(
-                                  initialValue: _selectedGovernorate,
+                                  value: _selectedGovernorate,
                                   decoration: _inputDecoration(
                                     'Select Governorate *',
                                     Icons.location_city,
@@ -525,17 +543,31 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                       }).toList(),
                                   onChanged: (value) {
                                     setState(() {
+                                      _selectedGovernorate = value;
                                       cubit.governorateController.text =
                                           value ?? '';
-                                      _selectedGovernorate = value;
+                                      // تحميل المدن الخاصة بالمحافظة المحددة
+                                      if (value != null) {
+                                        _loadCitiesForGovernorate(value);
+                                      } else {
+                                        _availableCities = [];
+                                      }
                                       _selectedCity = null;
-                                      _loadCities();
+                                      cubit.cityController.text = '';
                                     });
+                                  },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please select a governorate';
+                                    }
+                                    return null;
                                   },
                                 ),
                                 const SizedBox(height: 16),
+
+                                // City Dropdown (يعتمد على المحافظة المحددة)
                                 DropdownButtonFormField<String>(
-                                  initialValue: _selectedCity,
+                                  value: _selectedCity,
                                   decoration: _inputDecoration(
                                     'Select City *',
                                     Icons.location_on,
@@ -544,7 +576,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                     accentColor,
                                   ),
                                   items:
-                                      _cities.map((city) {
+                                      _availableCities.map((city) {
                                         return DropdownMenuItem(
                                           value: city,
                                           child: Text(
@@ -558,13 +590,25 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                           ? null
                                           : (value) {
                                             setState(() {
+                                              _selectedCity = value;
                                               cubit.cityController.text =
                                                   value ?? '';
-                                              _selectedCity = value;
                                             });
                                           },
+                                  validator: (value) {
+                                    if (_selectedGovernorate != null &&
+                                        (value == null || value.isEmpty)) {
+                                      return 'Please select a city';
+                                    }
+                                    return null;
+                                  },
+                                  disabledHint: Text(
+                                    'Select governorate first',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
+
                                 TextField(
                                   controller: cubit.locationController,
                                   decoration: _inputDecoration(
@@ -584,7 +628,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.roomsController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          ' rooms number',
+                                          'Number of Rooms *',
                                           Icons.bed,
                                           fieldColor,
                                           borderColor,
@@ -599,7 +643,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.bathroomsController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          ' bathrooms number',
+                                          'Number of Bathrooms *',
                                           Icons.bathtub,
                                           fieldColor,
                                           borderColor,
@@ -632,7 +676,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.areaController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          ' Area (sq.m) *',
+                                          'Area (sq.m) *',
                                           Icons.square_foot,
                                           fieldColor,
                                           borderColor,
@@ -647,7 +691,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                         controller: cubit.priceController,
                                         keyboardType: TextInputType.number,
                                         decoration: _inputDecoration(
-                                          'price  *',
+                                          'Price *',
                                           Icons.price_change,
                                           fieldColor,
                                           borderColor,
@@ -663,10 +707,13 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                   height: 60,
                                   child: ElevatedButton(
                                     onPressed:
-                                        _isLoading
+                                        _isLoading || state is AppartmentLoading
                                             ? null
                                             : () {
-                                              cubit.addAppartment();
+                                              if (cubit.formState.currentState!
+                                                  .validate()) {
+                                                cubit.addAppartment();
+                                              }
                                             },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: accentColor,
@@ -676,7 +723,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                       elevation: 3,
                                     ),
                                     child:
-                                        _isLoading
+                                        state is AppartmentLoading
                                             ? const CircularProgressIndicator(
                                               color: Colors.white,
                                             )
@@ -685,7 +732,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'Add Appartment',
+                                                  'Add Apartment',
                                                   style: TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.bold,
@@ -702,7 +749,7 @@ class _AddApartmentScreenState extends State<AddApartmentScreen> {
                           ),
                         ),
                       ),
-                      if (_isLoading)
+                      if (state is AppartmentLoading)
                         Container(
                           color: Colors.black.withOpacity(0.3),
                           child: const Center(
