@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart' show AppLocalizations;
 import 'package:flutter_application_8/models/apartment_model.dart';
 import 'package:flutter_application_8/models/booking_model.dart';
 import 'package:flutter_application_8/providers/appartementProvider.dart';
@@ -178,6 +179,9 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+     final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
     final dateFormat = DateFormat('yyyy-MM-dd');
 
     return BlocBuilder<ThemeCubit, ThemeState>(
@@ -193,7 +197,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: Text(
-              "Edit Booking",
+              loc.editBooking,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -219,7 +223,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                 const SizedBox(height: 25),
 
                 // Start date field (editable)
-                _buildLabel("Booking Start Date"),
+                _buildLabel(loc.bookingStartDate),
                 _buildDateSelector(
                   date: startDate,
                   format: dateFormat,
@@ -232,7 +236,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                 const SizedBox(height: 20),
 
                 // End date field (now editable)
-                _buildLabel("Booking End Date"),
+                _buildLabel(loc.bookingEndDate),
                 _buildDateSelector(
                   date: endDate,
                   format: dateFormat,
@@ -244,17 +248,17 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
 
                 const SizedBox(height: 20),
 
-                _buildLabel("Payment Method"),
+                _buildLabel(loc.paymentMethod),
                 DropdownButtonFormField<String>(
                   value: selectedPayment, // Note: use value not initialValue
                   decoration: _inputDecoration(cardColor, accent),
-                  items: const [
-                    DropdownMenuItem(value: 'cash', child: Text('Cash')),
+                  items:  [
+                    DropdownMenuItem(value: 'cash', child: Text(loc.cash)),
                     DropdownMenuItem(
                       value: 'credit_card',
-                      child: Text('Credit Card'),
+                      child: Text(loc.creditCard),
                     ),
-                    DropdownMenuItem(value: 'wallet', child: Text('E-Wallet')),
+                    DropdownMenuItem(value: 'wallet', child: Text(loc.eWallet)),
                   ],
                   onChanged: (value) {
                     if (value != null) setState(() => selectedPayment = value);
@@ -278,8 +282,8 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                             ? const CircularProgressIndicator(
                               color: Colors.white,
                             )
-                            : const Text(
-                              'Save Changes and Send to Server',
+                            :  Text(
+                             loc.saveChanges,
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
@@ -334,6 +338,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   }
 
   Widget _buildApartmentInfo(Color cardColor, Color accent) {
+    final loc = AppLocalizations.of(context)!;
     if (_isLoadingDetails) {
       return Center(
         child: Padding(
@@ -342,7 +347,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
         ),
       );
     }
-
+    
     return Card(
       color: cardColor,
       elevation: 3,
@@ -376,15 +381,18 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
                   ),
                 ],
               ),
+              
             const Divider(height: 25),
             Row(
+              
               mainAxisAlignment: MainAxisAlignment.spaceAround,
+              
               children: [
                 _buildInfoColumn(
-                  "Night Price",
+                  loc.nightPrice,
                   "\$${apartmentDetails?.price ?? widget.booking.pricePerDay}",
                 ),
-                _buildInfoColumn("Area", "${apartmentDetails?.area ?? '—'} m²"),
+                _buildInfoColumn(loc.area, "${apartmentDetails?.area ?? '—'} m²"),
               ],
             ),
           ],
@@ -406,6 +414,7 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
   }
 
   Widget _buildPriceSummary(Color cardColor, Color textColor, Color accent) {
+    final loc = AppLocalizations.of(context)!;
     int nights = endDate.difference(startDate).inDays;
     if (nights <= 0) nights = 1;
 
@@ -415,24 +424,24 @@ class _EditBookingScreenState extends State<EditBookingScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
-              'Price Summary',
+             Text(
+              loc.priceSummary,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const Divider(),
             _buildRow(
-              'Night Price',
+              loc.nightPrice,
               '\$${apartmentDetails?.price ?? widget.booking.pricePerDay}',
               textColor: textColor,
             ),
             _buildRow(
-              'Number of Nights',
+             loc.numberOfNights,
               '$nights nights',
               textColor: textColor,
             ),
             const Divider(),
             _buildRow(
-              'New Total',
+              loc.newTotal,
               '\$${totalPrice.toStringAsFixed(2)}',
               isTotal: true,
               accent: accent,

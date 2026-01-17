@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/Theme/theme_cubit.dart';
+import 'package:flutter_application_8/Theme/theme_state.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart'
+    show AppLocalizations;
 import 'package:flutter_application_8/models/apartment_model.dart';
 import 'package:flutter_application_8/providers/appartementProvider.dart';
 import 'package:flutter_application_8/screens/tanent/edit_booking_screen.dart';
 import 'package:flutter_application_8/screens/tanent/rate_apartment_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application_8/providers/booking_provider.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
@@ -31,106 +36,75 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       }
     });
   }
-
-  @override
+@override
   Widget build(BuildContext context) {
     final bookingProvider = Provider.of<BookingProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final now = DateTime.now();
-    final allBookings = bookingProvider.bookings;
-    // 1. الحجوزات المعلقة كما هي
-    final pendingBookings =
-        allBookings.where((b) => b.status == BookingStatus.pending).toList();
+    final loc = AppLocalizations.of(context)!;
 
-    // 2. الحجوزات المؤكدة (فقط التي لم ينتهِ تاريخها بعد)
-    final confirmedBookings =
-        allBookings.where((b) {
-          bool isConfirmedStatus = b.status == BookingStatus.confirmed;
-          bool isNotExpired = b.endDate.isAfter(now); // التاريخ لم ينتهِ بعد
-          return isConfirmedStatus && isNotExpired;
+    // جلب حالة الثيم لاستخراج الألوان
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        bool isDark = state is DarkState;
+        Color cardColor = isDark ? Colors.grey[800]! : Colors.white;
+
+        final now = DateTime.now();
+        final allBookings = bookingProvider.bookings;
+
+        final pendingBookings = allBookings.where((b) => b.status == BookingStatus.pending).toList();
+        
+        final confirmedBookings = allBookings.where((b) {
+          return b.status == BookingStatus.confirmed && b.endDate.isAfter(now);
         }).toList();
 
-    // 3. الحجوزات المكتملة (الحالات المكتملة رسمياً + الحالات المؤكدة التي انتهى تاريخها)
-    final completedBookings =
-        allBookings.where((b) {
+        final completedBookings = allBookings.where((b) {
           bool isCompletedStatus = b.status == BookingStatus.completed;
-          bool isExpiredConfirmed =
-              (b.status == BookingStatus.confirmed && b.endDate.isBefore(now));
+          bool isExpiredConfirmed = (b.status == BookingStatus.confirmed && b.endDate.isBefore(now));
           return isCompletedStatus || isExpiredConfirmed;
         }).toList();
 
-    // 4. الحجوزات الملغية كما هي
-    final cancelledBookings =
-        allBookings.where((b) => b.status == BookingStatus.cancelled).toList();
-    // جلب القائمة الكلية من البروفايدر
+        final cancelledBookings = allBookings.where((b) => b.status == BookingStatus.cancelled).toList();
 
-    // تقسيم الحجوزات حسب الحالة بناءً على الـ Enum
-    /* final pendingBookings =
-        allBookings.where((b) => b.status == BookingStatus.pending).toList();
-    final confirmedBookings =
-        allBookings.where((b) => b.status == BookingStatus.confirmed).toList();
-    final completedBookings =
-        allBookings.where((b) => b.status == BookingStatus.completed).toList();
-    final cancelledBookings =
-        allBookings.where((b) => b.status == BookingStatus.cancelled).toList();
-*/
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          title: const Text(
-            "My Booking",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-          backgroundColor: accentColor,
-          centerTitle: true,
-          elevation: 0,
-          bottom: TabBar(
-            isScrollable: true,
-            // لون النص للتبويب المختار حالياً
-            labelColor: Colors.white,
-            // لون النص للتبويبات غير المختارة
-            unselectedLabelColor: Colors.white70,
-            // ستايل الخط للتبويب المختار
-            labelStyle: const TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+        return DefaultTabController(
+          length: 4,
+          child: Scaffold(
+            backgroundColor: isDark ? Colors.black : Colors.grey[50],
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              title: Text(loc.myBooking, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              backgroundColor: accentColor,
+              centerTitle: true,
+              bottom: TabBar(
+                isScrollable: true,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                indicatorColor: Colors.white,
+                tabs: [
+                  Tab(text: loc.waiting),
+                  Tab(text: loc.confirmed),
+                  Tab(text: loc.done),
+                  Tab(text: loc.canceled),
+                ],
+              ),
             ),
-            // ستايل الخط للتبويبات غير المختارة
-            unselectedLabelStyle: const TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.normal,
-              fontSize: 13,
-            ),
-            indicatorColor: Colors.white,
-            indicatorWeight: 3,
-            tabs: const [
-              Tab(text: "waiting.."),
-              Tab(text: "confirmed"),
-              Tab(text: "Done"),
-              Tab(text: "canceled"),
-            ],
-          ),
-        ),
-        body:
-            bookingProvider.isLoading
+            body: bookingProvider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : TabBarView(
-                  children: [
-                    _buildBookingList(pendingBookings, authProvider.token!),
-                    _buildBookingList(confirmedBookings, authProvider.token!),
-                    _buildBookingList(completedBookings, authProvider.token!),
-                    _buildBookingList(cancelledBookings, authProvider.token!),
-                  ],
-                ),
-      ),
+                    children: [
+                      _buildBookingList(pendingBookings, authProvider.token!, cardColor),
+                      _buildBookingList(confirmedBookings, authProvider.token!, cardColor),
+                      _buildBookingList(completedBookings, authProvider.token!, cardColor),
+                      _buildBookingList(cancelledBookings, authProvider.token!, cardColor),
+                    ],
+                  ),
+          ),
+        );
+      },
     );
   }
 
   // بناء قائمة الحجوزات لكل تاب
-  Widget _buildBookingList(List<Booking> bookings, String token) {
+  Widget _buildBookingList(List<Booking> bookings, String token,Color cardColor) {
     if (bookings.isEmpty) {
       return _buildEmptyState();
     }
@@ -148,6 +122,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildEmptyState() {
+    final loc = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -155,7 +130,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Icon(Icons.event_busy, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            "There is no booking yet..",
+            loc.noBookingYet,
             style: TextStyle(
               fontSize: 18,
               color: Colors.grey[600],
@@ -163,7 +138,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text("start your first booking"),
+          Text(
+            loc.startFirstBooking,
+            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+          ),
         ],
       ),
     );
@@ -171,13 +149,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   // بناء كارد الحجز
   Widget _buildBookingCard(Booking booking) {
+    final loc = AppLocalizations.of(context)!;
+
     // استخدام Consumer للوصول إلى بيانات الشقق و AuthProvider للتوكن
     return Consumer2<ApartmentProvider, AuthProvider>(
       builder: (context, aptProv, authProv, child) {
         return FutureBuilder<Apartment?>(
-          // جلب تفاصيل الشقة بناءً على المعرف المخزن في الحجز
-          // داخل MyBookingsScreen
-          // داخل MyBookingsScreen في سطر 133
           future: aptProv.fetchApartmentById(booking.apartmentId),
           builder: (context, snapshot) {
             final apartment = snapshot.data;
@@ -195,7 +172,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   children: [
                     Row(
                       children: [
-                        // 1. عرض صورة الشقة (أو أيقونة مؤقتة في حال التحميل)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child:
@@ -228,14 +204,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                   ),
                         ),
                         const SizedBox(width: 12),
-
-                        // 2. معلومات الشقة (الاسم والمدينة)
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                apartment?.name ?? "loading name..",
+                                apartment?.name ?? loc.loadingName,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -256,7 +230,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     child: Text(
                                       apartment != null
                                           ? "${apartment.city}, ${apartment.governorate}"
-                                          : "loading location..",
+                                          : loc.loadingLocation,
                                       style: const TextStyle(
                                         color: Colors.grey,
                                         fontSize: 12,
@@ -269,32 +243,21 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             ],
                           ),
                         ),
-
-                        // 3. شارة الحالة (Badge)
-                        _buildStatusBadge(booking.status),
+                        _buildStatusBadge(booking.status, context),
                       ],
                     ),
-
                     const Divider(height: 30),
-
-                    // 4. عرض التواريخ والسعر الإجمالي
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildDateItem("from", booking.startDate),
-                        _buildDateItem("to", booking.endDate),
+                        _buildDateItem(loc.from, booking.startDate),
+                        _buildDateItem(loc.to, booking.endDate),
                         _buildPriceItem(booking.totalPrice),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-
-                    // 5. أزرار التحكم بناءً على حالة الحجز
-                    // 5. أزرار التحكم بناءً على حالة الحجز
-                    // 5. أزرار التحكم بناءً على حالة الحجز والتاريخ
                     Row(
                       children: [
-                        // تعريف متغير للتحقق مما إذا كان الحجز قد انتهى زمنياً
                         (() {
                           final isExpired = booking.endDate.isBefore(
                             DateTime.now(),
@@ -304,13 +267,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           final isCompleted =
                               booking.status == BookingStatus.completed;
 
-                          // الحالة الأولى: إذا كان الحجز "مكتمل" أو "مؤكد وانتهى تاريخه"
-                          // في هذه الحالة نعرض أزرار التقييم فقط
                           if (isCompleted || (isConfirmed && isExpired)) {
                             return Expanded(
                               child: Row(
                                 children: [
-                                  // زر عرض التقييمات
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed:
@@ -322,7 +282,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                         size: 16,
                                         color: Colors.amber,
                                       ),
-                                      label: const Text("Reviews"),
+                                      label: Text(loc.reviews),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.amber[900],
                                         side: BorderSide(
@@ -332,7 +292,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 8),
-                                  // زر إضافة تقييم
                                   Expanded(
                                     child: ElevatedButton.icon(
                                       onPressed: () => _rateApartment(booking),
@@ -341,8 +300,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                         size: 16,
                                         color: Colors.white,
                                       ),
-                                      label: const Text(
-                                        "Rate Now",
+                                      label: Text(
+                                        loc.rateNow,
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       style: ElevatedButton.styleFrom(
@@ -355,8 +314,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             );
                           }
 
-                          // الحالة الثانية: حجز مؤكد أو معلق ولم ينتهِ تاريخه بعد
-                          // نعرض أزرار التعديل والإلغاء
                           if ((booking.status == BookingStatus.pending ||
                                   isConfirmed) &&
                               !isExpired) {
@@ -368,7 +325,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                       onPressed:
                                           () => _cancelBooking(booking.id),
                                       icon: const Icon(Icons.close, size: 14),
-                                      label: const Text("Cancel"),
+                                      label: Text(loc.cancel),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.red,
                                         side: const BorderSide(
@@ -386,8 +343,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                         size: 16,
                                         color: Colors.white,
                                       ),
-                                      label: const Text(
-                                        "Edit",
+                                      label: Text(
+                                        loc.edit,
                                         style: TextStyle(color: Colors.white),
                                       ),
                                       style: ElevatedButton.styleFrom(
@@ -400,7 +357,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             );
                           }
 
-                          // الحالة الثالثة: بانتظار مراجعة التعديل
                           if (booking.status == BookingStatus.pendingUpdate) {
                             return Expanded(
                               child: Container(
@@ -413,10 +369,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     Radius.circular(8),
                                   ),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: Text(
-                                    "Modification under review...",
-                                    style: TextStyle(
+                                    loc.modificationUnderReview,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -426,13 +382,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             );
                           }
 
-                          // الحالة الرابعة: حجز ملغي
                           if (booking.status == BookingStatus.cancelled) {
-                            return const Expanded(
+                            return Expanded(
                               child: Center(
                                 child: Text(
-                                  "This booking is canceled",
-                                  style: TextStyle(
+                                  loc.bookingCanceled,
+                                  style: const TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -469,12 +424,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildPriceItem(double price) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        const Text("total", style: TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(loc.total, style: TextStyle(fontSize: 12, color: Colors.grey)),
         Text(
-          "${price.toStringAsFixed(0)} ر.س",
+          "${price.toStringAsFixed(0)} ل.س",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: accentColor,
@@ -485,31 +441,32 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  Widget _buildStatusBadge(BookingStatus status) {
+  Widget _buildStatusBadge(BookingStatus status, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     Color color;
     String text;
-
     switch (status) {
       case BookingStatus.confirmed:
         color = Colors.green;
-        text = "confirmed"; // Confirmed
+        text = loc.confirmed;
         break;
       case BookingStatus.cancelled:
         color = Colors.red;
-        text = "cancelled"; // Cancelled
+        text = loc.cancelled;
         break;
       case BookingStatus.completed:
         color = Colors.blue;
-        text = "completed"; // Completed
+        text = loc.completed;
         break;
       case BookingStatus.pendingUpdate:
         color = Colors.deepOrange;
-        text = "pending update"; // Pending modification approval
+        text = loc.pendingUpdate;
         break;
       case BookingStatus.pending:
       default:
         color = Colors.orange;
-        text = "pending"; // Waiting for initial approval
+        text = loc.pending;
     }
 
     return Container(
@@ -558,27 +515,22 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       context,
       listen: false,
     );
-
+    final loc = AppLocalizations.of(context)!;
     bool? confirm = await showDialog<bool>(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text(" confirm cancle"),
-            content: const Text(
-              "are you sure you want to cancle this booking?",
-            ),
+            title: Text(loc.confirmCancelTitle),
+            content: Text(loc.confirmCancelContent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text("no"),
+                child: Text(loc.no),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text(
-                  " confirm",
-                  style: TextStyle(color: Colors.white),
-                ),
+                child: Text(loc.confirm, style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -641,10 +593,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         _showRatingDetailsSheet(bookingProvider.currentApartmentRating);
       } catch (e) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("فشل جلب بيانات التقييم: $e")));
+        final loc = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${loc.errorFetchingReviews}: $e')),
+        );
       }
+
       return;
     }
 
@@ -695,13 +649,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
+        final loc = AppLocalizations.of(context)!;
         return Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+
             children: [
-              const Text(
-                "Apartment Rating",
+              Text(
+                loc.apartmentRating, // استدعاء الترجمة بدل النص الثابت
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const Divider(),
@@ -712,7 +668,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   const Icon(Icons.star, color: Colors.amber, size: 40),
                   const SizedBox(width: 10),
                   Text(
-                    "${data['average_rating']}", // القيمة القادمة من السيرفر
+                    "${data['average_rating']}", // يبقى من السيرفر
                     style: const TextStyle(
                       fontSize: 35,
                       fontWeight: FontWeight.bold,
@@ -726,16 +682,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                "Total Reviews: ${data['total_reviews']}",
-                style: const TextStyle(color: Colors.grey),
+                '${loc.totalReviews}: ${data['total_reviews']}', // ترجمة + بيانات runtime
+                style: TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(backgroundColor: accentColor),
-                child: const Text(
-                  "Close",
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  loc.close, // ترجمة زر الإغلاق
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ],
@@ -768,9 +724,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       _showRatingDetailsSheet(bookingProvider.currentApartmentRating);
     } catch (e) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error fetching reviews: $e")));
+      final loc = AppLocalizations.of(context)!; // ✅ استدعاء loc هنا
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${loc.errorFetchingReviews}: $e',
+          ), // ✅ النص مترجم مع البيانات runtime
+        ),
+      );
     }
   }
 }

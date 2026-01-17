@@ -1,9 +1,13 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart'
+    show AppLocalizations;
+import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:flutter_application_8/services/favorateSErves.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../../constants.dart';
@@ -74,6 +78,9 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
     final apartment = widget.apartment;
 
     //final images = apartment.images
@@ -183,8 +190,8 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                       SnackBar(
                                         content: Text(
                                           isFavoriteLocal
-                                              ? "تمت الإضافة للمفضلة"
-                                              : "تم الحذف من المفضلة",
+                                              ? loc.startAddingFavorite
+                                              : loc.removedFromFavorites,
                                         ),
                                         backgroundColor:
                                             isFavoriteLocal
@@ -301,7 +308,7 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
 
                         const SizedBox(height: 14),
                         Text(
-                          "Details :",
+                          loc.details,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -313,12 +320,12 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         /// التفاصيل
                         _info(
                           Icons.meeting_room,
-                          '${apartment.rooms} rooms',
+                          '${apartment.rooms} ${loc.rooms}',
                           textColor,
                         ),
                         _info(
                           Icons.bathtub,
-                          '${apartment.bathrooms} bathrooms',
+                          '${apartment.bathrooms} ${loc.bathrooms}',
                           textColor,
                         ),
                         _info(Icons.map, apartment.location, textColor),
@@ -335,14 +342,14 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                         ),
                         _info(
                           Icons.attach_money,
-                          '${apartment.price} \$ / month',
+                          '${apartment.price} ${loc.inDay}',
                           textColor,
                         ),
 
                         /// التواريخ
                         _info(
                           Icons.calendar_today,
-                          ' Date of adding: ${formatDate(apartment.createdAt)}',
+                          '${loc.dateOfAdding} ${formatDate(apartment.createdAt)}',
                           textColor,
                         ),
 
@@ -392,8 +399,8 @@ class _ApartmentDetailsPageState extends State<ApartmentDetailsPage> {
                                     ),
                                   );
                                 },
-                                child: const Text(
-                                  ' Book Now',
+                                child: Text(
+                                  loc.bookNow,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,

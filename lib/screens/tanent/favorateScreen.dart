@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart'
+    show AppLocalizations;
 import 'package:flutter_application_8/models/my_appartment_model.dart';
+import 'package:flutter_application_8/providers/authoProvider.dart'
+    show AuthProvider;
 import 'package:flutter_application_8/services/favorateSErves.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import '../../Theme/theme_cubit.dart';
 import '../../Theme/theme_state.dart';
 import '../../constants.dart';
@@ -20,6 +25,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
@@ -36,7 +44,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           backgroundColor: backgroundColor,
           appBar: AppBar(
             title: Text(
-              isDark ? 'المفضلة' : 'Favorites',
+              loc.favorites,
+
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -64,7 +73,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               if (snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data!.isEmpty) {
-                return _buildEmptyState(isDark);
+                return _buildEmptyState(isDark, loc);
               }
 
               // 3. حالة نجاح جلب البيانات
@@ -90,6 +99,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       iconBgColor,
                       isDark,
                       index,
+                      loc
                     );
                   },
                 ),
@@ -102,7 +112,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   // واجهة عرض القائمة الفارغة
-  Widget _buildEmptyState(bool isDark) {
+  Widget _buildEmptyState(bool isDark, AppLocalizations loc) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -112,9 +122,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             size: 100,
             color: isDark ? Colors.grey[600] : Colors.grey[400],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
-            'there is no favorate appartement',
+            loc.no,
             style: TextStyle(
               fontSize: 20,
               color: isDark ? Colors.grey[300] : Colors.grey[600],
@@ -122,7 +132,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            "start adding your favorate appartement",
+            loc.startAddingFavorite,
             style: TextStyle(
               color: isDark ? Colors.grey[400] : Colors.grey[500],
               fontSize: 16,
@@ -142,6 +152,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     Color iconBgColor,
     bool isDark,
     int index,
+      AppLocalizations loc,
+
   ) {
     final model = ApartmentModel.fromJson(
       apartment,
@@ -164,9 +176,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           );
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('error in loading appartement')),
-          );
+          final loc = AppLocalizations.of(context)!;
+
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(loc.errorLoadingApartment)));
         }
       },
       child: Container(
@@ -230,7 +244,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    apartment['name'] ?? 'without name',
+                    apartment['name'] ?? loc.withoutName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -249,14 +263,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        apartment['city'] ?? '  unkonown location',
+                        apartment['city'] ?? loc.unknownLocation,
                         style: TextStyle(fontSize: 12, color: subtitleColor),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${apartment['price'] ?? 0} / month',
+                    '${apartment['price'] ?? 0} ${loc.perMonth}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

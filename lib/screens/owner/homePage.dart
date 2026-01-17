@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart'
+    show AppLocalizations;
 import 'package:flutter_application_8/providers/notificationProvider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -71,14 +73,17 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
     '1,500 - 2,000 sq ft',
     '2,000+ sq ft',
   ];
+  List<String> get _roomsRanges {
+    final loc = AppLocalizations.of(context)!;
 
-  final List<String> _roomsRanges = [
-    'Any Rooms',
-    '1 Room',
-    '2 Rooms',
-    '3 Rooms',
-    '4+ Rooms',
-  ];
+    return [
+      loc.anyRooms, // "Any Rooms"
+      loc.oneRoom, // "1 Room"
+      loc.twoRooms, // "2 Rooms"
+      loc.threeRooms, // "3 Rooms"
+      loc.fourPlusRooms, // "4+ Rooms"
+    ];
+  }
 
   List<String> get _availableCities {
     return _citiesByGovernorate[_selectedGovernorate] ?? ['All Cities'];
@@ -1123,7 +1128,7 @@ class _ApartmentBookingScreenState extends State<ApartmentBookingScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '\$${apartment.price} / month',
+                                '\$${apartment.price} / inday',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: accentColor,

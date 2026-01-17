@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart'
+    show AppLocalizations;
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:provider/provider.dart';
 
@@ -243,6 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildUserTypeDropdown() {
+        final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -251,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: DropdownButtonFormField<String>(
         initialValue: _userType,
         decoration: InputDecoration(
-          hintText: 'Select account type',
+          hintText: loc.selectAccountType,
           hintStyle: TextStyle(color: darkTextColor.withOpacity(0.5)),
           prefixIcon: Icon(
             Icons.person_pin,
@@ -277,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  value == 'owner' ? 'Owner' : 'Tenant',
+                  value == 'owner' ? loc.owner : loc.tenant,
                   style: const TextStyle(color: darkTextColor),
                   textAlign: TextAlign.right,
                 ),
@@ -346,6 +349,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginButton(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return ElevatedButton(
       onPressed: _isLoading ? null : () => _handleLogin(context),
       style: ElevatedButton.styleFrom(
@@ -369,13 +374,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Logging in...',
+                    loc.loggingIn,
                     style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ],
               )
-              : const Text(
-                'Login',
+              :  Text(
+                loc.login,
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
     );
@@ -384,6 +389,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
     _isLoading = authProvider.isLoading;
 
     final screenHeight = MediaQuery.of(context).size.height;
@@ -460,8 +467,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text(
-                              'Login',
+                            Text(
+                              loc.login,
                               style: TextStyle(
                                 color: darkTextColor,
                                 fontSize: 28,
@@ -473,13 +480,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             _buildUserTypeDropdown(),
                             const SizedBox(height: 20),
                             _buildInputField(
-                              hintText: 'Phone number (09XXXXXXXX)',
+                              hintText: loc.phoneNumber,
                               icon: Icons.phone,
                               controller: _phoneController,
                             ),
                             const SizedBox(height: 20),
                             _buildInputField(
-                              hintText: 'Password (at least 8 characters)',
+                              hintText: loc.enterPassword,
                               icon: Icons.lock,
                               isPassword: true,
                               controller: _passwordController,
@@ -492,10 +499,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _isLoading
                                         ? null
                                         : () {
-                                          print('Forgot Password?');
+                                          print(loc.forgotPassword);
                                         },
                                 child: Text(
-                                  'Forgot Password?',
+                                  loc.forgotPassword,
                                   style: TextStyle(
                                     color:
                                         _isLoading
@@ -514,7 +521,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Don\'t have an account?',
+                                    loc.dontHaveAccount,
                                     style: TextStyle(
                                       color:
                                           _isLoading
@@ -537,7 +544,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               );
                                             },
                                     child: Text(
-                                      'Create Account',
+                                      loc.createAccount,
                                       style: TextStyle(
                                         color:
                                             _isLoading

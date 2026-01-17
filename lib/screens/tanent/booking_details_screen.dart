@@ -1,440 +1,449 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_application_8/constants.dart';
-import 'package:flutter_application_8/models/booking_model.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../Theme/theme_cubit.dart';
-import '../../Theme/theme_state.dart'; // تأكد من مسار ThemeCubit
+// import 'package:flutter/material.dart';
+// import 'package:flutter_application_8/constants.dart';
+// import 'package:flutter_application_8/l10n/app_localizations.dart'
+//     show AppLocalizations;
+// import 'package:flutter_application_8/models/booking_model.dart';
+// import 'package:flutter_application_8/providers/authoProvider.dart'
+//     show AuthProvider;
+// import 'package:intl/intl.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:provider/provider.dart';
+// import '../../Theme/theme_cubit.dart';
+// import '../../Theme/theme_state.dart';
 
-class BookingDetailsScreen extends StatelessWidget {
-  final Booking booking;
+// class BookingDetailsScreen extends StatelessWidget {
+//   final Booking booking;
 
-  const BookingDetailsScreen({super.key, required this.booking});
+//   const BookingDetailsScreen({super.key, required this.booking});
 
-  @override
-  Widget build(BuildContext context) {
-    final dateFormat = DateFormat('yyyy-MM-dd');
-    final timeFormat = DateFormat('hh:mm a');
-    final duration = booking.endDate.difference(booking.startDate).inDays;
+//   @override
+//   Widget build(BuildContext context) {
+//     final authProvider = Provider.of<AuthProvider>(context);
+//     final user = authProvider.user;
+//     final loc = AppLocalizations.of(context)!;
+//     final dateFormat = DateFormat('yyyy-MM-dd');
+//     final timeFormat = DateFormat('hh:mm a');
+//     final duration = booking.endDate.difference(booking.startDate).inDays;
 
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      builder: (context, state) {
-        bool isDark = state is DarkState;
+//     return BlocBuilder<ThemeCubit, ThemeState>(
+//       builder: (context, state) {
+//         bool isDark = state is DarkState;
 
-        // ألوان حسب الثيم
-        Color backgroundColor =
-            isDark ? Colors.grey[900]! : primaryBackgroundColor;
-        Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
-        Color textColor = isDark ? Colors.white : darkTextColor;
-        Color secondaryTextColor =
-            isDark ? Colors.grey[300]! : Colors.grey[600]!;
+//         // ألوان حسب الثيم
+//         Color backgroundColor =
+//             isDark ? Colors.grey[900]! : primaryBackgroundColor;
+//         Color cardColor = isDark ? Colors.grey[800]! : cardBackgroundColor;
+//         Color textColor = isDark ? Colors.white : darkTextColor;
+//         Color secondaryTextColor =
+//             isDark ? Colors.grey[300]! : Colors.grey[600]!;
 
-        return Scaffold(
-          backgroundColor: backgroundColor,
-          appBar: AppBar(
-            title: const Text(
-              ' booking derails',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: accentColor,
-            centerTitle: true,
-            elevation: 4,
-            automaticallyImplyLeading: false,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-            ),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // بطاقة الحجز الرئيسية
-                Card(
-                  color: cardColor,
-                  elevation: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                booking.apartmentName,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: textColor,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(
-                                  booking.status,
-                                ).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _getStatusColor(booking.status),
-                                ),
-                              ),
-                              child: Text(
-                                _getStatusText(booking.status),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStatusColor(booking.status),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          booking.apartmentLocation,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: secondaryTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+//         return Scaffold(
+//           backgroundColor: backgroundColor,
+//           appBar: AppBar(
+//             title: Text(
+//               loc.favorites,
+//               style: TextStyle(
+//                 fontSize: 20,
+//                 fontWeight: FontWeight.bold,
+//                 color: Colors.white,
+//               ),
+//             ),
+//             backgroundColor: accentColor,
+//             centerTitle: true,
+//             elevation: 4,
+//             automaticallyImplyLeading: false,
+//             shape: const RoundedRectangleBorder(
+//               borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+//             ),
+//           ),
+//           body: SingleChildScrollView(
+//             padding: const EdgeInsets.all(16),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 // بطاقة الحجز الرئيسية
+//                 Card(
+//                   color: cardColor,
+//                   elevation: 3,
+//                   child: Padding(
+//                     padding: const EdgeInsets.all(16),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             Expanded(
+//                               child: Text(
+//                                 booking.apartmentName,
+//                                 style: TextStyle(
+//                                   fontSize: 20,
+//                                   fontWeight: FontWeight.bold,
+//                                   color: textColor,
+//                                 ),
+//                               ),
+//                             ),
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(
+//                                 horizontal: 12,
+//                                 vertical: 6,
+//                               ),
+//                               decoration: BoxDecoration(
+//                                 color: _getStatusColor(
+//                                   booking.status,
+//                                 ).withOpacity(0.1),
+//                                 borderRadius: BorderRadius.circular(20),
+//                                 border: Border.all(
+//                                   color: _getStatusColor(booking.status),
+//                                 ),
+//                               ),
+//                               child: Text(
+//                                 _getStatusText(booking.status, loc),
+//                                 style: TextStyle(
+//                                   fontWeight: FontWeight.bold,
+//                                   color: _getStatusColor(booking.status),
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: 8),
+//                         Text(
+//                           booking.apartmentLocation,
+//                           style: TextStyle(
+//                             fontSize: 14,
+//                             color: secondaryTextColor,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
 
-                const SizedBox(height: 20),
+//                 const SizedBox(height: 20),
 
-                // معلومات الحجز
-                Text(
-                  " booking's information",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  ' booking id',
-                  booking.id,
-                  textColor,
-                  secondaryTextColor,
-                ),
-                _buildInfoRow(
-                  "booking's date",
-                  dateFormat.format(booking.bookingDate),
-                  textColor,
-                  secondaryTextColor,
-                ),
-                _buildInfoRow(
-                  ' booking time',
-                  timeFormat.format(booking.bookingDate),
-                  textColor,
-                  secondaryTextColor,
-                ),
+//                 // معلومات الحجز
+//                 Text(
+//                   loc.bookingInformation,
+//                   style: TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                     color: textColor,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 12),
+//                 _buildInfoRow(
+//                   loc.bookingId,
+//                   booking.id,
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
+//                 _buildInfoRow(
+//                   loc.bookingDate,
+//                   dateFormat.format(booking.bookingDate),
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
+//                 _buildInfoRow(
+//                   loc.bookingTime,
+//                   timeFormat.format(booking.bookingDate),
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
 
-                const SizedBox(height: 20),
+//                 const SizedBox(height: 20),
 
-                // التواريخ
-                Text(
-                  ' date of stay',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildDateCard(' start date', booking.startDate, isDark),
-                    const Icon(Icons.arrow_forward, color: Colors.grey),
-                    _buildDateCard(' end date', booking.endDate, isDark),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildInfoRow(
-                  'day of stay',
-                  '$duration يوم',
-                  textColor,
-                  secondaryTextColor,
-                ),
+//                 // التواريخ
+//                 Text(
+//                   loc.stayDates,
+//                   style: TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                     color: textColor,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 12),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                   children: [
+//                     _buildDateCard(loc.startDate, booking.startDate, isDark),
+//                     const Icon(Icons.arrow_forward, color: Colors.grey),
+//                     _buildDateCard(loc.endDate, booking.endDate, isDark),
+//                   ],
+//                 ),
+//                 const SizedBox(height: 16),
+//                 _buildInfoRow(
+//                   loc.stayDuration,
+//                   '$duration ${loc.day}',
 
-                const SizedBox(height: 20),
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
 
-                // المعلومات المالية
-                Text(
-                  'المعلومات المالية',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow(
-                  ' pirce for month',
-                  '\$${booking.pricePerDay.toStringAsFixed(2)}',
-                  textColor,
-                  secondaryTextColor,
-                ),
-                _buildInfoRow(
-                  'إجمالي السعر',
-                  '\$${booking.totalPrice.toStringAsFixed(2)}',
-                  textColor,
-                  secondaryTextColor,
-                ),
-                _buildInfoRow(
-                  ' payment method',
-                  booking.paymentMethod,
-                  textColor,
-                  secondaryTextColor,
-                ),
+//                 const SizedBox(height: 20),
 
-                const SizedBox(height: 20),
+//                 // المعلومات المالية
+//                 Text(
+//                   loc.financialInfo,
+//                   style: TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                     color: textColor,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 12),
+//                 _buildInfoRow(
+//                   loc.pricePerMonth,
+//                   '\$${booking.pricePerDay.toStringAsFixed(2)}',
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
+//                 _buildInfoRow(
+//                   loc.totalPrice,
+//                   '\$${booking.totalPrice.toStringAsFixed(2)}',
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
+//                 _buildInfoRow(
+//                   loc.paymentMethod,
+//                   booking.paymentMethod,
+//                   textColor,
+//                   secondaryTextColor,
+//                 ),
 
-                // تقييم المستخدم
-                if (booking.hasRated)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ' your rating',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Card(
-                        color: isDark ? Colors.grey[700] : Colors.amber[50],
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  for (int i = 0; i < 5; i++)
-                                    Icon(
-                                      i < (booking.userRating ?? 0).round()
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: Colors.amber,
-                                      size: 20,
-                                    ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${booking.userRating}/5',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (booking.userReview != null &&
-                                  booking.userReview!.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    booking.userReview!,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+//                 const SizedBox(height: 20),
 
-                const SizedBox(height: 30),
+//                 // تقييم المستخدم
+//                 if (booking.hasRated)
+//                   Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     children: [
+//                       Text(
+//                         loc.yourRating,
+//                         style: TextStyle(
+//                           fontSize: 18,
+//                           fontWeight: FontWeight.bold,
+//                           color: textColor,
+//                         ),
+//                       ),
+//                       const SizedBox(height: 12),
+//                       Card(
+//                         color: isDark ? Colors.grey[700] : Colors.amber[50],
+//                         child: Padding(
+//                           padding: const EdgeInsets.all(12),
+//                           child: Column(
+//                             crossAxisAlignment: CrossAxisAlignment.start,
+//                             children: [
+//                               Row(
+//                                 children: [
+//                                   for (int i = 0; i < 5; i++)
+//                                     Icon(
+//                                       i < (booking.userRating ?? 0).round()
+//                                           ? Icons.star
+//                                           : Icons.star_border,
+//                                       color: Colors.amber,
+//                                       size: 20,
+//                                     ),
+//                                   const SizedBox(width: 8),
+//                                   Text(
+//                                     '${booking.userRating}/5',
+//                                     style: const TextStyle(
+//                                       fontWeight: FontWeight.bold,
+//                                     ),
+//                                   ),
+//                                 ],
+//                               ),
+//                               if (booking.userReview != null &&
+//                                   booking.userReview!.isNotEmpty)
+//                                 Padding(
+//                                   padding: const EdgeInsets.only(top: 8),
+//                                   child: Text(
+//                                     booking.userReview!,
+//                                     style: TextStyle(
+//                                       fontSize: 14,
+//                                       color: textColor,
+//                                     ),
+//                                   ),
+//                                 ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
 
-                // أزرار الإجراءات
-                if (booking.status == BookingStatus.confirmed &&
-                    booking.endDate.isAfter(DateTime.now()))
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.edit),
-                          label: const Text(' edit booking'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.cancel),
-                          label: const Text(' cancel booking'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+//                 const SizedBox(height: 30),
 
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    Color textColor,
-    Color secondaryTextColor,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: secondaryTextColor),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+//                 // أزرار الإجراءات
+//                 if (booking.status == BookingStatus.confirmed &&
+//                     booking.endDate.isAfter(DateTime.now()))
+//                   Row(
+//                     children: [
+//                       Expanded(
+//                         child: ElevatedButton.icon(
+//                           icon: const Icon(Icons.edit),
+//                           label: Text(loc.editBooking),
+//                           onPressed: () {
+//                             Navigator.pop(context);
+//                           },
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Colors.blue,
+//                             padding: const EdgeInsets.symmetric(vertical: 12),
+//                           ),
+//                         ),
+//                       ),
+//                       const SizedBox(width: 12),
+//                       Expanded(
+//                         child: ElevatedButton.icon(
+//                           icon: const Icon(Icons.cancel),
+//                           label: Text(loc.cancelBooking),
+//                           onPressed: () {
+//                             Navigator.pop(context);
+//                           },
+//                           style: ElevatedButton.styleFrom(
+//                             backgroundColor: Colors.red,
+//                             padding: const EdgeInsets.symmetric(vertical: 12),
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
 
-  Widget _buildDateCard(String title, DateTime date, bool isDark) {
-    final dateFormat = DateFormat('yyyy-MM-dd');
-    return Expanded(
-      child: Card(
-        color: isDark ? Colors.grey[700] : Colors.blue[50],
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? Colors.grey[300]! : Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                dateFormat.format(date),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+//   Widget _buildInfoRow(
+//     String label,
+//     String value,
+//     Color textColor,
+//     Color secondaryTextColor,
+//   ) {
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(vertical: 8),
+//       child: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: [
+//           Text(
+//             label,
+//             style: TextStyle(fontSize: 14, color: secondaryTextColor),
+//           ),
+//           Text(
+//             value,
+//             style: TextStyle(
+//               fontSize: 14,
+//               fontWeight: FontWeight.bold,
+//               color: textColor,
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
 
-  Color _getStatusColor(BookingStatus status) {
-    switch (status) {
-      case BookingStatus.confirmed:
-        return Colors.green;
-      case BookingStatus.pending:
-        return Colors.orange;
-      case BookingStatus.cancelled:
-        return Colors.red;
-      case BookingStatus.completed:
-        return Colors.blue;
-      case BookingStatus.pendingUpdate: // الحالة الجديدة
-        return Colors.deepOrange;
-    }
-  }
+//   Widget _buildDateCard(String title, DateTime date, bool isDark) {
+//     final dateFormat = DateFormat('yyyy-MM-dd');
+//     return Expanded(
+//       child: Card(
+//         color: isDark ? Colors.grey[700] : Colors.blue[50],
+//         child: Padding(
+//           padding: const EdgeInsets.all(12),
+//           child: Column(
+//             children: [
+//               Text(
+//                 title,
+//                 style: TextStyle(
+//                   fontSize: 12,
+//                   color: isDark ? Colors.grey[300]! : Colors.blue,
+//                 ),
+//               ),
+//               const SizedBox(height: 4),
+//               Text(
+//                 dateFormat.format(date),
+//                 style: const TextStyle(
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
 
-  // تحديث ويدجت الشارة (Badge) لتوضيح الانتظار
-  Widget _buildStatusBadge(BookingStatus status) {
-    Color color = _getStatusColor(status);
-    String text;
+//   Color _getStatusColor(BookingStatus status) {
+//     switch (status) {
+//       case BookingStatus.confirmed:
+//         return Colors.green;
+//       case BookingStatus.pending:
+//         return Colors.orange;
+//       case BookingStatus.cancelled:
+//         return Colors.red;
+//       case BookingStatus.completed:
+//         return Colors.blue;
+//       case BookingStatus.pendingUpdate: // الحالة الجديدة
+//         return Colors.deepOrange;
+//     }
+//   }
 
-    switch (status) {
-      case BookingStatus.confirmed:
-        text = "confirmed";
-        break;
-      case BookingStatus.cancelled:
-        text = "cancelled";
-        break;
-      case BookingStatus.completed:
-        text = "completed";
-        break;
-      case BookingStatus.pendingUpdate:
-        text = "pending update";
-        break;
-      default:
-        text = "unknown";
-    }
+//   // تحديث ويدجت الشارة (Badge) لتوضيح الانتظار
+//   Widget _buildStatusBadge(BookingStatus status) {
+//     Color color = _getStatusColor(status);
+//     String text;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+//     switch (status) {
+//       case BookingStatus.confirmed:
+//         text = "confirmed";
+//         break;
+//       case BookingStatus.cancelled:
+//         text = "cancelled";
+//         break;
+//       case BookingStatus.completed:
+//         text = "completed";
+//         break;
+//       case BookingStatus.pendingUpdate:
+//         text = "pending update";
+//         break;
+//       default:
+//         text = "unknown";
+//     }
 
-  String _getStatusText(BookingStatus status) {
-    switch (status) {
-      case BookingStatus.confirmed:
-        return 'confirmed';
-      case BookingStatus.pending:
-        return ' pending';
-      case BookingStatus.cancelled:
-        return 'canceled';
-      case BookingStatus.completed:
-        return 'completed';
-      case BookingStatus.pendingUpdate: // إضافة الحالة الجديدة هنا
-        return '   pending update';
-      default:
-        return '  unknown';
-    }
-  }
-}
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+//       decoration: BoxDecoration(
+//         color: color.withOpacity(0.1),
+//         borderRadius: BorderRadius.circular(8),
+//         border: Border.all(color: color.withOpacity(0.5)),
+//       ),
+//       child: Text(
+//         text,
+//         style: TextStyle(
+//           color: color,
+//           fontSize: 12,
+//           fontWeight: FontWeight.bold,
+//         ),
+//       ),
+//     );
+//   }
+
+//   String _getStatusText(BookingStatus status, AppLocalizations loc) {
+//     switch (status) {
+//       case BookingStatus.confirmed:
+//         return loc.confirmed;
+//       case BookingStatus.pending:
+//         return loc.pending;
+//       case BookingStatus.cancelled:
+//         return loc.canceled;
+//       case BookingStatus.completed:
+//         return loc.completed;
+//       case BookingStatus.pendingUpdate: // إضافة الحالة الجديدة هنا
+//         return loc.pendingUpdate;
+//       default:
+//         return loc.unknown;
+//     }
+//   }
+// }

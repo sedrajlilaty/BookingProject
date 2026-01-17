@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/Theme/theme_cubit.dart';
+import 'package:flutter_application_8/Theme/theme_state.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_application_8/screens/welcomeScreen2.dart';
@@ -136,34 +139,78 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+Future<void> _selectDate(BuildContext context) async {
+  if (_isLoading) return;
 
-  Future<void> _selectDate(BuildContext context) async {
-    if (_isLoading) return;
+  DateTime? selectedDate;
 
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: primaryBackgroundColor,
-              onPrimary: accentColor,
-              onSurface: darkTextColor,
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("اختر التاريخ"),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: CalendarDatePicker(
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+                onDateChanged: (date) {
+                  selectedDate = date;
+                },
+                // تخصيص لون التقويم
+                initialCalendarMode: DatePickerMode.day,
+              ),
             ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
+            actions: [
+              // زر الإلغاء
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey,
+                ),
+                child: const Text("Cancel"),
+              ),
+              // زر التأكيد (تخصيص لونه هنا)
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedDate != null) {
+                    Navigator.pop(context, selectedDate);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentColor, // لون الخلفية
+                  foregroundColor: Colors.white, // لون النص
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 25,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text("Ok"),
+              ),
+            ],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          );
+        },
+      );
+    },
+  ).then((value) {
+    if (value != null && value is DateTime) {
       setState(() {
-        _dateController.text = "${picked.year}/${picked.month}/${picked.day}";
+        _dateController.text = "${value.year}/${value.month}/${value.day}";
       });
     }
-  }
+  });
+}
 
   Future<void> _pickImage(bool isIdImage) async {
     if (_isLoading) return;
@@ -679,194 +726,219 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    _isLoading = authProvider.isLoading;
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, state) {
+        final bool isDarkMode = state is DarkState;
 
-    final screenHeight = MediaQuery.of(context).size.height;
+        // Colors based on theme
+        final backgroundColor =
+            isDarkMode ? Colors.grey[900]! : primaryBackgroundColor;
+        final cardColor = isDarkMode ? Colors.grey[800]! : cardBackgroundColor;
+        final textColor = isDarkMode ? Colors.white : darkTextColor;
+        final secondaryBackground =
+            isDarkMode
+                ? Colors.grey[850]!
+                : primaryBackgroundColor.withOpacity(0.8);
+        final overlayColor =
+            isDarkMode
+                ? Colors.black.withOpacity(0.1)
+                : Colors.white.withOpacity(0.1);
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: primaryBackgroundColor,
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF005F73),
-                Color(0xFF005F73),
-                Color(0xFFF1F3F5),
-                Color(0xFF005F73),
-                Color(0xFF005F73),
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Container(
-                      height: screenHeight * 0.35,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 40,
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+        final authProvider = Provider.of<AuthProvider>(context);
+        _isLoading = authProvider.isLoading;
+
+        final screenHeight = MediaQuery.of(context).size.height;
+
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            backgroundColor: primaryBackgroundColor,
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF005F73),
+                    Color(0xFF005F73),
+                    Color(0xFFF1F3F5),
+                    Color(0xFF005F73),
+                    Color(0xFF005F73),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                          height: screenHeight * 0.35,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 40,
+                          ),
+                          child: Column(
                             children: [
-                              TextButton.icon(
-                                onPressed:
-                                    _isLoading
-                                        ? null
-                                        : () {
-                                          Navigator.pop(context);
-                                        },
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton.icon(
+                                    onPressed:
+                                        _isLoading
+                                            ? null
+                                            : () {
+                                              Navigator.pop(context);
+                                            },
 
-                                label: Text(
-                                  'Back to Login',
-                                  style: TextStyle(
+                                    label: Text(
+                                      'Back to Login',
+                                      style: TextStyle(
+                                        color:
+                                            _isLoading
+                                                ? cardBackgroundColor
+                                                    .withOpacity(0.5)
+                                                : cardBackgroundColor,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    icon: Icon(
+                                      Icons.arrow_forward_ios,
+                                      color:
+                                          _isLoading
+                                              ? Colors.white.withOpacity(0.5)
+                                              : Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(
+                                    Icons.home_work,
+                                    size: 150,
                                     color:
                                         _isLoading
                                             ? cardBackgroundColor.withOpacity(
-                                              0.5,
+                                              0.7,
                                             )
                                             : cardBackgroundColor,
-                                    fontSize: 16,
                                   ),
-                                ),
-                                icon: Icon(
-                                  Icons.arrow_forward_ios,
-                                  color:
-                                      _isLoading
-                                          ? Colors.white.withOpacity(0.5)
-                                          : Colors.white,
-                                  size: 18,
-                                ),
+                                ],
                               ),
+                              const SizedBox(height: 10),
                             ],
                           ),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Icon(
-                                Icons.home_work,
-                                size: 150,
-                                color:
-                                    _isLoading
-                                        ? cardBackgroundColor.withOpacity(0.7)
-                                        : cardBackgroundColor,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: cardBackgroundColor,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
                         ),
-                      ),
-                      padding: const EdgeInsets.all(30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Text(
-                            'Enter Your Information',
-                            style: TextStyle(
-                              color: darkTextColor,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: cardBackgroundColor,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(40),
+                              topRight: Radius.circular(40),
                             ),
-                            textAlign: TextAlign.right,
                           ),
-                          const SizedBox(height: 30),
-                          _buildInputField(
-                            hintText: 'First Name',
-                            icon: Icons.person,
-                            controller: _firstNameController,
+                          padding: const EdgeInsets.all(30),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                'Enter Your Information',
+                                style: TextStyle(
+                                  color: darkTextColor,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.right,
+                              ),
+                              const SizedBox(height: 30),
+                              _buildInputField(
+                                hintText: 'First Name',
+                                icon: Icons.person,
+                                controller: _firstNameController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'Last Name',
+                                icon: Icons.person_outline,
+                                controller: _lastNameController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildUserTypeDropdown(),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'Phone Number (09XXXXXXXX)',
+                                icon: Icons.phone,
+                                keyboardType: TextInputType.phone,
+                                controller: _phoneController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'Password (at least 8 characters)',
+                                icon: Icons.lock,
+                                isPassword: true,
+                                controller: _passwordController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                hintText: 'Confirm Password',
+                                icon: Icons.lock,
+                                isPassword: true,
+                                controller: _confirmPasswordController,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildInputField(
+                                controller: _dateController,
+                                hintText: 'Birth Date (YYYY/MM/DD)',
+                                icon: Icons.calendar_today,
+                                readOnly: true,
+                                onTap:
+                                    _isLoading
+                                        ? null
+                                        : () => _selectDate(context),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildImageUploadArea(
+                                'National ID Image (Front)',
+                                Icons.credit_card,
+                                true,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildImageUploadArea(
+                                'Profile Picture',
+                                Icons.camera_alt,
+                                false,
+                              ),
+                              const SizedBox(height: 30),
+                              _buildSubmitButton(context),
+                            ],
                           ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'Last Name',
-                            icon: Icons.person_outline,
-                            controller: _lastNameController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildUserTypeDropdown(),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'Phone Number (09XXXXXXXX)',
-                            icon: Icons.phone,
-                            keyboardType: TextInputType.phone,
-                            controller: _phoneController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'Password (at least 8 characters)',
-                            icon: Icons.lock,
-                            isPassword: true,
-                            controller: _passwordController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            hintText: 'Confirm Password',
-                            icon: Icons.lock,
-                            isPassword: true,
-                            controller: _confirmPasswordController,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildInputField(
-                            controller: _dateController,
-                            hintText: 'Birth Date (YYYY/MM/DD)',
-                            icon: Icons.calendar_today,
-                            readOnly: true,
-                            onTap:
-                                _isLoading ? null : () => _selectDate(context),
-                          ),
-                          const SizedBox(height: 20),
-                          _buildImageUploadArea(
-                            'National ID Image (Front)',
-                            Icons.credit_card,
-                            true,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildImageUploadArea(
-                            'Profile Picture',
-                            Icons.camera_alt,
-                            false,
-                          ),
-                          const SizedBox(height: 30),
-                          _buildSubmitButton(context),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_isLoading)
-                Container(
-                  color: Colors.black.withOpacity(0.3),
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-            ],
+                  if (_isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            accentColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

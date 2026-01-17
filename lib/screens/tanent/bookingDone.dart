@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart' show AppLocalizations;
+import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import '../owner/homePage.dart' show ApartmentBookingScreen;
 import 'myBookingScreen.dart' show MyBookingsScreen;
 import '../../Theme/theme_cubit.dart';
@@ -32,7 +35,9 @@ class BookingDone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy-MM-dd');
-
+      final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
@@ -46,8 +51,8 @@ class BookingDone extends StatelessWidget {
         return Scaffold(
           backgroundColor: backgroundColor,
           appBar: AppBar(
-            title: const Text(
-              'Booking Confirmation',
+            title:  Text(
+              loc.bookingConfirmation,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -78,7 +83,7 @@ class BookingDone extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Booking Request Sent - Awaiting Owner Approval',
+                 loc.modificationRequestSent,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -88,7 +93,7 @@ class BookingDone extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Booking ID: $bookingId',
+                  '${loc.bookingId} $bookingId',
                   style: TextStyle(
                     fontSize: 16,
                     color: textColor.withOpacity(0.7),
@@ -105,7 +110,7 @@ class BookingDone extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'What\'s Next?',
+                       loc.whatsNext,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: accent,
@@ -115,25 +120,25 @@ class BookingDone extends StatelessWidget {
                         const SizedBox(height: 8),
                         _buildTipItem(
                           Icons.notifications,
-                          'You will receive a confirmation via email',
+                          loc.tipEmailConfirmation,
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.phone,
-                          'The owner will contact you',
+                         loc.tipOwnerContact,
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.calendar_today,
-                          'You can review your bookings anytime',
+                        loc.tipReviewBookings,
                           accent,
                           textColor,
                         ),
                         _buildTipItem(
                           Icons.edit,
-                          'You can modify the booking within 24 hours',
+                        loc.modificationUnderReview,
                           accent,
                           textColor,
                         ),
@@ -162,8 +167,8 @@ class BookingDone extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'View My Bookings',
+                        child:  Text(
+                        loc.viewMyBookings,
                           style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                       ),
@@ -190,7 +195,7 @@ class BookingDone extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'Return to Home',
+                          loc.returnHome,
                           style: TextStyle(fontSize: 16, color: accent),
                         ),
                       ),
@@ -206,7 +211,7 @@ class BookingDone extends StatelessWidget {
                           Icon(Icons.share, size: 20, color: accent),
                           const SizedBox(width: 8),
                           Text(
-                            'Share Booking Details',
+                            loc.bookingDetails,
                             style: TextStyle(color: accent),
                           ),
                         ],
@@ -244,10 +249,12 @@ class BookingDone extends StatelessWidget {
   }
 
   void _shareBookingDetails(BuildContext context) {
+        final loc = AppLocalizations.of(context)!;
+
     final details = '''
 Your booking has been successfully confirmed!
 
-Booking ID: $bookingId
+ $bookingId
 Apartment Name: $apartmentName
 Check-in Date: ${DateFormat('yyyy-MM-dd').format(checkInDate)}
 Check-out Date: ${DateFormat('yyyy-MM-dd').format(checkOutDate)}
@@ -260,23 +267,23 @@ Thank you for using our app!
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Booking Details'),
+            title:  Text(loc.bookingDetails),
             content: SingleChildScrollView(child: Text(details)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child:  Text(loc.ok),
               ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Details copied to clipboard'),
+                     SnackBar(
+                      content: Text(loc.detailsCopied),
                     ),
                   );
                 },
-                child: const Text('Copy Details'),
+                child:  Text(loc.copyDetails),
               ),
             ],
           ),

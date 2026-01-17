@@ -239,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ? ClipOval(
                                   child: Image.network(
                                     user.personalImage!.replaceAll(
-                                      "192.168.137.101",
+                                      "192.168.1.102",
                                       currentIp,
                                     ),
 

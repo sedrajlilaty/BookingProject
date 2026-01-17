@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_8/providers/appartementProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_application_8/constants.dart';
 import 'package:flutter_application_8/providers/booking_provider.dart';
-import 'package:flutter_application_8/providers/authoProvider.dart';
+import 'package:flutter_application_8/providers/authoProvider.dart'; // تأكد من صحة اسم الملف لديك
+// تأكد من وجود بروفايدر الشقق
 import 'package:flutter_application_8/models/booking_model.dart';
+import 'package:flutter_application_8/models/apartment_model.dart';
 
 class BookingRequest extends StatefulWidget {
   const BookingRequest({super.key});
@@ -16,7 +19,7 @@ class _BookingRequestState extends State<BookingRequest> {
   @override
   void initState() {
     super.initState();
-    // Fetch owner requests when opening the page
+    // جلب طلبات الحجز الخاصة بالمؤجر عند فتح الصفحة
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.token != null) {
@@ -28,7 +31,7 @@ class _BookingRequestState extends State<BookingRequest> {
     });
   }
 
-  // Unified function to handle owner decisions (approve/reject) for both booking and modification
+  // تابع التعامل مع القبول أو الرفض
   Future<void> handleAction(dynamic bookingId, String action) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final bookingProvider = Provider.of<BookingProvider>(
@@ -43,9 +46,8 @@ class _BookingRequestState extends State<BookingRequest> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          action == 'approve'
-              ? 'Operation completed successfully'
-              : 'Request rejected',
+          action == 'approve' ? 'تمت العملية بنجاح' : 'تم رفض الطلب',
+          style: const TextStyle(fontFamily: 'Cairo'),
         ),
         backgroundColor: action == 'approve' ? Colors.green : Colors.red,
       ),
@@ -56,7 +58,7 @@ class _BookingRequestState extends State<BookingRequest> {
   Widget build(BuildContext context) {
     final bookingProvider = Provider.of<BookingProvider>(context);
 
-    // Filter list to include new booking requests (pending) and modification requests (pendingUpdate)
+    // فلترة الطلبات: المعلقة (pending) وطلبات التعديل (pendingUpdate)
     final allRequests =
         bookingProvider.bookings
             .where(
@@ -70,25 +72,18 @@ class _BookingRequestState extends State<BookingRequest> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
-          'Booking and Modification Requests',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          'طلبات الحجز والتعديل',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         backgroundColor: accentColor,
         centerTitle: true,
         elevation: 4,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
       ),
       body:
           bookingProvider.isLoading
               ? const Center(child: CircularProgressIndicator())
               : allRequests.isEmpty
-              ? const Center(child: Text("No pending requests at the moment"))
+              ? const Center(child: Text("لا توجد طلبات معلقة حالياً"))
               : RefreshIndicator(
                 onRefresh: () async {
                   final auth = Provider.of<AuthProvider>(
@@ -101,8 +96,7 @@ class _BookingRequestState extends State<BookingRequest> {
                   padding: const EdgeInsets.all(15),
                   itemCount: allRequests.length,
                   itemBuilder: (context, index) {
-                    final item = allRequests[index];
-                    return _buildRequestCard(item);
+                    return _buildRequestCard(allRequests[index]);
                   },
                 ),
               ),
@@ -110,11 +104,12 @@ class _BookingRequestState extends State<BookingRequest> {
   }
 
   Widget _buildRequestCard(Booking item) {
-    // Check if the request is a modification request
     bool isUpdateReq = item.status == BookingStatus.pendingUpdate;
+    // استدعاء ApartmentProvider لاستخدام تابع fetchApartmentById
+    final aptProvider = Provider.of<ApartmentProvider>(context, listen: false);
 
     return Card(
-      color: cardBackgroundColor,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 15),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
@@ -126,7 +121,7 @@ class _BookingRequestState extends State<BookingRequest> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Request #: #${item.id}",
+                  "رقم الطلب: #${item.id}",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -136,45 +131,55 @@ class _BookingRequestState extends State<BookingRequest> {
               ],
             ),
 
-            // Additional alert if the request is "modification"
-            if (isUpdateReq)
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.edit_calendar, color: Colors.orange, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      "Tenant requests date modification",
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            if (isUpdateReq) _modificationAlert(),
 
             const Divider(height: 25),
+
+            // --- هنا يتم جلب تفاصيل الشقة من السيرفر باستخدام التابع الخاص بك ---
+            FutureBuilder<Apartment?>(
+              future: aptProvider.fetchApartmentById(item.apartmentId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: LinearProgressIndicator(minHeight: 2),
+                  );
+                }
+
+                if (snapshot.hasData && snapshot.data != null) {
+                  final apartment = snapshot.data!;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "اسم الشقة: ${apartment.name}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "الموقع: ${apartment.governorate ?? 'غير محدد'}",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      ),
+                    ],
+                  );
+                }
+
+                // حالة فشل الجلب: نعرض البيانات الأساسية من كائن الحجز
+                return Text("الشقة: ${item.apartmentName ?? 'تحميل...'}");
+              },
+            ),
+
+            const SizedBox(height: 10),
             Text(
-              "Apartment Name: ${item.apartmentName}",
+              "التاريخ المطلوب: ${item.startDate.day}/${item.startDate.month} إلى ${item.endDate.day}/${item.endDate.month}",
               style: TextStyle(color: Colors.grey[700]),
             ),
             const SizedBox(height: 5),
             Text(
-              "Requested Dates: ${item.startDate.day}/${item.startDate.month} to ${item.endDate.day}/${item.endDate.month}",
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              "Updated Total Price: ${item.totalPrice} SAR",
+              "السعر الإجمالي: ${item.totalPrice} ريال",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: accentColor,
@@ -182,7 +187,7 @@ class _BookingRequestState extends State<BookingRequest> {
             ),
             const SizedBox(height: 15),
 
-            // Control buttons
+            // أزرار التحكم
             Row(
               children: [
                 Expanded(
@@ -190,13 +195,10 @@ class _BookingRequestState extends State<BookingRequest> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentColor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     onPressed: () => handleAction(item.id, 'approve'),
-                    icon: const Icon(Icons.check),
-                    label: Text(
-                      isUpdateReq ? "Approve Modification" : "Approve Booking",
-                    ),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: Text(isUpdateReq ? "قبول التعديل" : "قبول الحجز"),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -205,17 +207,10 @@ class _BookingRequestState extends State<BookingRequest> {
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.red),
                       foregroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    onPressed:
-                        () => handleAction(
-                          item.id,
-                          'reject',
-                        ), // Ensure spelling matches server 'cancel'
-                    icon: const Icon(Icons.close),
-                    label: Text(
-                      isUpdateReq ? "Reject Modification" : "Reject Booking",
-                    ),
+                    onPressed: () => handleAction(item.id, 'reject'),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: Text(isUpdateReq ? "رفض التعديل" : "رفض الحجز"),
                   ),
                 ),
               ],
@@ -234,12 +229,38 @@ class _BookingRequestState extends State<BookingRequest> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        isUpdate ? "New Modification" : "New Request",
+        isUpdate ? "طلب تعديل" : "حجز جديد",
         style: TextStyle(
           color: isUpdate ? Colors.deepOrange : Colors.orange,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
+      ),
+    );
+  }
+
+  Widget _modificationAlert() {
+    return Container(
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.orange.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.edit_calendar, color: Colors.orange, size: 20),
+          SizedBox(width: 8),
+          Text(
+            "المستأجر يطلب تعديل تاريخ الحجز",
+            style: TextStyle(
+              color: Colors.orange,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }

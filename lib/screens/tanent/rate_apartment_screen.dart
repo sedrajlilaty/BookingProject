@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_8/constants.dart';
+import 'package:flutter_application_8/l10n/app_localizations.dart' show AppLocalizations;
 import 'package:flutter_application_8/models/booking_model.dart';
 import 'package:flutter_application_8/providers/authoProvider.dart';
 import 'package:flutter_application_8/providers/booking_provider.dart';
@@ -27,15 +28,10 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
   final TextEditingController _reviewController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
-
-  final List<String> _ratingPoints = [
-    'Very Bad',
-    'Bad',
-    'Average',
-    'Good',
-    'Excellent',
-  ];
+  
+  
   void _submitRating() async {
+    
     if (_rating == 0) return;
 
     if (_formKey.currentState!.validate()) {
@@ -64,6 +60,7 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
         // 3. عرض رسالة النجاح *قبل* إغلاق الشاشة لضمان وجود سياق (Context) صالح
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
+            
             content: Text('تم حفظ التقييم بنجاح!'),
             backgroundColor: Colors.green,
           ),
@@ -85,6 +82,17 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+     final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final loc = AppLocalizations.of(context)!;
+      final List<String> _ratingPoints = [
+    
+    loc.veryBad,
+   loc.bad,
+    loc.average,
+    loc.good,
+   loc.excellent,
+  ];
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         final isDark = state is DarkState;
@@ -99,8 +107,8 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
           child: Scaffold(
             backgroundColor: backgroundColor,
             appBar: AppBar(
-              title: const Text(
-                'Rate Apartment',
+              title:  Text(
+                loc.rateApartment,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -128,7 +136,7 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
 
                     Center(
                       child: Text(
-                        'How do you rate your experience in this apartment?',
+                       loc.rateExperience,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -194,8 +202,8 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
                                 ? const CircularProgressIndicator(
                                   color: Colors.white,
                                 )
-                                : const Text(
-                                  'Rate Apartment',
+                                :  Text(
+                                  loc.rateApartment,
                                   style: TextStyle(
                                     fontSize: 18,
                                     color: Colors.white,
@@ -207,7 +215,7 @@ class _RateApartmentScreenState extends State<RateApartmentScreen> {
 
                     Center(
                       child: Text(
-                        'Your rating helps other tenants make better decisions',
+                       loc.ratingHelps,
                         style: TextStyle(color: subTextColor, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
