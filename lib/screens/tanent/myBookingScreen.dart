@@ -36,12 +36,36 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget build(BuildContext context) {
     final bookingProvider = Provider.of<BookingProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-
-    // جلب القائمة الكلية من البروفايدر
+    final now = DateTime.now();
     final allBookings = bookingProvider.bookings;
+    // 1. الحجوزات المعلقة كما هي
+    final pendingBookings =
+        allBookings.where((b) => b.status == BookingStatus.pending).toList();
+
+    // 2. الحجوزات المؤكدة (فقط التي لم ينتهِ تاريخها بعد)
+    final confirmedBookings =
+        allBookings.where((b) {
+          bool isConfirmedStatus = b.status == BookingStatus.confirmed;
+          bool isNotExpired = b.endDate.isAfter(now); // التاريخ لم ينتهِ بعد
+          return isConfirmedStatus && isNotExpired;
+        }).toList();
+
+    // 3. الحجوزات المكتملة (الحالات المكتملة رسمياً + الحالات المؤكدة التي انتهى تاريخها)
+    final completedBookings =
+        allBookings.where((b) {
+          bool isCompletedStatus = b.status == BookingStatus.completed;
+          bool isExpiredConfirmed =
+              (b.status == BookingStatus.confirmed && b.endDate.isBefore(now));
+          return isCompletedStatus || isExpiredConfirmed;
+        }).toList();
+
+    // 4. الحجوزات الملغية كما هي
+    final cancelledBookings =
+        allBookings.where((b) => b.status == BookingStatus.cancelled).toList();
+    // جلب القائمة الكلية من البروفايدر
 
     // تقسيم الحجوزات حسب الحالة بناءً على الـ Enum
-    final pendingBookings =
+    /* final pendingBookings =
         allBookings.where((b) => b.status == BookingStatus.pending).toList();
     final confirmedBookings =
         allBookings.where((b) => b.status == BookingStatus.confirmed).toList();
@@ -49,7 +73,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         allBookings.where((b) => b.status == BookingStatus.completed).toList();
     final cancelledBookings =
         allBookings.where((b) => b.status == BookingStatus.cancelled).toList();
-
+*/
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -266,128 +290,159 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     const SizedBox(height: 16),
 
                     // 5. أزرار التحكم بناءً على حالة الحجز
+                    // 5. أزرار التحكم بناءً على حالة الحجز
+                    // 5. أزرار التحكم بناءً على حالة الحجز والتاريخ
                     Row(
                       children: [
-                        // 1. إظهار أزرار (إلغاء وتعديل) إذا كان الحجز معلقاً أو مؤكداً
-                        // أزرار التحكم: تظهر في حالة Pending أو Confirmed
-                        if (booking.status == BookingStatus.pending ||
-                            booking.status == BookingStatus.confirmed) ...[
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _cancelBooking(booking.id),
-                              icon: const Icon(Icons.close, size: 14),
-                              label: const Text("Cancle"),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => _modifyBooking(booking),
-                              icon: const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                "Edit",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: accentColor,
-                              ),
-                            ),
-                          ),
-                        ],
+                        // تعريف متغير للتحقق مما إذا كان الحجز قد انتهى زمنياً
+                        (() {
+                          final isExpired = booking.endDate.isBefore(
+                            DateTime.now(),
+                          );
+                          final isConfirmed =
+                              booking.status == BookingStatus.confirmed;
+                          final isCompleted =
+                              booking.status == BookingStatus.completed;
 
-                        // إذا كان مؤكداً، يمكنك إبقاء زر التواصل أيضاً كخيار إضافي
-                        if (booking.status == BookingStatus.confirmed) ...[
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                /* منطق التواصل */
-                              },
-
-                              label: const Text(
-                                "Connect",
-                                style: TextStyle(color: Colors.white),
+                          // الحالة الأولى: إذا كان الحجز "مكتمل" أو "مؤكد وانتهى تاريخه"
+                          // في هذه الحالة نعرض أزرار التقييم فقط
+                          if (isCompleted || (isConfirmed && isExpired)) {
+                            return Expanded(
+                              child: Row(
+                                children: [
+                                  // زر عرض التقييمات
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed:
+                                          () => _showApartmentGeneralRatings(
+                                            booking.apartmentId,
+                                          ),
+                                      icon: const Icon(
+                                        Icons.star,
+                                        size: 16,
+                                        color: Colors.amber,
+                                      ),
+                                      label: const Text("Reviews"),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.amber[900],
+                                        side: BorderSide(
+                                          color: Colors.amber[700]!,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // زر إضافة تقييم
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _rateApartment(booking),
+                                      icon: const Icon(
+                                        Icons.add_comment,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                      label: const Text(
+                                        "Rate Now",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueGrey[700],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                              ),
-                            ),
-                          ),
-                        ],
+                            );
+                          }
 
-                        // 3. حالة بانتظار الموافقة على التعديل (Pending Update)
-                        if (booking.status == BookingStatus.pendingUpdate)
-                          Expanded(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.orangeAccent,
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(8),
+                          // الحالة الثانية: حجز مؤكد أو معلق ولم ينتهِ تاريخه بعد
+                          // نعرض أزرار التعديل والإلغاء
+                          if ((booking.status == BookingStatus.pending ||
+                                  isConfirmed) &&
+                              !isExpired) {
+                            return Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed:
+                                          () => _cancelBooking(booking.id),
+                                      icon: const Icon(Icons.close, size: 14),
+                                      label: const Text("Cancel"),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                        side: const BorderSide(
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _modifyBooking(booking),
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                      label: const Text(
+                                        "Edit",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: accentColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          // الحالة الثالثة: بانتظار مراجعة التعديل
+                          if (booking.status == BookingStatus.pendingUpdate) {
+                            return Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Colors.orangeAccent,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(8),
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: Text(
+                                    "Modification under review...",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
+                            );
+                          }
+
+                          // الحالة الرابعة: حجز ملغي
+                          if (booking.status == BookingStatus.cancelled) {
+                            return const Expanded(
                               child: Center(
                                 child: Text(
-                                  "Request for modification is under review...",
+                                  "This booking is canceled",
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.red,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          }
 
-                        // 4. حالة الحجز المكتمل (Completed)
-                        if (booking.status == BookingStatus.completed
-                        //  ||
-                        //     booking.status == BookingStatus.confirmed
-                        )
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => _rateApartment(booking),
-                              icon: Icon(
-                                booking.hasRated
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color: Colors.white,
-                              ),
-                              label: Text(
-                                booking.hasRated
-                                    ? " show your rating"
-                                    : "ratting ",
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    booking.hasRated
-                                        ? Colors.blueGrey
-                                        : Colors.amber[700],
-                              ),
-                            ),
-                          ),
-
-                        // 5. حالة الحجز الملغي (Cancelled)
-                        if (booking.status == BookingStatus.cancelled)
-                          const Expanded(
-                            child: Center(
-                              child: Text(
-                                "this booking is canceled",
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
+                          return const SizedBox.shrink();
+                        }()),
                       ],
                     ),
                   ],
@@ -688,5 +743,34 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         );
       },
     );
+  }
+
+  void _showApartmentGeneralRatings(dynamic apartmentId) async {
+    final bookingProvider = Provider.of<BookingProvider>(
+      context,
+      listen: false,
+    );
+
+    // إظهار Loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // جلب بيانات التقييم العامة للشقة
+      await bookingProvider.getApartmentRating(apartmentId);
+
+      Navigator.pop(context); // إغلاق الـ Loading
+
+      // عرض النتائج في الـ BottomSheet الذي قمت ببرمجته مسبقاً
+      _showRatingDetailsSheet(bookingProvider.currentApartmentRating);
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error fetching reviews: $e")));
+    }
   }
 }

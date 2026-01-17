@@ -168,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    const String currentIp = "192.168.1.104";
+    const String currentIp = Urls.IP;
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
         bool isDark = state is DarkState;
